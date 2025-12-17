@@ -605,12 +605,12 @@ function Card:set_ability(center, initial, delay_sprites)
             if name == 'Joker' then
                 self.base_cost = 1
                 self.ability.mult = 5
-            elseif (self.ability.t_mult or 0) > 0 or (self.ability.extra and self.ability.extra.s_mult or 0) > 0 or (self.ability.t_chips or 0) > 0 then
+            elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
                 self.base_cost = self.base_cost - 2
+                self.ability.extra.s_mult = 5
+            elseif (self.ability.t_mult or 0) > 0 or (self.ability.t_chips or 0) > 0 then
 
-                if name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-                    self.ability.extra.s_mult = 5
-                elseif name == 'Jolly Joker' then
+                if name == 'Jolly Joker' then
                     self.ability.t_mult = 10
                 elseif name == 'Zany Joker' then
                     self.ability.t_mult = 15
