@@ -1,15 +1,16 @@
 # 0.1.0
 - Joker gives +5 mult, costs $1
-- Jolly joker gives +10 mult
-- Zany joker gives +15 mult
-- Mad joker gives +12 mult
-- Crazy joker gives +30 mult
-- Droll joker gives +15 mult
-- Sly joker gives +100 chips
-- Wily joker gives +150 chips
-- Clever joker gives +150 chips
-- Devious joker gives +300 chips
-- Crafty joker gives +120 chips
+- Jolly joker gives +10 mult, costs $1
+- Zany joker gives +15 mult, costs $2
+- Mad joker gives +12 mult, costs $2
+- Crazy joker gives +30 mult, costs $2
+- Droll joker gives +15 mult, costs $2
+- Sly joker gives +100 chips, costs $1
+- Wily joker gives +150 chips, costs $2
+- Clever joker gives +120 chips, costs $2
+- Devious joker gives +300 chips, costs $2
+- Crafty joker gives +120 chips, costs $2
+- Suit Mult jokers +5 mult, costs $3
 - Brainstorm costs $8
 - Banner gives +100 chips
 - Castle gives +12 chips
