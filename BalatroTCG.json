@@ -1,0 +1,23 @@
+{
+	"id": "tcgb",
+	"name": "BalatroTCG",
+	"display_name": "BalatroTCG",
+	"author": [
+		"IsaGoodFriend"
+	],
+	"description": "Balatro, but a trading card game!",
+	"prefix": "tcgb",
+	"main_file": "main.lua",
+	"priority": 9007199254740991,
+	"badge_colour": "AC3232",
+	"badge_text_colour": "FFFFFF",
+	"version": "0.1.0",
+	"dependencies": [
+		"Steamodded (>=1.0.0~BETA-0711a)",
+		"Lovely (>=0.7)",
+		"Balatro (>=1.0.1o)"
+	],
+	"conflicts": [
+		"Cryptid (<<0.5.4)"
+	]
+}
