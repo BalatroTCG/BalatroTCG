@@ -1,0 +1,86 @@
+# 0.1.0
+- Joker gives +5 mult, costs $1
+- Jolly joker gives +10 mult
+- Zany joker gives +15 mult
+- Mad joker gives +12 mult
+- Crazy joker gives +30 mult
+- Droll joker gives +15 mult
+- Sly joker gives +100 chips
+- Wily joker gives +150 chips
+- Clever joker gives +150 chips
+- Devious joker gives +300 chips
+- Crafty joker gives +120 chips
+- Brainstorm costs $8
+- Banner gives +100 chips
+- Castle gives +12 chips
+- Stuntman gives +500 chips
+- Wee joker gives +18 chips
+- Odd Todd gives +75 chips
+- Runner gives +40 chips
+- Ice creams starts with +200 chips, decreases by -40
+- Hiker adds +12 chips
+- Square joker gives +8 chips, discards are included
+- Bull gives +50 chips
+- Blue joker gives +4 chips
+- Green Joker gives +4 and -4 mult respectively
+- Ride the buss gives +4 mult
+- Abstract gives +6 mult, includes opponent jokers
+- Even steven gives +6 mult
+- Popcorn starts with +30 mult decreases by -5
+- Fibonacci gives +13 mult
+- Fortune Teller gives +5 mult
+- Bootstraps gives +5 mult
+- Supernova gives +8 mult per hand
+- Swashbuckler gives + mult for your opponents jokers
+- Loyalty card gives 10x mult
+- Steel gives 0.5x mult
+- Blackboard gives 5x mult
+- Cavendish gives 10x mult
+- Constellation gives 0.5x mult
+- Madness gives 2x mult
+- Vampire gives 0.5x mult
+- Hologram gives 0x5x mult
+- Obelisk multiples mult by 1.5
+- Ramen decreases by 0.1x mult
+- Photograph applies to the last photo instead of the first
+- Lucky cat increases by 0.5x mult
+- Drivers license gives 10x mult
+- Hit the Road gives 10x mult
+- Flower Pot gives 10x mult
+- Duo gives 3x mult
+- Trio gives 4x mult
+- Family gives 5x mult
+- Order gives 10x mult
+- Tribe gives 3x mult
+- Canio gives 5x mult
+- Baseball gives 2x mult
+- Yorick gives 2.5x mult
+- Bloodstone gives 1.25x mult
+- Baron gives 1.25x
+- Idol and Mail picks cards equally
+- Vagabond triggers on $10
+- Oops costs $7
+- Merry Andy gives +2 discards
+- Burglar gives +2 hands
+- Trading card gives no money
+- Red card gives +10 mult if three or more non playing cards are in a discard
+- Rocket starts at $2, grows by $4 per round, destroys itself at $14
+- Flashcard gains +1 mult per non playing card in hand at end of round
+- Acrobat gains 0.5x mult per round
+- Campfire grows by 2x mult, reduces by 1x mult by round
+- Dusk triggers when $10 or less
+- Cloud 9 reduces damage takes by one per 4 nines in deck
+- Golden joker reduces damage taken by one
+- Mr. Bones reduces damage by 5% per Mr. Bones you have active
+- Chicot heals jokers by 3
+- Showman allows one extra copy of any kind of card in your deck
+- Riff raff gives one joker from your deck
+- Matador redirects all damage to it
+- Gold cards don't have a rank or suit, gives no chips and doesn't count toward the hand
+- Steel gives 1.25x mult
+- Lucky cards give $10 when hit
+- The soul turns one applicable joker eternal, removes eternal from the rest
+- Wraith draws your rare or legendary to your hand, doesn't reduce money
+- All jokers that create consumables draw from your deck or discard instead of creating new cards
+- Jokers that pick from suit or rank can be overwritten through Ouija or Sigil
+- Sigil transforms tarots to the suit tarot picked
