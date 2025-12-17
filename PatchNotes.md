@@ -82,6 +82,7 @@
 - Lucky cards give $10 when hit
 - The soul turns one applicable joker eternal, removes eternal from the rest
 - Wraith draws your rare or legendary to your hand, doesn't reduce money
+- Immolate doesn't give money
 - All jokers that create consumables draw from your deck or discard instead of creating new cards
 - Jokers that pick from suit or rank can be overwritten through Ouija or Sigil
 - Sigil transforms tarots to the suit tarot picked
