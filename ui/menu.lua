@@ -204,18 +204,18 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 	
 	local tabs = {
 				-- Single Match Tab
-				{ label = localize("b_tcgtab_single"), chosen = true, tab_definition_function = function()
+				-- { label = localize("b_tcgtab_single"), chosen = true, tab_definition_function = function()
 					
-					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
-						select_tcg_deck('legal'),
-						UIBox_button({
-							label = { localize("b_play_cap") },
-							colour = G.C.BLUE,
-							button = "tcg_start_single",
-							minw = 5,
-						})
-					}}
-				end},
+				-- 	return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
+				-- 		select_tcg_deck('legal'),
+				-- 		UIBox_button({
+				-- 			label = { localize("b_play_cap") },
+				-- 			colour = G.C.BLUE,
+				-- 			button = "tcg_start_single",
+				-- 			minw = 5,
+				-- 		})
+				-- 	}}
+				-- end},
 				-- Build Deck Tab
 				{ label = localize("b_tcgtab_deck"), chosen = false, tab_definition_function = function()
 					
