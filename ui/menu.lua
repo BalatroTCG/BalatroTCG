@@ -453,7 +453,7 @@ function create_tcg_builder(type, callback)
 						
 						create_text_input({
 						w = 4, max_length = 24, prompt_text = localize('k_enter_name'),
-						ref_table = BalatroTCG.BuildingDeck, ref_value = 'name',extended_corpus = true, keyboard_offset = 1,
+						ref_table = BalatroTCG.BuildingDeck, ref_value = 'name', keyboard_offset = 1,
 						callback = function()
 							BalatroTCG.BuildingDeck:sanitize()
 							save_decks()
