@@ -708,11 +708,15 @@ end
 local reset_mail_rank_ref = reset_mail_rank
 function reset_mail_rank()
     if not BalatroTCG.GameActive then return reset_mail_rank_ref() end
+    --return reset_mail_rank_ref()
 
     G.GAME.current_round.mail_card.rank = 'Ace'
+    local valid_mail_cards = {}
     local valid_mail_ranks = {}
     for k, v in ipairs(G.playing_cards) do
         if v.ability.effect ~= 'Stone Card' and not SMODS.has_no_rank(v) then
+            valid_mail_cards[#valid_mail_cards+1] = v
+
             local canplace = true
             for i = 1, #valid_mail_ranks do
                 if valid_mail_ranks[i].base.value == v.base.value then
@@ -725,10 +729,19 @@ function reset_mail_rank()
             end
         end
     end
-    if valid_mail_ranks[1] then 
-        local mail_card = pseudorandom_element(valid_mail_ranks, pseudoseed('mail'..G.GAME.round_resets.ante))
-        G.GAME.current_round.mail_card.rank = mail_card.base.value
-        G.GAME.current_round.mail_card.id = mail_card.base.id
+
+    if true then
+        if valid_mail_cards[1] then 
+            local mail_card = pseudorandom_element(valid_mail_cards, pseudoseed('mail'..G.GAME.round_resets.ante))
+            G.GAME.current_round.mail_card.rank = mail_card.base.value
+            G.GAME.current_round.mail_card.id = mail_card.base.id
+        end
+    else
+        if valid_mail_ranks[1] then 
+            local mail_card = pseudorandom_element(valid_mail_ranks, pseudoseed('mail'..G.GAME.round_resets.ante))
+            G.GAME.current_round.mail_card.rank = mail_card.base.value
+            G.GAME.current_round.mail_card.id = mail_card.base.id
+        end
     end
 end
 

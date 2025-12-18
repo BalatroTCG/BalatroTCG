@@ -778,6 +778,8 @@ function Card:set_ability(center, initial, delay_sprites)
                 }
             elseif name == 'Vagabond' then
                 self.ability.extra = 10
+            elseif name == 'Mail-in Rebate' then
+                self.ability.extra = 3
             elseif name == 'Golden Ticket' then
                 self.ability.extra = 3
 
