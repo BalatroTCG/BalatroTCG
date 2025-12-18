@@ -336,6 +336,13 @@ return {
                     "card in your deck",
                 },
             },
+            j_chaos_tcg={
+                name="Chaos the Clown",
+                text={
+                    "Shuffles and flips {C:attention}Jokers",
+                    "when your opponent starts"
+                },
+            },
         },
         Other={
             tcg_joker_health={

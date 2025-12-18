@@ -307,6 +307,8 @@ function Game:start_tcg_game(args)
     
     BalatroTCG.Player = TCG_PlayerStatus(playerDeck, true)
     BalatroTCG.Opponent = TCG_PlayerStatus(opponentDeck, false)
+    BalatroTCG.Status_Current = nil
+    BalatroTCG.Status_Other = nil
     
 
     BalatroTCG.Player.Other = BalatroTCG.Opponent
@@ -593,6 +595,9 @@ end
 
 function switch_player(playerActive)
     
+    if BalatroTCG.Status_Current then
+        SMODS.calculate_context({ switching_players = true, old_player = BalatroTCG.Status_Current, new_player = BalatroTCG.Status_Other })
+    end
     
     BalatroTCG.PlayerActive = playerActive
     if BalatroTCG.PlayerActive then

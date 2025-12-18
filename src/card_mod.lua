@@ -10,7 +10,30 @@ function Card:calculate_joker(context)
     if self.debuff then return nil end
     
     if self.ability.set == "Joker" then
+        local string = ''
+
+        for k, v in pairs(context) do
+            string = string .. k .. ', '
+        end
+        print(string)
         if context.selling_self then
+        elseif context.switching_players then
+            if self.ability.name == 'Chaos the Clown' and not context.blueprint then
+                context.old_player.jokers:unhighlight_all()
+                for k, v in ipairs(context.old_player.jokers.cards) do
+                    v:flip()
+                end
+                if #context.old_player.jokers.cards > 1 then 
+                    G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.2, func = function() 
+                        G.E_MANAGER:add_event(Event({ func = function() context.old_player.jokers:shuffle('aajk'); play_sound('cardSlide1', 0.85);return true end })) 
+                        delay(0.15)
+                        G.E_MANAGER:add_event(Event({ func = function() context.old_player.jokers:shuffle('aajk'); play_sound('cardSlide1', 1.15);return true end })) 
+                        delay(0.15)
+                        G.E_MANAGER:add_event(Event({ func = function() context.old_player.jokers:shuffle('aajk'); play_sound('cardSlide1', 1);return true end })) 
+                        delay(0.5)
+                    return true end })) 
+                end
+            end
         elseif context.tcg_take_damage and not context.blueprint then
 
             if self.ability.name == 'Cloud 9' then
@@ -810,6 +833,8 @@ function Card:set_ability(center, initial, delay_sprites)
             self.ability.extra = 3
             self.config.center.generate_ui = modified_desc
         elseif name == 'Showman' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Chaos the Clown' then
             self.config.center.generate_ui = modified_desc
         elseif name == 'Riff-Raff' then
             self.ability.extra = 1

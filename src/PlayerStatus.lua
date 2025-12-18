@@ -207,6 +207,7 @@ function TCG_PlayerStatus:apply()
     for _, joker in ipairs(self.jokers.cards) do
         joker.states.drag.can = true
         joker.states.collide.can = true
+        if joker.facing == 'back' then joker:flip() end
     end
     for _, joker in ipairs(self.opponentJokers.cards) do
         joker.states.collide.can = true
