@@ -1262,6 +1262,10 @@ function read_decks(file_string)
 
 end
 
+function BalatroTCG.Deck:sanitize()
+    self.name = self.name:gsub(':', '_')
+end
+
 function save_decks(decks)
     decks = decks or {BalatroTCG.CustomDecks}
     local table = {}
@@ -1270,6 +1274,7 @@ function save_decks(decks)
 
     for _, extra in ipairs(decks) do
         for k, v in ipairs(extra) do
+            v:sanitize()
             toWrite = toWrite .. v.name .. '\n'
             toWrite = toWrite .. '\t' .. v.back .. '\n'
 
