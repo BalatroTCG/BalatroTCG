@@ -86,3 +86,6 @@
 - All jokers that create consumables draw from your deck or discard instead of creating new cards
 - Jokers that pick from suit or rank can be overwritten through Ouija or Sigil
 - Sigil transforms tarots to the suit tarot picked
+
+# 0.2.0
+- Chaos the Clown shuffles jokers at the start of your opponents turn

@@ -5,7 +5,6 @@ function BalatroTCG.Deck:init(back, name, cards)
     self.back = back
     self.cards = cards
     self.name = name or back
-    --self:set_cost()
 end
 
 BalatroTCG.DefaultDecks = {
@@ -1325,7 +1324,27 @@ end
 
 function BalatroTCG.Deck:set_cost()
     self.cost = 0
-    
+
+    local back = Back(get_deck_from_name(self.back))
+
+    if back.tcg_cost then
+        self.cost = back.tcg_cost
+    else
+        if self.back == 'Abandoned Deck' then
+            self.cost = 40
+        elseif self.back == 'Checkered Deck' then
+            self.cost = 35
+        elseif self.back == 'Yellow Deck' then
+            self.cost = 35
+        elseif self.back == 'Plasma Deck' then
+            self.cost = 40
+        elseif self.back == 'Challenge Deck' then
+            self.cost = 40
+        else
+            self.cost = 30
+        end
+    end
+
     for i, card in ipairs(self.cards) do
 
         if card.type == 'p' then
@@ -1557,14 +1576,13 @@ end
 function load_building_deck(index)
     
     index = index or 1
-    if _RELEASE_MODE then
-        index = index - #BalatroTCG.DefaultDecks
-    else
+    if not _RELEASE_MODE then
         if index <= #BalatroTCG.DefaultDecks then
+            BalatroTCG.DefaultDecks[index]:set_cost()
             return BalatroTCG.DefaultDecks[index]
         end
-        index = index - #BalatroTCG.DefaultDecks
     end
+    index = index - #BalatroTCG.DefaultDecks
     index = math.max(index, 1)
 
 	if index > #BalatroTCG.CustomDecks then
