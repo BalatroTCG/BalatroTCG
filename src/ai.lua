@@ -45,7 +45,23 @@ function TCG_AI:run()
                     return true
                 end
 
-                for _, card in ipairs(G.consumeables) do
+                print('')
+                print('')
+                print('')
+                print('Analyzing')
+                
+                local hand_strength = {}
+
+                local status = BalatroTCG.Status_Current
+                local other = BalatroTCG.Status_Other
+
+                local hand_power, discard_power = 4, 4
+                local hand_amount = (G.GAME.current_round.hands_left - 1) * hand_power
+                local discard_amount = G.GAME.current_round.discards_left * discard_power
+
+                local rounds_left = math.min(status.status.dollars, other.status.dollars) / lerp((status.status.round) / 15, 1, 3)  
+
+                for _, card in ipairs(G.consumeables.cards) do
                     
                     stats = {
                         card = card,
@@ -55,7 +71,7 @@ function TCG_AI:run()
                         money_per_round = 0,
                     }
                     
-                    G.FUNCS.merge_stats(stats, v:estimate_score({ purchase = card, full_deck = full_deck, round_stats = round_stats }))
+                    G.FUNCS.merge_stats(stats, card:estimate_score({ purchase = card, full_deck = full_deck, round_stats = round_stats }))
                     
                     for _, joker in ipairs(G.jokers.cards) do
                         G.FUNCS.merge_stats(stats, joker:estimate_score({ purchase = card, full_deck = full_deck, round_stats = round_stats }))
@@ -71,34 +87,26 @@ function TCG_AI:run()
                             nc = obj:keep_on_use(card)
                         end
                         if nc then
-                            card.area:remove_from_highlighted(card)
-                            play_sound('cardSlide2', nil, 0.3)
+                            --play_sound('cardSlide2', nil, 0.3)
                             dont_dissolve = true
                         end
-                        if not nc then draw_card(G.hand, G.play, 1, 'up', true, card, nil, mute) end
+                        --if not nc then draw_card(G.hand, G.play, 1, 'up', true, card, nil, mute) end
                         delay(0.2)
+
                         card:use_consumeable(area)
                         SMODS.calculate_context({using_consumeable = true, consumeable = card, area = card.from_area})
+                        card:start_dissolve()
+                        
+                        print('Using ' .. card.ability.name)
+
+                        delay(1.2)
+
+                        
+                        self.run_event = nil
                         return true
                     end
 
                 end
-
-                print('')
-                print('')
-                print('')
-                print('Analyzing')
-                
-                local hand_strength = {}
-
-                local status = BalatroTCG.Status_Current
-                local other = BalatroTCG.Status_Other
-
-                local hand_power, discard_power = 4, 4
-                local hand_amount = (G.GAME.current_round.hands_left - 1) * hand_power
-                local discard_amount = G.GAME.current_round.discards_left * discard_power
-
-                local rounds_left = math.min(status.status.dollars, other.status.dollars) / lerp((status.status.round) / 15, 1, 3)
 
                 local ranks = {}
                 local suits = {}
@@ -216,10 +224,14 @@ function TCG_AI:run()
                         if #v > 0 then
                             --print('Can play ' .. k)
                             strength[k].canplay = 1
+
+                            local possibles = {} 
                             
-                            for ind = 1, #v do 
-                                local cards = v[ind]
+                            for ind = 1, #v do
+                                local cards = SMODS.shallow_copy(v[ind])
                                 local can_remove = true
+
+                                print(k .. tostring(ind) .. ', ' .. #cards)
     
                                 while #cards > 1 and can_remove do
                                     can_remove = false
@@ -241,10 +253,13 @@ function TCG_AI:run()
                                         table.remove(cards, best_removal)
                                     end
                                 end
-    
+                                possibles[#possibles + 1] = cards
                             end
 
-                            for __, card in ipairs(v[1]) do
+
+                            strength[k].cards = possibles
+
+                            for __, card in ipairs(possibles[1]) do
                                 card_stats[card].discard_weight[k] = -1
                             end
                         else
