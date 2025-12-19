@@ -657,3 +657,14 @@ position = "at"
 payload = '''local key = (v.config.center_key == "m_stone" or not v:is_playing_card()) and "Stone" or v.base.suit .. v.base.id'''
 match_indent = true
 overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'game.lua'
+pattern = '''if G.FUNCS.draw_from_deck_to_hand(nil) then'''
+position = "before"
+payload = '''
+BalatroTCG.MuteAudio = BalatroTCG.GameActive and not BalatroTCG.PlayerActive
+'''
+match_indent = true
+overwrite = true

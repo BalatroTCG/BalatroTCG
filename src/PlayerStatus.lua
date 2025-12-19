@@ -126,7 +126,7 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.opponent_jokers = 0
     self.status.opponent_joker_cost = 0
     self.status.opponent_health = 50
-    
+    self.status.bankrupt_at = 0
 end
 
 
@@ -149,6 +149,7 @@ function TCG_PlayerStatus:apply()
     end
 
     G.GAME.dollars = self.status.dollars
+    G.GAME.bankrupt_at = self.status.bankrupt_at
     G.GAME.current_round.hands_left = (math.max(1, G.GAME.round_resets.hands))
     G.GAME.current_round.discards_left = math.max(0, G.GAME.round_resets.discards)
     G.GAME.current_round.hands_played = 0
@@ -226,6 +227,7 @@ function TCG_PlayerStatus:receive_message(message)
         
     elseif message.type == 'damage' then
         
+        if not self.jokers then return end
         G.E_MANAGER:add_event(Event({
             no_delete = true,
             func = function()
@@ -377,6 +379,17 @@ function TCG_PlayerStatus:damage(amount)
     
     G.HUD:recalculate()
     
+end
+
+function TCG_PlayerStatus:hard_set()
+    
+    self.hand:hard_set_cards()
+    self.play:hard_set_cards()
+    self.jokers:hard_set_cards()
+    self.consumeables:hard_set_cards()
+    self.deck:hard_set_cards()
+    self.discard:hard_set_cards()
+    self.graveyard:hard_set_cards()
 end
 
 function TCG_PlayerStatus:set_screen_positions(player)

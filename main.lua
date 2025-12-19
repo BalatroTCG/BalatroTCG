@@ -297,7 +297,10 @@ function Game:start_tcg_game(args)
     ease_background_colour_blind(G.STATE, 'Small Blind')
     
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
+    --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
+
+    print(self.GAME.pseudorandom.seed)
 
     local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
     local opponentDeck = get_tcg_deck(1)
@@ -596,10 +599,17 @@ function switch_player(playerActive)
     
     BalatroTCG.PlayerActive = playerActive
     if BalatroTCG.PlayerActive then
+        G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
+        G.SETTINGS.GAMESPEED = 4
+
         BalatroTCG.Status_Current = BalatroTCG.Player
         BalatroTCG.Status_Other = BalatroTCG.Opponent
         BalatroTCG.Player:apply()
     else
+        
+        BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
+        G.SETTINGS.GAMESPEED = 1000
+
         BalatroTCG.Status_Current = BalatroTCG.Opponent
         BalatroTCG.Status_Other = BalatroTCG.Player
         BalatroTCG.Opponent:apply()
@@ -643,9 +653,9 @@ function end_tcg_game(win)
             G.SETTINGS.paused = true
 
             if win then
-                BalatroTCG.Opponent:send_message({ type = 'lose_game' })
+                --BalatroTCG.Opponent:send_message({ type = 'lose_game' })
             else
-                --BalatroTCG.Opponent:send_message({ type = 'win_game' })
+                BalatroTCG.Opponent:send_message({ type = 'win_game' })
             end
 
             G.FUNCS.overlay_menu{

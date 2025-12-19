@@ -3,6 +3,11 @@
 TCG_AI = Object:extend()
 
 function TCG_AI:init()
+    self.chip_power = 1
+    self.mult_power = 5
+    self.x_mult_power = 20
+    self.money_power = 10
+    self.purchase_fear = 25
 end
 
 function lerp(t, a, b)
@@ -55,6 +60,7 @@ function TCG_AI:run()
                 local status = BalatroTCG.Status_Current
                 local other = BalatroTCG.Status_Other
 
+                local budget = status.status.dollars + status.status.bankrupt_at
                 local hand_power, discard_power = 4, 4
                 local hand_amount = (G.GAME.current_round.hands_left - 1) * hand_power
                 local discard_amount = G.GAME.current_round.discards_left * discard_power
@@ -147,7 +153,7 @@ function TCG_AI:run()
                                 any = {
                                     chips = v:get_chip_bonus({tcg_predict = true}),
                                     mult = v:get_chip_mult({tcg_predict = true}),
-                                    x_mult = v:get_chip_x_mult({tcg_predict = true}),
+                                    x_mult = math.max(v:get_chip_x_mult({tcg_predict = true}), 1),
                                     dollars = v:get_p_dollars({tcg_predict = true})
                                 }
                             },
@@ -155,7 +161,7 @@ function TCG_AI:run()
                                 any = {
                                     chips = v:get_chip_h_bonus({tcg_predict = true}),
                                     mult = v:get_chip_h_mult({tcg_predict = true}),
-                                    x_mult = v:get_chip_h_x_mult({tcg_predict = true}),
+                                    x_mult = math.max(v:get_chip_h_x_mult({tcg_predict = true}), 1),
                                     dollars = v:get_h_dollars({tcg_predict = true})
                                 }
                             },
@@ -163,10 +169,11 @@ function TCG_AI:run()
                                 any = {
                                     chips = 0,
                                     mult = 0,
-                                    x_mult = 0,
+                                    x_mult = 1,
                                     dollars = 0,
                                 }
                             },
+                            buy_stat = -1,
                             money_total = 0
                         }
                         
@@ -177,17 +184,17 @@ function TCG_AI:run()
                         local play_stat = 0
                         
 		                for _, data in pairs(stats.play) do
-                            play_stat = play_stat + (data.chips + data.mult * 5 + data.x_mult * 20 + data.dollars * 10)
+                            play_stat = play_stat + (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power)
                         end
 		                for _, data in pairs(stats.hold) do
-                            play_stat = play_stat - (data.chips + data.mult * 5 + data.x_mult * 20 + data.dollars * 10)
+                            play_stat = play_stat - (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power)
                         end
 		                for _, data in pairs(stats.discard) do
-                            play_stat = play_stat - (data.chips + data.mult * 5 + data.x_mult * 20 + data.dollars * 10)
+                            play_stat = play_stat - (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power)
                         end
                         stats.play_stat = play_stat
 
-                        print('Stats for ' .. tostring(v.base.id) .. ' ' .. tostring(v.base.suit) .. ': ' .. tostring(play_stat))
+                        --print('Stats for ' .. tostring(v.base.id) .. ' ' .. tostring(v.base.suit) .. ': ' .. tostring(play_stat))
                         
                     else
                         stats = {
@@ -196,6 +203,11 @@ function TCG_AI:run()
                             money_now = 0,
                             money_next_hand = 0,
                             money_per_round = 0,
+                            play_stat = 0,
+                            chips = 0,
+                            mult = 0,
+                            x_mult = 1,
+                            retriggers = 0,
                         }
                         
                         G.FUNCS.merge_stats(stats, v:estimate_score({ purchase = v, full_deck = full_deck, round_stats = round_stats }))
@@ -206,6 +218,9 @@ function TCG_AI:run()
                         
                         stats.money_total = stats.money_now + (rounds_left > 1 and stats.money_next_hand or 0) + (stats.money_per_round * rounds_left) - stats.cost
                         
+                        stats.buy_stat = (stats.chips * self.chip_power + stats.mult * self.mult_power + math.log(math.max(stats.x_mult, 1)) * self.x_mult_power) - (stats.cost / budget) * self.purchase_fear
+                        
+                        print(v.ability.name .. ', ' .. tostring(stats.buy_stat))
                     end
                     stats.discard_weight = {
                         any = 0,
@@ -221,47 +236,58 @@ function TCG_AI:run()
                             chips = G.GAME.hands[k].chips,
                             mult = G.GAME.hands[k].mult,
                         }
-                        if #v > 0 then
-                            --print('Can play ' .. k)
-                            strength[k].canplay = 1
+                        --print('Can play ' .. k)
 
-                            local possibles = {} 
-                            
-                            for ind = 1, #v do
-                                local cards = SMODS.shallow_copy(v[ind])
-                                local can_remove = true
+                        local best, weight = {}, 0
+                        
+                        for ind = 1, #v do
+                            local cards = SMODS.shallow_copy(v[ind])
+                            local can_remove = true
 
-                                print(k .. tostring(ind) .. ', ' .. #cards)
-    
-                                while #cards > 1 and can_remove do
-                                    can_remove = false
-                                    local best_removal, removal_stat = 0, 0
-                                    
-                                    for i = #cards, 1, -1 do
-                                        local removed = table.remove(cards, i)
-    
-                                        local eval = evaluate_poker_hand(cards)
-                                        if #eval[k] > 0 and #eval[k][1] > 0 then
-                                            can_remove = true
-                                            best_removal = i
-                                        end
-    
-                                        table.insert(cards, i, removed)
+                            --print(k .. tostring(ind) .. ', ' .. #cards)
+
+                            while #cards > 1 and can_remove do
+                                can_remove = false
+                                local best_removal, removal_stat = 0, 100000
+                                
+                                for i = #cards, 1, -1 do
+                                    local removed = table.remove(cards, i)
+
+                                    local eval = evaluate_poker_hand(cards)
+                                    if #eval[k] > 0 and removal_stat > card_stats[removed].play_stat then
+                                        removal_stat = card_stats[removed].play_stat
+                                        can_remove = true
+                                        best_removal = i
                                     end
-    
-                                    if best_removal > 0 then
-                                        table.remove(cards, best_removal)
-                                    end
+
+                                    table.insert(cards, i, removed)
                                 end
-                                possibles[#possibles + 1] = cards
+
+                                if best_removal > 0 then
+                                    table.remove(cards, best_removal)
+                                end
                             end
 
+                            local cweight = 0
+                            for __, c in pairs(cards) do
+                                cweight = cweight + card_stats[c].play_stat
+                            end
+                            if weight < cweight then
+                                best = cards
+                                weight = cweight
+                            end
+                        end
 
-                            strength[k].cards = possibles
 
-                            for __, card in ipairs(possibles[1]) do
+                        if #best > 0 and #best <= 5 then
+                            --print(k .. ' size is ' .. tostring(#best))
+                            strength[k].cards = best
+
+                            for __, card in ipairs(strength[k].cards) do
                                 card_stats[card].discard_weight[k] = -1
                             end
+
+                            strength[k].canplay = 1  
                         else
                             local chance = 0
 
@@ -422,53 +448,46 @@ function TCG_AI:run()
                     end
                 end
 
-                local best_hand = nil
-                for k, v in pairs(strength) do
-                    if k ~= 'top' then 
-
-                        strength[k].weight = (strength[k].chips * strength[k].mult) * math.pow(strength[k].canplay, 0.9)
-
-                        if not best_hand or strength[k].weight > best_hand.weight then
-                            best_hand = {hand = k, weight = strength[k].weight, money = 0}
-                        end
-                    end
-                end
-                
-                for card, stat in pairs(card_stats) do
-                    if not best_hand or stat.money_total > best_hand.money then
-                        best_hand = { money = stat.money_total, hand = 'purchase', card = card }
-                    end
-                end
-                
-                --print('')
-                
-                local needs = {
-                    chips = 1,
-                    mult = 1,
-                    xmult = 1,
-                    money = math.max(status.status.dollars, 1),
-                    decksize = #status.deck.cards,
-                }
-
-                function compare_weights(a, b)
-                    return a.stat.finaldisc_weight > b.stat.finaldisc_weight
-                end
-                
                 local sorted_stats = {}
+                local best_hand = nil
                 for card, stat in pairs(card_stats) do
-                    stat.finaldisc_weight = 0.5
-                    if not card:is_playing_card() then
-                        stat.finaldisc_weight = 1.5
-                    end
-                    sorted_stats[#sorted_stats + 1] = {card = card, stat = stat}
-                    for i, stat in ipairs(sorted_stats) do
-                        for k, v in pairs(stat.stat.discard_weight) do
-                            stat.stat.finaldisc_weight = stat.stat.finaldisc_weight + v * (k == best_hand.hand and 1 or 0.02)
-                        end
+                    if stat.money_total > 0 or stat.buy_stat > 0 then
+                        best_hand = { hand = 'purchase', card = card }
+                        break
                     end
                 end
                 
-                table.sort(sorted_stats, compare_weights)
+                if not best_hand then
+                    for k, v in pairs(strength) do
+                        if k ~= 'top' then
+
+                            strength[k].weight = (strength[k].chips * strength[k].mult) * math.pow(strength[k].canplay, 0.9)
+
+                            if not best_hand or strength[k].weight > best_hand.weight then
+                                best_hand = {hand = k, weight = strength[k].weight, money = 0}
+                            end
+                        end
+                    end
+                    
+                    function compare_weights(a, b)
+                        return a.stat.finaldisc_weight > b.stat.finaldisc_weight
+                    end
+                    
+                    for card, stat in pairs(card_stats) do
+                        stat.finaldisc_weight = 0.5
+                        if not card:is_playing_card() then
+                            stat.finaldisc_weight = 1.5
+                        end
+                        sorted_stats[#sorted_stats + 1] = {card = card, stat = stat}
+                        for i, stat in ipairs(sorted_stats) do
+                            for k, v in pairs(stat.stat.discard_weight) do
+                                stat.stat.finaldisc_weight = stat.stat.finaldisc_weight + v * (k == best_hand.hand and 1 or 0.02)
+                            end
+                        end
+                    end
+                    
+                    table.sort(sorted_stats, compare_weights)
+                end
                 
 
                 if best_hand.hand == 'purchase' then
@@ -476,48 +495,44 @@ function TCG_AI:run()
 
                     print('Buying ' .. best_hand.card.ability.name)
 
-                    G.hand:add_to_highlighted(best_hand.card)
+                    G.hand:add_to_highlighted(best_hand.card, true)
 
                 elseif discard_amount > 0 then
-                    print('Discarding for ' .. best_hand.hand)
 
                     self.button = 'discard_button'
                     for _, data in pairs(sorted_stats) do
                         if #G.hand.highlighted >= 5 then break end
                         if data.stat.finaldisc_weight >= 0 then
-                            G.hand:add_to_highlighted(data.card)
+                            G.hand:add_to_highlighted(data.card, true)
                         end
                     end
-                elseif strength[best_hand.hand].canplay == 1 and strength[best_hand.hand].cards[1] then
+                    
+                    print('Discarding ' .. tostring(#G.hand.highlighted) .. ' for ' .. best_hand.hand)
+                elseif strength[best_hand.hand].canplay == 1 and strength[best_hand.hand].cards then
                     self.button = 'play_button'
 
-                    print('Playing ' .. best_hand.hand .. ' at ' .. tostring(#strength[best_hand.hand].cards[1]) .. ' card length')
+                    print('Playing ' .. best_hand.hand .. ' at ' .. tostring(#strength[best_hand.hand].cards) .. ' card length')
 
-                    for k, v in ipairs(strength[best_hand.hand].cards[1]) do
-                        G.hand:add_to_highlighted(v)
+                    for k, v in ipairs(strength[best_hand.hand].cards) do
+                        G.hand:add_to_highlighted(v, true)
                     end
-                    -- for i = #G.hand.cards, 1, -1 do
-                    --     if #G.hand.highlighted >= 5 then break end
-                    --     if not G.hand.cards[i].is_higlighted then
-                    --         G.hand:add_to_highlighted(G.hand.cards[i])
-                    --     end
-                    -- end
                 else
                     print('Gave up')
                     self.button = 'play_button'
                     for i = 1, #G.hand.cards do
                         if #G.hand.highlighted >= 5 then break end
                         if G.hand.cards[i]:is_playing_card() then
-                            G.hand:add_to_highlighted(G.hand.cards[i])
+                            G.hand:add_to_highlighted(G.hand.cards[i], true)
                         end
                     end
                 end
 
                 if #G.hand.highlighted == 0 then
                     self.button = 'play_button'
-                    G.hand:add_to_highlighted(G.hand.cards[1])
+                    G.hand:add_to_highlighted(G.hand.cards[1], true)
                 end
 
+                --delay(2.0)
 
                 --print('')
                 --print('')
@@ -549,6 +564,8 @@ G.FUNCS.merge_stats = function(a, b)
         if a[k] then
             if type(a[k]) == 'table' then
                 G.FUNCS.merge_stats(a[k], b[k])
+            elseif k == 'x_mult' then
+                a[k] = a[k] * b[k]
             else
                 a[k] = a[k] + b[k]
             end
@@ -556,10 +573,21 @@ G.FUNCS.merge_stats = function(a, b)
     end
 end
 
+G.FUNCS.hand_chance = function(e)
+    if e == 'High card' then return 1 end
+
+    return 0
+end
+
+G.FUNCS.card_vision = function(e, hand_remove, discard_remove)
+    return e.hand_size + ((e.hands - hand_remove) * e.hand_power + (e.discards - discard_remove) * e.discard_power)
+end
+
 function Card:estimate_score(context)
 
     local name = self.ability.name
     local obj = self.config.center
+    local round_stats = context.round_stats
 
     if obj.tcg_estimate and type(obj.tcg_estimate) == 'function' then
         return obj.tcg_estimate(self, context)
@@ -569,19 +597,46 @@ function Card:estimate_score(context)
 
         elseif context.purchase then
             if context.purchase == self then
+                if self.ability.name == 'Ancient Joker' then
+                    
+                    local card_vision = G.FUNCS.card_vision(round_stats, 1, 0)
+
+                    if self.ability.tcg_extra.suit then
+
+                        local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.suit == self.ability.tcg_extra.suit end)
+
+                        return {
+                            x_mult = math.pow(self.ability.extra, amount * card_vision / #context.full_deck)
+                        }
+                    else
+
+                        local total = 0
+                        for suit, _ in pairs(SMODS.Suits) do
+                            local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_playing_card() and e.base.suit == suit end)
+    
+                            print(amount)
+                            total = total + amount * card_vision / #context.full_deck
+                        end
+
+                        total = total / 4
+
+                        return {
+                            x_mult = math.pow(self.ability.extra, total)
+                        }
+                    end
+                end
                 if self.ability.name == 'Mail-In Rebate' then
-                    local round_stats = context.round_stats
 
                     if round_stats.discards == 0 then return end
+                    local card_vision = G.FUNCS.card_vision(round_stats, 1, 1)
 
                     if self.ability.tcg_extra.rank then
                         local rank = self.ability.tcg_extra.rank
 
                         local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.id == rank end)
-                        local card_vision = round_stats.hand_size + ((round_stats.hands - 1) * round_stats.hand_power * (round_stats.discards - 1) * round_stats.discard_power)
 
                         return {
-                            money_per_round = amount * self.ability.extra * math.min(card_vision / #context.full_deck, 1)
+                            money_per_round = amount * self.ability.extra * card_vision / #context.full_deck
                         }
                     else
                         local ranks = {}
@@ -596,9 +651,8 @@ function Card:estimate_score(context)
                         
                         for rank, _ in pairs(ranks) do
                             local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.id == rank end)
-                            local card_vision = round_stats.hand_size + ((round_stats.hands - 1) * round_stats.hand_power * (round_stats.discards - 1) * round_stats.discard_power)
     
-                            total = total + amount * self.ability.extra * math.min(card_vision / #context.full_deck, 1)
+                            total = total + amount * self.ability.extra * card_vision / #context.full_deck, 1
                         end
 
                         total = total / #ranks
@@ -613,6 +667,19 @@ function Card:estimate_score(context)
             end
 
         elseif context.in_hand then
+            if self.ability.name == 'Ancient Joker' then
+                local suit = self.ability.tcg_extra.suit or G.GAME.current_round.ancient_card.suit
+                
+                if context.other_card:is_suit(suit) then
+                    return {
+                        play = {
+                            any = {
+                                x_mult = self.ability.extra
+                            }
+                        }
+                    }
+                end
+            end
             if self.ability.name == 'Mail-In Rebate' then
                 local rank = self.ability.tcg_extra.rank or G.GAME.current_round.mail_card.id
 
