@@ -84,7 +84,10 @@ function TCG_AI:run()
 
                 end
 
-                --print('Analyzing')
+                print('')
+                print('')
+                print('')
+                print('Analyzing')
                 
                 local hand_strength = {}
 
@@ -149,7 +152,12 @@ function TCG_AI:run()
                                 }
                             },
                             discard = {
-                                
+                                any = {
+                                    chips = 0,
+                                    mult = 0,
+                                    x_mult = 0,
+                                    dollars = 0,
+                                }
                             },
                             money_total = 0
                         }
@@ -157,6 +165,21 @@ function TCG_AI:run()
 		                for _, joker in ipairs(G.jokers.cards) do
                             G.FUNCS.merge_stats(stats, joker:estimate_score({ in_hand = true, hand = G.hand.cards, other_card = v, round_stats = round_stats }))
                         end
+
+                        local play_stat = 0
+                        
+		                for _, data in pairs(stats.play) do
+                            play_stat = play_stat + (data.chips + data.mult * 5 + data.x_mult * 20 + data.dollars * 10)
+                        end
+		                for _, data in pairs(stats.hold) do
+                            play_stat = play_stat - (data.chips + data.mult * 5 + data.x_mult * 20 + data.dollars * 10)
+                        end
+		                for _, data in pairs(stats.discard) do
+                            play_stat = play_stat - (data.chips + data.mult * 5 + data.x_mult * 20 + data.dollars * 10)
+                        end
+                        stats.play_stat = play_stat
+
+                        print('Stats for ' .. tostring(v.base.id) .. ' ' .. tostring(v.base.suit) .. ': ' .. tostring(play_stat))
                         
                     else
                         stats = {
@@ -193,6 +216,34 @@ function TCG_AI:run()
                         if #v > 0 then
                             --print('Can play ' .. k)
                             strength[k].canplay = 1
+                            
+                            for ind = 1, #v do 
+                                local cards = v[ind]
+                                local can_remove = true
+    
+                                while #cards > 1 and can_remove do
+                                    can_remove = false
+                                    local best_removal, removal_stat = 0, 0
+                                    
+                                    for i = #cards, 1, -1 do
+                                        local removed = table.remove(cards, i)
+    
+                                        local eval = evaluate_poker_hand(cards)
+                                        if #eval[k] > 0 and #eval[k][1] > 0 then
+                                            can_remove = true
+                                            best_removal = i
+                                        end
+    
+                                        table.insert(cards, i, removed)
+                                    end
+    
+                                    if best_removal > 0 then
+                                        table.remove(cards, best_removal)
+                                    end
+                                end
+    
+                            end
+
                             for __, card in ipairs(v[1]) do
                                 card_stats[card].discard_weight[k] = -1
                             end
@@ -388,20 +439,22 @@ function TCG_AI:run()
                     return a.stat.finaldisc_weight > b.stat.finaldisc_weight
                 end
                 
-                local temp = {}
+                local sorted_stats = {}
                 for card, stat in pairs(card_stats) do
-                    stat.finaldisc_weight = 0.1
+                    stat.finaldisc_weight = 0.5
                     if not card:is_playing_card() then
-                        stat.finaldisc_weight = 0.3
+                        stat.finaldisc_weight = 1.5
                     end
-                    for k, v in pairs(stat.discard_weight) do
-                        stat.finaldisc_weight = stat.finaldisc_weight + v * (k == best_hand.hand and 1 or 0.02)
+                    sorted_stats[#sorted_stats + 1] = {card = card, stat = stat}
+                    for i, stat in ipairs(sorted_stats) do
+                        for k, v in pairs(stat.stat.discard_weight) do
+                            stat.stat.finaldisc_weight = stat.stat.finaldisc_weight + v * (k == best_hand.hand and 1 or 0.02)
+                        end
                     end
-                    temp[#temp + 1] = {card = card, stat = stat}
                 end
-                card_stats = temp
-
-                table.sort(card_stats, compare_weights)
+                
+                table.sort(sorted_stats, compare_weights)
+                
 
                 if best_hand.hand == 'purchase' then
                     self.button = 'purchase'
@@ -411,10 +464,10 @@ function TCG_AI:run()
                     G.hand:add_to_highlighted(best_hand.card)
 
                 elseif discard_amount > 0 then
-                    --print('Discarding for ' .. best_hand.hand)
+                    print('Discarding for ' .. best_hand.hand)
 
                     self.button = 'discard_button'
-                    for _, data in pairs(card_stats) do
+                    for _, data in pairs(sorted_stats) do
                         if #G.hand.highlighted >= 5 then break end
                         if data.stat.finaldisc_weight >= 0 then
                             G.hand:add_to_highlighted(data.card)
@@ -423,7 +476,7 @@ function TCG_AI:run()
                 elseif strength[best_hand.hand].canplay == 1 and strength[best_hand.hand].cards[1] then
                     self.button = 'play_button'
 
-                    --print('Playing ' .. best_hand.hand)
+                    print('Playing ' .. best_hand.hand .. ' at ' .. tostring(#strength[best_hand.hand].cards[1]) .. ' card length')
 
                     for k, v in ipairs(strength[best_hand.hand].cards[1]) do
                         G.hand:add_to_highlighted(v)
@@ -435,6 +488,7 @@ function TCG_AI:run()
                     --     end
                     -- end
                 else
+                    print('Gave up')
                     self.button = 'play_button'
                     for i = 1, #G.hand.cards do
                         if #G.hand.highlighted >= 5 then break end
