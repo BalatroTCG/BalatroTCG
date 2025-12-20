@@ -452,10 +452,12 @@ namespace BalatroTCGServer {
 		};
 
 		Dictionary<string, string> Options;
+		Dictionary<Client, int> Bets;
 
 		public Lobby(string gamemode) {
 			ConnectedPlayers = new List<Client>();
 			Options = new Dictionary<string, string>();
+			Bets = new Dictionary<Client, int>();
 			GameMode = gamemode;
 			Random rng = new Random();
 			LobbyCode = "";
@@ -569,6 +571,30 @@ namespace BalatroTCGServer {
 				case "lobbyInfo":
 					SendInfo(client);
 					break;
+				case "tcgBet":
+					Bets[client] = int.Parse(data["amount"].ToString());
+					if (Bets.Count == PlayerCount) {
+						List<Client> best = new List<Client>();
+						int bestBet = -1;
+						foreach (var kv in Bets) {
+							if (bestBet == kv.Value) {
+								bestBet = kv.Value;
+								best.Add(kv.Key);
+							}
+							else if (bestBet < kv.Value) {
+								bestBet = kv.Value;
+								best.Clear();
+								best.Add(kv.Key);
+							}
+						}
+
+						var first = best[Random.Shared.Next(0, best.Count)];
+
+						for (int i = 0; i < ConnectedPlayers.Count; i++) {
+							ConnectedPlayers[i].Send(("action", "tcgPlayerStatus"), ("type", "ready"), ("damage", (first == ConnectedPlayers[i] ? bestBet : 0)), ("starting", first == ConnectedPlayers[i]));
+						}
+					}
+					break;
 				case "tcgPlayerStatus":
 
 					for (int i = 0; i < ConnectedPlayers.Count; i++) {
@@ -580,8 +606,10 @@ namespace BalatroTCGServer {
 				case "startGame":
 					string seed = GenerateSeed();
 					for (int i = 0; i < ConnectedPlayers.Count; i++) {
-						ConnectedPlayers[i].Send(("action", "startGame"), ("seed", seed), ("starting", ConnectedPlayers[i] == Host));
+						ConnectedPlayers[i].Send(("action", "startGame"), ("seed", seed), ("starting", false));
 					}
+					break;
+				case "startPlaying":
 					break;
 				case "tcgEndTurn":
 					for (int i = 0; i < ConnectedPlayers.Count; i++) {
@@ -591,6 +619,7 @@ namespace BalatroTCGServer {
 					break;
 				case "stopGame":
 					StopGame();
+					Bets.Clear();
 					break;
 				default:
 					break;

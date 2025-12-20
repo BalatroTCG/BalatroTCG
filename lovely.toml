@@ -12,7 +12,7 @@ payload = '''
 if BalatroTCG.GameActive then
     BalatroTCG.Player.status.dollars = G.GAME.dollars
     if G.GAME.dollars <= G.GAME.bankrupt_at then
-        end_tcg_game()
+        end_tcg_game(false)
     end
 end
 '''
@@ -664,7 +664,35 @@ target = 'game.lua'
 pattern = '''if G.FUNCS.draw_from_deck_to_hand(nil) then'''
 position = "before"
 payload = '''
-BalatroTCG.MuteAudio = BalatroTCG.GameActive and not BalatroTCG.PlayerActive
+BalatroTCG.MuteAudio = not (MP and MP.LOBBY and MP.LOBBY.code) and BalatroTCG.GameActive and not BalatroTCG.PlayerActive
+if BalatroTCG.GameActive and BalatroTCG.Status_Current.status.damage > 0 then
+    BalatroTCG.Status_Current:damage(BalatroTCG.Status_Current.status.damage)
+    BalatroTCG.Status_Current.status.damage = 0
+end
 '''
 match_indent = true
 overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'game.lua'
+pattern = '''if self.STATE == self.STATES.SELECTING_HAND then'''
+position = "at"
+payload = '''
+if G.hand and self.STATE == self.STATES.SELECTING_HAND then
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'game.lua'
+pattern = '''function Game:update_selecting_hand(dt)'''
+position = "after"
+payload = '''
+    if BalatroTCG.GameActive and (not G.deck.cards[1]) then return end
+'''
+match_indent = true
+overwrite = true
+
+ 

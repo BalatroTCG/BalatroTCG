@@ -272,6 +272,94 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 	)
 end
 
+function G.UIDEF.starting_betting(e)
+	
+	local money_amount = {}
+
+	G.SETTINGS.paused = true
+
+	BalatroTCG.BetAmount = 0
+	
+	local deck = get_tcg_deck(BalatroTCG.SelectedDeck)
+	local params = get_TCG_params(deck.back_key)
+
+	for i = 0, (params.dollars - 1) do
+		table.insert(money_amount, localize('$')..tostring(i))
+	end
+	return
+		create_UIBox_generic_options({
+			no_back = true,
+			contents = {
+				{n = G.UIT.R, config = { padding = 0, align = "cm" }, nodes = {
+					{n=G.UIT.T, config={text = localize('k_tcg_bet'), scale = 0.85, colour = G.C.UI.TEXT_LIGHT, shadow = true}},
+				}},
+				{n = G.UIT.R, config = { padding = 0, align = "cm" }, nodes = {
+					create_option_cycle({options = money_amount, w = 4.5, cycle_shoulders = true, opt_callback = "set_bet_amount", current_option = 1, colour = G.C.RED, no_pips = true, focus_args = {snap_to = true, nav = 'wide'}})
+				}},
+				{n = G.UIT.R, config = { padding = 0, align = "cm" }, nodes = {
+					UIBox_button({
+						label = { localize("b_tcg_bet") },
+						colour = G.C.GREEN,
+						button = "set_betting",
+						minw = 5,
+					})
+				}}
+			},
+		})
+	
+end
+
+
+function G.FUNCS.set_bet_amount(e)
+	BalatroTCG.BetAmount = e.cycle_config.current_option - 1
+end
+
+function G.FUNCS.set_betting(e)
+
+	if MP and MP.LOBBY and MP.LOBBY.code then
+		Client.send({action = "tcgBet", amount = BalatroTCG.BetAmount })
+		G.FUNCS.overlay_menu({
+			definition = G.UIDEF.waiting_for_opponent(),
+		})
+	else
+
+		local ai_bet = pseudorandom(generate_starting_seed(), BalatroTCG.AI.bet_min, BalatroTCG.AI.bet_max)
+		local player_goes = false
+
+		print(ai_bet)
+
+		if ai_bet <= BalatroTCG.BetAmount then
+			player_goes = true
+		else
+
+		end
+
+		switch_player(player_goes)
+		if player_goes then
+			ease_dollars(-BalatroTCG.BetAmount)
+		else
+			BalatroTCG.Player:send_message({ type = 'damage', damage = ai_bet, index = 0 })
+		end
+		
+		G.SETTINGS.paused = false
+		G.FUNCS.exit_overlay_menu()
+	end
+end
+
+function G.UIDEF.waiting_for_opponent(e)
+	
+	G.SETTINGS.paused = true
+
+	return
+		create_UIBox_generic_options({
+			no_back = true,
+			contents = {
+				{n=G.UIT.T, config={text = localize('k_tcg_waiting'), scale = 0.85, colour = G.C.UI.TEXT_LIGHT, shadow = true}},
+			},
+		})
+	
+end
+
 function G.FUNCS.tcg_delete_check(e)
     if BalatroTCG.SelectedDeck <= #BalatroTCG.DefaultDecks or BalatroTCG.SelectedDeck > (#BalatroTCG.DefaultDecks + #BalatroTCG.CustomDecks) then 
         e.config.colour = G.C.UI.BACKGROUND_INACTIVE

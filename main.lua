@@ -294,11 +294,17 @@ function Game:start_tcg_game(args)
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
+    self.GAME.pseudorandom.hashed_seed = pseudohash(self.GAME.pseudorandom.seed)
 
     print(self.GAME.pseudorandom.seed)
+    BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
     local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
     local opponentDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
+
+    if args.online then
+        opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
+    end
 
     G.GAME.player_back = Back(get_deck_from_name(playerDeck.back))
     G.GAME.opponent_back = Back(get_deck_from_name(opponentDeck.back))
@@ -434,7 +440,7 @@ function Game:start_tcg_game(args)
     }
     
     BalatroTCG.PlayerActive = false
-    switch_player(args.starting)
+    --switch_player(args.starting)
     
     if G.SETTINGS.FN then
         G.SETTINGS.FN.preview_score = false
@@ -456,6 +462,11 @@ function Game:start_tcg_game(args)
 
     self.HUD:recalculate()
     
+	G.FUNCS.overlay_menu({
+		definition = G.UIDEF.starting_betting(),
+	})
+	G.OVERLAY_MENU.config.no_esc = true
+
 end
 
 function TCG_GetDamage()
@@ -589,6 +600,8 @@ function end_tcg_round()
     }))
 end
 
+
+
 function switch_player(playerActive)
     
     
@@ -636,7 +649,8 @@ if MP then
 end
 
 function end_tcg_game(win)
-
+    
+    print(win)
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
         func = (function()
@@ -649,9 +663,7 @@ function end_tcg_game(win)
             end
             G.SETTINGS.paused = true
 
-            if win then
-                --BalatroTCG.Opponent:send_message({ type = 'lose_game' })
-            else
+            if not win and (MP and MP.LOBBY and MP.LOBBY.code) then
                 BalatroTCG.Opponent:send_message({ type = 'win_game' })
             end
 

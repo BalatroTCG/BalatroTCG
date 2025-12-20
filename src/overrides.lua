@@ -719,6 +719,12 @@ G.FUNCS.draw_from_play_to_discard = function(e)
 
 end
 
+local ref_draw_from_deck_to_hand = G.FUNCS.draw_from_deck_to_hand
+G.FUNCS.draw_from_deck_to_hand = function(e)
+    if not G.hand then return false end
+    return ref_draw_from_deck_to_hand(e)
+end
+
 local play_sound_ref = play_sound
 function play_sound(sound_code, per, vol)
     if BalatroTCG.MuteAudio and not G.SETTINGS.paused then return end
@@ -784,6 +790,7 @@ function Game:delete_run(args)
     BalatroTCG.Opponent = nil
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
+    G.jokers = nil
 
 
     return game_delete_run_ref(self, args)

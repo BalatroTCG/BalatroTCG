@@ -8,6 +8,9 @@ function TCG_AI:init()
     self.x_mult_power = 20
     self.money_power = 10
     self.purchase_fear = 25
+
+    self.bet_min = 0
+    self.bet_max = 4
 end
 
 function lerp(t, a, b)
