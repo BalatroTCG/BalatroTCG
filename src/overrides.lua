@@ -224,6 +224,17 @@ function Card:add_to_deck(from_debuff)
     end
 end
 
+local Game_save_settings_ref = Game.save_settings
+function Game:save_settings()
+    
+    local temp = G.SETTINGS.GAMESPEED
+    G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed
+
+    Game_save_settings_ref(self)
+
+    G.SETTINGS.GAMESPEED = temp
+end
+
 function G.UIDEF.tcg_add_to_deck(e)
     local use = nil
     use = {n=G.UIT.C, config={align = "cr"}, nodes={

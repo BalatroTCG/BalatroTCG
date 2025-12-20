@@ -18,8 +18,8 @@ Rebalancing Numbers:
 -- 5 Mult
 -- 1.1x on trigger
 -- 0.5x growth
--- 0.25 damage
--- 2 dollars earned
+-- 1 damage
+-- 3 dollars earned
 -- 1 dollars of defence
 ]]
 
@@ -76,20 +76,15 @@ Invisible is removed from the deck when sold.
 
 Death works on tarots and planets.  Removes itself from the deck.
 Emperor lets you pull out one tarot from your deck.
-Empress lets you pull out one planet from your deck.
+Priestess lets you pull out one planet from your deck.
 Hermit is limited to $5.
 Temperance is halved and limited to $25.
 Sigil and Ouija effect jokers that are suit or rank exclusive.
 
 ]]
 
--- Changes: Gold cards act like stone cards, but give one dollar when held and no chips when scored
--- Add price count to each deck for extra mode:
---    Deck size must be the same as usual, but things don't have number limits, they have cost limits
---    Cards have $1, everything else costs its normal amount
---    36 cards, 6 commons, 3 uncommons, 1 rare, 7 tarots, 3 planets, 4 spectrals
---    36, 6 * 4, 3 * 7, 1 * 10, 7 * 3, 3 * 2, 4 * 4
---    36, 24, 21, 10, 21, 6, 16 = 134
+-- TODO:
+-- 
 
 BalatroTCG = SMODS.current_mod
 
@@ -608,7 +603,9 @@ function switch_player(playerActive)
     else
         
         BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
-        G.SETTINGS.GAMESPEED = 1000
+        if _RELEASE_MODE then
+            G.SETTINGS.GAMESPEED = 1000
+        end
 
         BalatroTCG.Status_Current = BalatroTCG.Opponent
         BalatroTCG.Status_Other = BalatroTCG.Player

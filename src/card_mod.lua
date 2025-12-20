@@ -15,37 +15,6 @@ function Card:calculate_joker(context)
     
     if self.ability.set == "Joker" then
         if context.selling_self then
-        elseif context.tcg_take_damage and not context.blueprint then
-
-            if self.ability.name == 'Cloud 9' then
-                
-                return {
-                    reduce = math.floor(self.ability.nine_tally / self.ability.extra)
-                }
-            end
-            if self.ability.name == 'Golden Joker' then
-                
-                return {
-                    reduce = self.ability.extra
-                }
-            end
-            if self.ability.name == 'Mr. Bones' then
-                
-                local count = 0
-
-                for k, v in ipairs(G.jokers.cards) do
-                    if v.ability.name == 'Mr. Bones' then count = count + 1 end
-                end
-                return {
-                    percent = (self.ability.extra * count) / 100.0
-                }
-            end
-            if self.ability.name == 'Matador' then
-                
-                return {
-                    redirect = self,
-                }
-            end
         elseif context.placed_in_deck then
         elseif context.buying_card then
         elseif context.selling_card then
@@ -576,7 +545,7 @@ function Card:set_ability(center, initial, delay_sprites)
     
     if not BalatroTCG.UseTCG_UI then return end
 
-    self.tcg_estimate = nil
+    self.config.center.tcg_estimate = nil
     self.tcg_calculate = nil
     
     local name = self.ability.name
@@ -784,31 +753,42 @@ function Card:set_ability(center, initial, delay_sprites)
         end
         
         -- self.tcg_calculate = function(self, context) end
-        -- self.tcg_estimate = function(self, context) end
+        -- self.config.center.tcg_estimate = function(self, context) end
+        
+        if name == 'Sample' then
+            self.config.center.tcg_estimate = function(self, context)
+                if context.purchase == self then
+                    return {
+                        mult = 0,
+                        x_mult = 1
+                    }
+                end
+            end
+        end
 
         if name == 'Joker' then
-            self.tcg_estimate = function(self, context)
-                return {
-                    play = {
-                        any = {
-                            mult = self.ability.extra
-                        }
+            self.config.center.tcg_estimate = function(self, context)
+                if context.purchase == self then
+                    return {
+                        mult = self.ability.extra
                     }
-                }
+                end
             end
         elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-            self.tcg_estimate = function(self, context)
-                local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_suit(self.ability.extra.suit) end) * G.FUNCS.card_vision(context.round_stats, 1, 0) / #context.full_deck
-                return {
-                    play = {
-                        any = {
-                            mult = self.ability.extra.s_mult * amount
+            self.config.center.tcg_estimate = function(self, context)
+                if context.purchase == self then
+                    local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_suit(self.ability.extra.suit) end) * G.FUNCS.card_vision(context.round_stats, 0, 0) / #context.full_deck
+                    return {
+                        play = {
+                            any = {
+                                mult = self.ability.extra.s_mult * amount
+                            }
                         }
                     }
-                }
+                end
             end
         elseif (self.ability.t_mult or 0) > 0 or (self.ability.t_chips or 0) > 0 then
-            self.tcg_estimate = function(self, context)
+            self.config.center.tcg_estimate = function(self, context)
                 
             end
         elseif name == 'Business Card' then
@@ -824,8 +804,16 @@ function Card:set_ability(center, initial, delay_sprites)
                     end
                 end
             end
-            self.tcg_estimate = function(self, context)
-                
+            self.config.center.tcg_estimate = function(self, context)
+                if context.purchase == self then
+
+                    local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_face() == rank end) * G.FUNCS.card_vision(context.round_stats, 0, 0) / #context.full_deck
+
+                    print(amount)
+                    return {
+                        money_per_round = amount * self.ability.money * G.GAME.probabilities.normal / self.ability.extra
+                    }
+                end
             end
         end
 
@@ -851,7 +839,7 @@ function Card:set_ability(center, initial, delay_sprites)
                     end
                 end
             end
-            self.tcg_estimate = function(self, context)
+            self.config.center.tcg_estimate = function(self, context)
                 
             end
         elseif name == 'Rocket' then
@@ -919,7 +907,7 @@ function Card:set_ability(center, initial, delay_sprites)
             self.config.center.generate_ui = modified_desc
         elseif name == 'Riff-Raff' then
             self.ability.extra = 1
-            self.tcg_estimate = function(self, context)
+            self.config.center.tcg_estimate = function(self, context)
                 
             end
         elseif name == 'Matador' then

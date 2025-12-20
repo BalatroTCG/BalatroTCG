@@ -23,7 +23,7 @@ function G.FUNCS.start_campaign(e)
 	G.FUNCS.overlay_menu({
 		definition = G.UIDEF.create_tcg_deck_selection((e.config.id == 'from_game_over' or e.config.id == 'from_game_won') and e.config.id),
 	})
-	if (e.config.id == 'from_game_over' or e.config.id == 'from_game_won') then G.OVERLAY_MENU.config.no_esc =true end
+	if (e.config.id == 'from_game_over' or e.config.id == 'from_game_won') then G.OVERLAY_MENU.config.no_esc = true end
 end
 
 G.FUNCS.change_viewed_tcg_deck = function(args)
@@ -221,18 +221,28 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 					
 					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
 						select_tcg_deck('build'),
-						UIBox_button({
-							label = { localize("b_tcg_build") },
-							colour = G.C.GREEN,
-							button = "tcg_start_build",
-							minw = 3,
-						}),
-						-- UIBox_button({
-						-- 	label = { localize("b_tcg_delete") },
-						-- 	colour = G.C.Red,
-						-- 	--button = "tcg_delete",
-						-- 	minw = 3,
-						-- })
+						
+						{n = G.UIT.R, config = { padding = 0, align = "cm", colour = G.C.CLEAR }, nodes = {
+							{n = G.UIT.C, config = { padding = 0.2, align = "cm", colour = G.C.CLEAR }, nodes = {
+								UIBox_button({
+									n = G.UIT.R,
+									label = { localize("b_tcg_build") },
+									colour = G.C.GREEN,
+									button = "tcg_start_build",
+									minw = 3,
+								}),
+							}},
+							{n = G.UIT.C, config = { padding = 0.2, align = "cm", colour = G.C.CLEAR }, nodes = {
+								UIBox_button({
+									n = G.UIT.R,
+									label = { localize("b_tcg_delete") },
+									colour = G.C.RED,
+									func = "tcg_delete_check",
+									button = "tcg_delete_deck",
+									minw = 3,
+								})
+							}}
+						}}
 					}}
 				end},
 			}
@@ -262,8 +272,14 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 	)
 end
 
-function G.FUNCS.modify_tcg_deck()
-
+function G.FUNCS.tcg_delete_check(e)
+    if BalatroTCG.SelectedDeck <= #BalatroTCG.DefaultDecks or BalatroTCG.SelectedDeck > (#BalatroTCG.DefaultDecks + #BalatroTCG.CustomDecks) then 
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    else
+        e.config.colour = G.C.RED
+        e.config.button = 'tcg_delete_deck'
+    end
 end
 
 function G.FUNCS.lobby_choose_tcg_deck()
@@ -479,6 +495,19 @@ G.FUNCS.tcg_start_build = function(e)
 	G.FUNCS.overlay_menu{
 		definition = G.FUNCS.create_tcg_builder_menu()
 	}
+end
+
+
+G.FUNCS.tcg_delete_deck = function(e)
+	G.SETTINGS.paused = true
+
+	table.remove(BalatroTCG.CustomDecks, BalatroTCG.SelectedDeck - #BalatroTCG.DefaultDecks)
+
+	save_decks()
+
+	G.FUNCS.overlay_menu({
+		definition = G.UIDEF.create_tcg_deck_selection((e.config.id == 'from_game_over' or e.config.id == 'from_game_won') and e.config.id),
+	})
 end
 
 G.FUNCS.create_tcg_builder_menu = function(e)

@@ -580,6 +580,7 @@ G.FUNCS.hand_chance = function(e)
 end
 
 G.FUNCS.card_vision = function(e, hand_remove, discard_remove)
+    hand_remove = hand_remove + 1
     return e.hand_size + ((e.hands - hand_remove) * e.hand_power + (e.discards - discard_remove) * e.discard_power)
 end
 
@@ -590,7 +591,8 @@ function Card:estimate_score(context)
     local round_stats = context.round_stats
 
     if obj.tcg_estimate and type(obj.tcg_estimate) == 'function' then
-        return obj:tcg_estimate(context)
+        print('Custom Function for ' .. self.ability.name)
+        return obj.tcg_estimate(self, context)
     elseif self.ability.set == 'Joker' then
 
         if context.set_round_stats then
@@ -599,7 +601,7 @@ function Card:estimate_score(context)
             if context.purchase == self then
                 if self.ability.name == 'Ancient Joker' then
                     
-                    local card_vision = G.FUNCS.card_vision(round_stats, 1, 0)
+                    local card_vision = G.FUNCS.card_vision(round_stats, 0, 0)
 
                     if self.ability.tcg_extra.suit then
 
@@ -628,7 +630,7 @@ function Card:estimate_score(context)
                 if self.ability.name == 'Mail-In Rebate' then
 
                     if round_stats.discards == 0 then return end
-                    local card_vision = G.FUNCS.card_vision(round_stats, 1, 1)
+                    local card_vision = G.FUNCS.card_vision(round_stats, 0, 1)
 
                     if self.ability.tcg_extra.rank then
                         local rank = self.ability.tcg_extra.rank
