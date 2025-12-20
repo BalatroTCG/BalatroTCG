@@ -303,7 +303,7 @@ function Game:start_tcg_game(args)
     print(self.GAME.pseudorandom.seed)
 
     local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
-    local opponentDeck = get_tcg_deck(1)
+    local opponentDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
 
     G.GAME.player_back = Back(get_deck_from_name(playerDeck.back))
     G.GAME.opponent_back = Back(get_deck_from_name(opponentDeck.back))

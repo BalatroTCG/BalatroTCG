@@ -590,7 +590,7 @@ function Card:estimate_score(context)
     local round_stats = context.round_stats
 
     if obj.tcg_estimate and type(obj.tcg_estimate) == 'function' then
-        return obj.tcg_estimate(self, context)
+        return obj:tcg_estimate(context)
     elseif self.ability.set == 'Joker' then
 
         if context.set_round_stats then
@@ -652,7 +652,7 @@ function Card:estimate_score(context)
                         for rank, _ in pairs(ranks) do
                             local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.id == rank end)
     
-                            total = total + amount * self.ability.extra * card_vision / #context.full_deck, 1
+                            total = total + amount * self.ability.extra * card_vision / #context.full_deck
                         end
 
                         total = total / #ranks
