@@ -215,6 +215,26 @@ function Card:highlight(is_higlighted)
     end
 end
 
+local Card_add_to_deck_ref = Card.add_to_deck
+function Card:add_to_deck(from_debuff)
+    Card_add_to_deck_ref(self, from_debuff)
+
+    if BalatroTCG.GameActive then
+        BalatroTCG.Status_Current.bankrupt_at = G.GAME.bankrupt_at
+    end
+end
+
+local Game_save_settings_ref = Game.save_settings
+function Game:save_settings()
+    
+    local temp = G.SETTINGS.GAMESPEED
+    G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed
+
+    Game_save_settings_ref(self)
+
+    G.SETTINGS.GAMESPEED = temp
+end
+
 function G.UIDEF.tcg_add_to_deck(e)
     local use = nil
     use = {n=G.UIT.C, config={align = "cr"}, nodes={
@@ -699,9 +719,16 @@ G.FUNCS.draw_from_play_to_discard = function(e)
 
 end
 
+local ref_draw_from_deck_to_hand = G.FUNCS.draw_from_deck_to_hand
+G.FUNCS.draw_from_deck_to_hand = function(e)
+    if not G.hand then return false end
+    return ref_draw_from_deck_to_hand(e)
+end
+
 local play_sound_ref = play_sound
 function play_sound(sound_code, per, vol)
-    if not (MP and MP.LOBBY and MP.LOBBY.code) and BalatroTCG.GameActive and not BalatroTCG.PlayerActive then return end
+    if BalatroTCG.MuteAudio and not G.SETTINGS.paused then return end
+    --if not (MP and MP.LOBBY and MP.LOBBY.code) and BalatroTCG.GameActive and not BalatroTCG.PlayerActive then return end
     play_sound_ref(sound_code, per, vol)
 end
 
@@ -769,7 +796,16 @@ local game_delete_run_ref = Game.delete_run
 function Game:delete_run(args)
     
     BalatroTCG.GameActive = false
+    BalatroTCG.MuteAudio = false
     BalatroTCG.PlayerActive = false
+    BalatroTCG.UseTCG_UI = false
+    BalatroTCG.SavedSpeed = nil
+    BalatroTCG.Player = nil
+    BalatroTCG.Opponent = nil
+    BalatroTCG.Status_Current = nil
+    BalatroTCG.Status_Other = nil
+    G.jokers = nil
+
 
     return game_delete_run_ref(self, args)
     
@@ -807,6 +843,20 @@ function ease_dollars(mod, instant)
     end
 end
 
+local create_UIBox_options_ref = create_UIBox_options
+function create_UIBox_options()
+    G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
+    return create_UIBox_options_ref()
+end
+
+local CardArea_emplace_ref = CardArea.emplace
+function CardArea:emplace(card, location, stay_flipped)
+    local ret = CardArea_emplace_ref(self, card, location, stay_flipped)
+
+    if BalatroTCG.Opponent and BalatroTCG.Opponent.hard_set then BalatroTCG.Opponent:hard_set() end
+
+    return ret
+end
 
 local start_dissolve_ref = Card.start_dissolve
 function Card:start_dissolve(dissolve_colours, silent, dissolve_time_fac, no_juice)
@@ -831,6 +881,14 @@ function Card:start_dissolve(dissolve_colours, silent, dissolve_time_fac, no_jui
         start_dissolve_ref(self, dissolve_colours, silent, dissolve_time_fac, no_juice)
     end
 end
+
+local start_setup_run_ref = G.FUNCS.start_setup_run
+G.FUNCS.start_setup_run = function(e)
+    BalatroTCG.UseTCG_UI = false
+    
+    return start_setup_run_ref(e)
+end
+
 
 function pick_from_areas(check, areas, toplace, seed)
     seed = seed or ''

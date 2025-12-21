@@ -388,24 +388,26 @@ return {
             
             b_tcg_build = "Build",
             b_tcg_delete = "Delete",
-
+            
             b_tcg_jokercount = "Joker Count",
             
             b_tcg_add = "Add",
             b_tcg_remove = "Remove",
             b_tcg_apply = "Apply",
-
+            
 			b_tcgtab_single = "Single Game",
 			b_tcgtab_deck = "Build Deck",
 			b_tcgtab_online = "Online Match",
 			b_tcgtab_online_start = "Online Match",
 			b_tcgtab_select = "Select Deck",
-
+            
 			b_tcg_attack = "Attack",
 			b_tcg_buy = "Buy $",
+			b_tcg_bet = "Bet",
 
-            tcg_err_none="Awa",
-            tcg_err_unknown="Awawa",
+			k_tcg_bet = "Spend $ to go first?",
+			k_tcg_waiting = "Waiting for opponent...",
+
 		},
         v_text = {
             tcg_err_none={

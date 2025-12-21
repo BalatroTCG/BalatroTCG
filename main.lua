@@ -18,8 +18,8 @@ Rebalancing Numbers:
 -- 5 Mult
 -- 1.1x on trigger
 -- 0.5x growth
--- 0.25 damage
--- 2 dollars earned
+-- 1 damage
+-- 3 dollars earned
 -- 1 dollars of defence
 ]]
 
@@ -76,20 +76,15 @@ Invisible is removed from the deck when sold.
 
 Death works on tarots and planets.  Removes itself from the deck.
 Emperor lets you pull out one tarot from your deck.
-Empress lets you pull out one planet from your deck.
+Priestess lets you pull out one planet from your deck.
 Hermit is limited to $5.
 Temperance is halved and limited to $25.
 Sigil and Ouija effect jokers that are suit or rank exclusive.
 
 ]]
 
--- Changes: Gold cards act like stone cards, but give one dollar when held and no chips when scored
--- Add price count to each deck for extra mode:
---    Deck size must be the same as usual, but things don't have number limits, they have cost limits
---    Cards have $1, everything else costs its normal amount
---    36 cards, 6 commons, 3 uncommons, 1 rare, 7 tarots, 3 planets, 4 spectrals
---    36, 6 * 4, 3 * 7, 1 * 10, 7 * 3, 3 * 2, 4 * 4
---    36, 24, 21, 10, 21, 6, 16 = 134
+-- TODO:
+-- 
 
 BalatroTCG = SMODS.current_mod
 
@@ -297,10 +292,19 @@ function Game:start_tcg_game(args)
     ease_background_colour_blind(G.STATE, 'Small Blind')
     
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
+    --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
+    self.GAME.pseudorandom.hashed_seed = pseudohash(self.GAME.pseudorandom.seed)
+
+    print(self.GAME.pseudorandom.seed)
+    BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
     local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
-    local opponentDeck = get_tcg_deck(1)
+    local opponentDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
+
+    if args.online then
+        opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
+    end
 
     G.GAME.player_back = Back(get_deck_from_name(playerDeck.back))
     G.GAME.opponent_back = Back(get_deck_from_name(opponentDeck.back))
@@ -438,7 +442,7 @@ function Game:start_tcg_game(args)
     }
     
     BalatroTCG.PlayerActive = false
-    switch_player(args.starting)
+    --switch_player(args.starting)
     
     if G.SETTINGS.FN then
         G.SETTINGS.FN.preview_score = false
@@ -460,6 +464,11 @@ function Game:start_tcg_game(args)
 
     self.HUD:recalculate()
     
+	G.FUNCS.overlay_menu({
+		definition = G.UIDEF.starting_betting(),
+	})
+	G.OVERLAY_MENU.config.no_esc = true
+
 end
 
 function TCG_GetDamage()
@@ -593,6 +602,8 @@ function end_tcg_round()
     }))
 end
 
+
+
 function switch_player(playerActive)
     
     if BalatroTCG.Status_Current then
@@ -601,10 +612,19 @@ function switch_player(playerActive)
     
     BalatroTCG.PlayerActive = playerActive
     if BalatroTCG.PlayerActive then
+        G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
+        G.SETTINGS.GAMESPEED = 4
+
         BalatroTCG.Status_Current = BalatroTCG.Player
         BalatroTCG.Status_Other = BalatroTCG.Opponent
         BalatroTCG.Player:apply()
     else
+        
+        BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
+        if _RELEASE_MODE then
+            G.SETTINGS.GAMESPEED = 1000
+        end
+
         BalatroTCG.Status_Current = BalatroTCG.Opponent
         BalatroTCG.Status_Other = BalatroTCG.Player
         BalatroTCG.Opponent:apply()
@@ -613,7 +633,7 @@ function switch_player(playerActive)
     G.RESET_JIGGLES = nil
     BalatroTCG.Switching = false
 
-    print("Setting state: " .. tostring(BalatroTCG.PlayerActive))
+    --print("Setting state: " .. tostring(BalatroTCG.PlayerActive))
     
 end
 
@@ -621,7 +641,6 @@ if MP then
     local generate_hashlocal = MP.generate_hash
     function MP:generate_hash()
         generate_hashlocal(self)
-        print('MOD_STRING ' .. MP.MOD_STRING)
     end
 
     local should_use_the_order_local = MP.should_use_the_order
@@ -634,7 +653,7 @@ if MP then
 end
 
 function end_tcg_game(win)
-
+    
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
         func = (function()
@@ -647,10 +666,8 @@ function end_tcg_game(win)
             end
             G.SETTINGS.paused = true
 
-            if win then
-                BalatroTCG.Opponent:send_message({ type = 'lose_game' })
-            else
-                --BalatroTCG.Opponent:send_message({ type = 'win_game' })
+            if not win and (MP and MP.LOBBY and MP.LOBBY.code) then
+                BalatroTCG.Opponent:send_message({ type = 'win_game' })
             end
 
             G.FUNCS.overlay_menu{

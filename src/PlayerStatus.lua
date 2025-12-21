@@ -126,7 +126,7 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.opponent_jokers = 0
     self.status.opponent_joker_cost = 0
     self.status.opponent_health = 50
-    
+    self.status.bankrupt_at = 0
 end
 
 
@@ -149,6 +149,7 @@ function TCG_PlayerStatus:apply()
     end
 
     G.GAME.dollars = self.status.dollars
+    G.GAME.bankrupt_at = self.status.bankrupt_at
     G.GAME.current_round.hands_left = (math.max(1, G.GAME.round_resets.hands))
     G.GAME.current_round.discards_left = math.max(0, G.GAME.round_resets.discards)
     G.GAME.current_round.hands_played = 0
@@ -225,18 +226,30 @@ function TCG_PlayerStatus:receive_message(message)
     if message.type == 'back' then
         self.Other.back = Back(get_deck_from_name(message.back))
         
+    elseif message.type == 'ready' then
+		G.SETTINGS.paused = false
+		G.FUNCS.exit_overlay_menu()
+
+        message.damage = tonumber(message.damage)
+        self:receive_message({type = 'damage', damage = message.damage})
+        switch_player(message.starting == 'true')
+        
     elseif message.type == 'damage' then
         
         G.E_MANAGER:add_event(Event({
             no_delete = true,
             func = function()
-            table.sort(self.jokers.cards, function(a,b) return a.T.x < b.T.x end)
             local return_table = {}
-            for _, joker in ipairs(self.jokers.cards) do
-                local value = joker:calculate_joker({tcg_take_damage = true, damage = message.damage })
-                if value then
-                    value.activator = joker
-                    return_table[#return_table + 1] = value
+            message.damage = tonumber(message.damage)
+            
+            if self.jokers then
+                table.sort(self.jokers.cards, function(a,b) return a.T.x < b.T.x end)
+                for _, joker in ipairs(self.jokers.cards) do
+                    local value = joker:calculate_joker({tcg_take_damage = true, damage = message.damage })
+                    if value then
+                        value.activator = joker
+                        return_table[#return_table + 1] = value
+                    end
                 end
             end
 
@@ -269,10 +282,12 @@ function TCG_PlayerStatus:receive_message(message)
                 end
             end
 
-            for _, j in ipairs(self.jokers.cards) do
-                message.index = message.index - 1
-                if message.index == 0 then
-                    joker = j
+            if self.jokers then
+                for _, j in ipairs(self.jokers.cards) do
+                    message.index = message.index - 1
+                    if message.index == 0 then
+                        joker = j
+                    end
                 end
             end
 
@@ -289,7 +304,7 @@ function TCG_PlayerStatus:receive_message(message)
                 if self.is_player then
                     play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
                 end
-                    joker:juice_up(0.3, 0.5)
+                joker:juice_up(0.3, 0.5)
             end
             return true
         end
@@ -373,11 +388,22 @@ function TCG_PlayerStatus:damage(amount)
     end
     
     if G.GAME.dollars <= G.GAME.bankrupt_at then
-        end_tcg_game()
+        end_tcg_game(not self.is_player)
     end
     
     G.HUD:recalculate()
     
+end
+
+function TCG_PlayerStatus:hard_set()
+    
+    self.hand:hard_set_cards()
+    self.play:hard_set_cards()
+    self.jokers:hard_set_cards()
+    self.consumeables:hard_set_cards()
+    self.deck:hard_set_cards()
+    self.discard:hard_set_cards()
+    self.graveyard:hard_set_cards()
 end
 
 function TCG_PlayerStatus:set_screen_positions(player)
