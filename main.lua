@@ -628,7 +628,7 @@ function switch_player(playerActive)
     G.RESET_JIGGLES = nil
     BalatroTCG.Switching = false
 
-    print("Setting state: " .. tostring(BalatroTCG.PlayerActive))
+    --print("Setting state: " .. tostring(BalatroTCG.PlayerActive))
     
 end
 
@@ -636,7 +636,6 @@ if MP then
     local generate_hashlocal = MP.generate_hash
     function MP:generate_hash()
         generate_hashlocal(self)
-        print('MOD_STRING ' .. MP.MOD_STRING)
     end
 
     local should_use_the_order_local = MP.should_use_the_order
@@ -650,7 +649,6 @@ end
 
 function end_tcg_game(win)
     
-    print(win)
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
         func = (function()

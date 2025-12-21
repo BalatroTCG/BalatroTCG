@@ -11,6 +11,8 @@ end
 
 function G.FUNCS.play_options(e)
 	G.SETTINGS.paused = true
+	
+    BalatroTCG.UseTCG_UI = false
 
 	G.FUNCS.overlay_menu({
 		definition = G.UIDEF.override_main_menu_play_button(),

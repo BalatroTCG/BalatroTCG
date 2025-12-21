@@ -785,6 +785,7 @@ function Game:delete_run(args)
     BalatroTCG.GameActive = false
     BalatroTCG.MuteAudio = false
     BalatroTCG.PlayerActive = false
+    BalatroTCG.UseTCG_UI = false
     BalatroTCG.SavedSpeed = nil
     BalatroTCG.Player = nil
     BalatroTCG.Opponent = nil
@@ -831,7 +832,7 @@ end
 
 local create_UIBox_options_ref = create_UIBox_options
 function create_UIBox_options()
-    G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed
+    G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
     return create_UIBox_options_ref()
 end
 
@@ -867,6 +868,14 @@ function Card:start_dissolve(dissolve_colours, silent, dissolve_time_fac, no_jui
         start_dissolve_ref(self, dissolve_colours, silent, dissolve_time_fac, no_juice)
     end
 end
+
+local start_setup_run_ref = G.FUNCS.start_setup_run
+G.FUNCS.start_setup_run = function(e)
+    BalatroTCG.UseTCG_UI = false
+    
+    return start_setup_run_ref(e)
+end
+
 
 function pick_from_areas(check, areas, toplace, seed)
     seed = seed or ''
