@@ -14,12 +14,7 @@ function Card:calculate_joker(context)
     end
     
     if self.ability.set == "Joker" then
-        local string = ''
 
-        for k, v in pairs(context) do
-            string = string .. k .. ', '
-        end
-        print(string)
         if context.selling_self then
         elseif context.switching_players then
             if self.ability.name == 'Chaos the Clown' and not context.blueprint then
@@ -617,11 +612,16 @@ function Card:set_ability(center, initial, delay_sprites)
             elseif name == 'Lucky Card' then
                 self.ability.p_dollars = 10
             elseif name == 'Steel Card' then
-                self.ability.h_x_mult = 1.25
+                --self.ability.h_x_mult = 1.25
             end
         end
     elseif self.ability.set == 'Tarot' then
         if not BalatroTCG.Unbalance then
+            if name == 'The Hermit' then
+                self.ability.extra = 10
+            elseif name == 'Temperance' then
+                self.ability.extra = 25
+            end
         end
     elseif self.ability.set == 'Spectral' then
         if name == 'The Soul' or name == 'Wraith' then
@@ -639,6 +639,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.base_cost = self.base_cost - 2
                 self.ability.extra.s_mult = 5
             elseif (self.ability.t_mult or 0) > 0 or (self.ability.t_chips or 0) > 0 then
+                self.base_cost = self.base_cost - 1
 
                 if name == 'Jolly Joker' then
                     self.ability.t_mult = 10
@@ -783,8 +784,6 @@ function Card:set_ability(center, initial, delay_sprites)
                     gain = 1,
                     odds = 2,
                 }
-            elseif name == 'Business Card' then
-                self.ability.money = 2
             elseif name == 'Vagabond' then
                 self.ability.extra = 10
             elseif name == 'Mail-in Rebate' then
@@ -803,9 +802,6 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.config.center.generate_ui = modified_desc
             end
         else
-            if name == 'Business Card' then
-                self.ability.money = 1
-            end
         end
         
         -- self.tcg_calculate = function(self, context) end
@@ -848,6 +844,8 @@ function Card:set_ability(center, initial, delay_sprites)
                 
             end
         elseif name == 'Business Card' then
+            self.ability.money = 1
+            self.config.center.generate_ui = modified_desc
             self.tcg_calculate = function(self, context)
                 if context.individual and context.cardarea == G.play then
                     if context.other_card:is_face() and pseudorandom('business') < G.GAME.probabilities.normal/self.ability.extra then
@@ -865,7 +863,6 @@ function Card:set_ability(center, initial, delay_sprites)
 
                     local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_face() == rank end) * G.FUNCS.card_vision(context.round_stats, 0, 0) / #context.full_deck
 
-                    print(amount)
                     return {
                         money_per_round = amount * self.ability.money * G.GAME.probabilities.normal / self.ability.extra
                     }

@@ -663,6 +663,9 @@ function end_tcg_game(win)
             
             if win then
                 play_sound('win')
+            else
+                play_sound('negative', 0.5, 0.7)
+                play_sound('whoosh2', 0.9, 0.7)
             end
             G.SETTINGS.paused = true
 

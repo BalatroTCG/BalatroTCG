@@ -123,7 +123,7 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'Zodiac Deck' then loc_args = { 1, effect_config.discount }
 	elseif name_to_check == 'Painted Deck' then loc_args = { 2, -1 }
 	elseif name_to_check == 'Anaglyph Deck' then loc_args = {1, 3}
-	elseif name_to_check == 'Plasma Deck' then loc_args = { 2, 10 }
+	elseif name_to_check == 'Plasma Deck' then loc_args = { 1, 4 }
 	elseif name_to_check == 'Erratic Deck' then loc_args = { 5 }
 	elseif name_to_check == 'Challenge Deck' then loc_args = { 4 }
 	end

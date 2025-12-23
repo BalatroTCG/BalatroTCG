@@ -18,7 +18,7 @@ function TCG_PlayerStatus:init(deck, player)
     elseif deck.back == 'Plasma Deck' then
         back.calculate_deck = function(context)
             if context.damaging then
-                local hurt = math.floor(context.damage / 10) * 2
+                local hurt = math.floor(context.damage / 4) * 1
                 if hurt > 0 then context.status:damage(hurt) end
             end
         end
