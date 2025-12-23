@@ -300,7 +300,7 @@ function Game:start_tcg_game(args)
     BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
     local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
-    local opponentDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
+    local opponentDeck = get_tcg_deck(pseudorandom(generate_starting_seed(), 1, #BalatroTCG.DefaultDecks))
 
     if args.online then
         opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
