@@ -173,6 +173,15 @@ function TCG_PlayerStatus:apply()
     self.status.discards = G.GAME.current_round.discards_left
     
     G.playing_cards = self.playing_cards
+
+    G.consumeables = self.consumeables
+    G.jokers = self.jokers
+    G.discard = self.discard
+    G.deck = self.deck
+    G.hand = self.hand
+    G.play = self.play
+    G.graveyard = self.graveyard
+    G.opponentJokers = self.opponentJokers
     
     G.deck:shuffle('nr' .. self.status.round)
     SMODS.calculate_context({setting_blind = true, blind = G.GAME.round_resets.blind})
