@@ -281,10 +281,6 @@ function Game:start_tcg_game(args)
 
     BalatroTCG.GameActive = true
     BalatroTCG.UseTCG_UI = true
-
-    self:prep_stage(G.STAGES.RUN, G.STATES.NEW_ROUND)
-    
-    G.STAGE = G.STAGES.RUN
     
     G.STATE_COMPLETE = false
     G.RESET_BLIND_STATES = true
@@ -300,7 +296,8 @@ function Game:start_tcg_game(args)
     BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
     local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
-    local opponentDeck = get_tcg_deck(pseudorandom(generate_starting_seed(), 1, #BalatroTCG.DefaultDecks))
+    --local opponentDeck = get_tcg_deck(pseudorandom(generate_starting_seed(), 1, #BalatroTCG.DefaultDecks))
+    local opponentDeck = get_tcg_deck(1)
 
     if args.online then
         opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
@@ -314,13 +311,15 @@ function Game:start_tcg_game(args)
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
     
-    BalatroTCG.Player:apply()
 
     BalatroTCG.Player.Other = BalatroTCG.Opponent
     BalatroTCG.Opponent.Other = BalatroTCG.Player
     
     BalatroTCG.Player:set_screen_positions(true)
     BalatroTCG.Opponent:set_screen_positions(false)
+
+    
+    BalatroTCG.Player:apply()
 
     if args.online then
         BalatroTCG.AI = nil
@@ -404,6 +403,10 @@ function Game:start_tcg_game(args)
     }))
 
     --delay(0.25)
+
+    self:prep_stage(G.STAGES.RUN, G.STATES.NEW_ROUND)
+    
+    G.STAGE = G.STAGES.RUN
 
     G.GAME.current_round.discards_left = G.GAME.round_resets.discards
     G.GAME.current_round.hands_left = G.GAME.round_resets.hands

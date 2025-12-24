@@ -566,7 +566,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'j', c = 'j_cavendish' },
         { type = 'j', c = 'j_gros_michel' },
         
-        { type = 'j', c = 'j_showman' },
+        { type = 'j', c = 'j_ring_master' },
         { type = 'j', c = 'j_cloud_9' },
         { type = 'j', c = 'j_stencil' },
         
@@ -1176,12 +1176,12 @@ function BalatroTCG.Deck:card_from_control_ex(deck, back, control)
     local _card = nil
 
     if control.type == 'p' then
-        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[control.s..'_'..control.r], G.P_CENTERS['c_base'], {playing_card = G.playing_card, viewed_back = true, bypass_back = back.pos})
+        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[control.s..'_'..control.r], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = back })
     elseif control.type == 'j' then
-        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, viewed_back = true, bypass_back = back.pos})
+        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, tcg_back = back })
         _card.base.suit = 'tcgb_Joker'
     elseif control.type == 'c' then
-        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, viewed_back = true, bypass_back = back.pos})
+        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, tcg_back = back })
         if _card.config.center.set == 'Planet' then
             _card.base.suit = 'tcgb_Planet'
         elseif _card.config.center.set == 'Tarot' then

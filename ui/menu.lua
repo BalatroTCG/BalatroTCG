@@ -511,14 +511,13 @@ function create_tcg_builder(type, callback)
 			end
 		end
 	end
-	local back = Back(G.P_CENTERS.b_red)
 
 	for i = 1, 6 do
 		for j = 1, #G.your_tcg_deck do
 			local control = BalatroTCG.BuildingDeck.cards[i+(j-1)*6 + (G.tcg_deck_page - 1) * 12]
 			if not control then break end
 			
-			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], back, control)
+			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], nil, control)
 			G.your_tcg_deck[j]:emplace(card)
 		end
 	end
@@ -723,12 +722,12 @@ G.FUNCS.your_collection_tcg_deck_page = function(args)
 			c = nil
 		end
 	end
-	local back = Back(get_deck_from_name(BalatroTCG.BuildingDeck.back))
+
 	for i = 1, 6 do
 		for j = 1, #G.your_tcg_deck do
 			local control = BalatroTCG.BuildingDeck.cards[i+(j-1)*6 + (6*#G.your_tcg_deck*(args.cycle_config.current_option - 1))]
 			if not control then break end
-			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], back, control)
+			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], nil, control)
 			G.your_tcg_deck[j]:emplace(card)
 		end
 	end

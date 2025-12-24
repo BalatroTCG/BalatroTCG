@@ -328,7 +328,7 @@ return {
                     "{C:inactive}(Currently {C:mult}+#1#{C:inactive} Mult)",
                 },
             },
-            j_showman_tcg={
+            j_ring_master_tcg={
                 name="Showman",
                 text={
                     "Allows {C:attention}1{} extra",

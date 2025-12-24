@@ -98,10 +98,19 @@ function TCG_PlayerStatus:init(deck, player)
     
     G.GAME.viewed_back = back
     
+    G.consumeables = self.consumeables
+    G.jokers = self.jokers
+    G.discard = self.discard
+    G.deck = self.deck
+    G.hand = self.hand
+    G.play = self.play
+    G.graveyard = self.graveyard
+    G.opponentJokers = self.opponentJokers
+    
     for k, v in ipairs(deck.cards) do
         G.playing_card = (G.playing_card and G.playing_card + 1) or 1
 
-        local _card = deck:card_from_control_ex(self.deck, self.back, v)
+        local _card = deck:card_from_control_ex(self.deck, { is_player = self.is_player }, v)
         self.deck:emplace(_card)
         table.insert(self.playing_cards, _card)
         if _card.ability.set == 'Joker' then
@@ -140,14 +149,6 @@ function TCG_PlayerStatus:apply()
     G.GAME.round_resets.hands = self.params.hands
     G.GAME.round_resets.discards = self.params.discards
     G.GAME.starting_deck_size = self.starting_deck_size
-
-    G.GAME.selected_back_key = self.back_key
-    G.GAME.selected_back:change_to(get_deck_from_name(self.back_key))
-    if G.GAME.viewed_back then
-        G.GAME.viewed_back:change_to(get_deck_from_name(self.back_key))
-    else
-        G.GAME.viewed_back = Back(get_deck_from_name(self.back_key))
-    end
 
     G.GAME.dollars = self.status.dollars
     G.GAME.bankrupt_at = self.status.bankrupt_at
