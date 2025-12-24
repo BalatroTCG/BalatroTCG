@@ -631,6 +631,8 @@ end
 local game_delete_run_ref = Game.delete_run
 function Game:delete_run(args)
     
+    game_delete_run_ref(self, args)
+    
     BalatroTCG.GameActive = false
     BalatroTCG.MuteAudio = false
     BalatroTCG.PlayerActive = false
@@ -640,11 +642,6 @@ function Game:delete_run(args)
     BalatroTCG.Opponent = nil
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
-    G.jokers = nil
-
-
-    return game_delete_run_ref(self, args)
-    
 end
 
 

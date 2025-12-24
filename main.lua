@@ -318,9 +318,6 @@ function Game:start_tcg_game(args)
     BalatroTCG.Player:set_screen_positions(true)
     BalatroTCG.Opponent:set_screen_positions(false)
 
-    
-    BalatroTCG.Player:apply()
-
     if args.online then
         BalatroTCG.AI = nil
     else

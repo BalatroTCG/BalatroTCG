@@ -363,7 +363,7 @@ overwrite = true
 target = 'card.lua'
 pattern = '''if G.STAGE == G.STAGES.RUN then'''
 position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN then'''
+payload = '''if G.STAGE == G.STAGES.RUN and G.jokers.config then'''
 match_indent = true
 overwrite = true
 
