@@ -281,6 +281,10 @@ function Game:start_tcg_game(args)
 
     BalatroTCG.GameActive = true
     BalatroTCG.UseTCG_UI = true
+
+    self:prep_stage(G.STAGES.RUN, G.STATES.NEW_ROUND)
+    
+    G.STAGE = G.STAGES.RUN
     
     G.STATE_COMPLETE = false
     G.RESET_BLIND_STATES = true
@@ -400,10 +404,6 @@ function Game:start_tcg_game(args)
     }))
 
     --delay(0.25)
-
-    self:prep_stage(G.STAGES.RUN, G.STATES.NEW_ROUND)
-    
-    G.STAGE = G.STAGES.RUN
 
     G.GAME.current_round.discards_left = G.GAME.round_resets.discards
     G.GAME.current_round.hands_left = G.GAME.round_resets.hands
