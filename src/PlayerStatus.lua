@@ -98,15 +98,6 @@ function TCG_PlayerStatus:init(deck, player)
     
     G.GAME.viewed_back = back
     
-    G.consumeables = self.consumeables
-    G.jokers = self.jokers
-    G.discard = self.discard
-    G.deck = self.deck
-    G.hand = self.hand
-    G.play = self.play
-    G.graveyard = self.graveyard
-    G.opponentJokers = self.opponentJokers
-    
     for k, v in ipairs(deck.cards) do
         G.playing_card = (G.playing_card and G.playing_card + 1) or 1
 
