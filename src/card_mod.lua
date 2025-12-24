@@ -1,6 +1,172 @@
 
 local calculate_joker_ref = Card.calculate_joker
 
+
+local use_consumeable_ref = Card.use_consumeable
+function Card:use_consumeable(area, copier)
+    
+    if BalatroTCG.GameActive then
+        stop_use()
+
+        if self.debuff then return nil end
+        local used_tarot = copier or self
+        local obj = self.config.center
+        
+        if obj.tcg_use and type(obj.tcg_use) == 'function' then
+            obj.tcg_use(self, area, copier)
+            return
+        else
+            if self.ability.set == 'Planet' then
+                if not BalatroTCG.Status_Current.params.destroy_planets then self.tcg_todeck = true end
+            elseif self.ability.set == 'Tarot' then
+                if not BalatroTCG.Status_Current.params.destroy_tarots then self.tcg_todeck = true end
+            elseif self.ability.set == 'Spectral' then
+                if not BalatroTCG.Status_Current.params.destroy_spectrals then self.tcg_todeck = true end
+            end
+
+            if self.ability.set == 'Planet' then
+                use_consumeable_ref(self, area, copier)
+            elseif self.ability.name == 'Judgement' then
+                
+                if pick_from_areas(function (c) return 
+                    (c.ability.set == 'Joker' and not (
+                        c.config.center.no_pool_flag and G.GAME.pool_flags[c.config.center.no_pool_flag] or
+                        c.config.center.yes_pool_flag and not G.GAME.pool_flags[c.config.center.yes_pool_flag]
+                    )) end, {G.deck, G.discard, G.graveyard}, G.jokers) then
+
+                    play_sound('timpani')
+                    used_tarot:juice_up(0.3, 0.5)
+                end
+            elseif self.ability.name == 'The Fool' then
+                if G.GAME.last_tarot_planet == 'c_fool' then return end
+
+                local center = G.P_CENTERS[G.GAME.last_tarot_planet]
+
+                if pick_from_areas(function (c) return c.ability.name == center.name end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
+                    play_sound('timpani')
+                    used_tarot:juice_up(0.3, 0.5)
+                end
+                
+                delay(0.6)
+            elseif self.ability.name == 'The Emperor' then
+                
+                pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables)
+                play_sound('timpani')
+                used_tarot:juice_up(0.3, 0.5)
+                
+            elseif self.ability.name == 'The High Priestess' then
+                pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard}, G.consumeables)
+                play_sound('timpani')
+                used_tarot:juice_up(0.3, 0.5)
+
+            elseif self.ability.name == 'Immolate' then
+                self.ability.extra.dollars = 0
+                use_consumeable_ref(self, area, copier)
+
+            elseif self.ability.name == 'Sigil' or self.ability.name == 'Ouija' then
+                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                    play_sound('tarot1')
+                    used_tarot:juice_up(0.3, 0.5)
+                    return true end }))
+
+                for i=1, #G.hand.cards do
+                    local percent = 1.15 - (i-0.999)/(#G.hand.cards-0.998)*0.3
+                    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.15,func = function() G.hand.cards[i]:flip();play_sound('card1', percent);G.hand.cards[i]:juice_up(0.3, 0.3);return true end }))
+                end
+                delay(0.2)
+                if self.ability.name == 'Sigil' then
+                    local _suit = pseudorandom_element(SMODS.Suits, pseudoseed('sigil')).card_key
+                    for i=1, #G.hand.cards do
+                        G.E_MANAGER:add_event(Event({func = function()
+                            local card = G.hand.cards[i]
+                            local set = card.ability.set
+                            if card:is_playing_card() then
+                                local suit_prefix = _suit..'_'
+                                local rank_suffix = card.base.id < 10 and tostring(card.base.id) or
+                                                    card.base.id == 10 and 'T' or card.base.id == 11 and 'J' or
+                                                    card.base.id == 12 and 'Q' or card.base.id == 13 and 'K' or
+                                                    card.base.id == 14 and 'A'
+                                card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                            elseif set == 'Tarot' then
+                                if _suit == 'S' then
+                                    card:set_ability(G.P_CENTERS.c_world)
+                                elseif _suit == 'H' then
+                                    card:set_ability(G.P_CENTERS.c_sun)
+                                elseif _suit == 'D' then
+                                    card:set_ability(G.P_CENTERS.c_star)
+                                elseif _suit == 'C' then
+                                    card:set_ability(G.P_CENTERS.c_moon)
+                                    --TARGET: Sigil changing tarot suits
+                                end
+                            else
+                                card:override_suit(_suit)
+                            end
+                        return true end }))
+                    end  
+                end
+                if self.ability.name == 'Ouija' then
+                    local _rank = pseudorandom_element({'2','3','4','5','6','7','8','9','T','J','Q','K','A'}, pseudoseed('ouija'))
+                    for i=1, #G.hand.cards do
+                        G.E_MANAGER:add_event(Event({func = function()
+                            local card = G.hand.cards[i]
+                            local set = card.ability.set
+                            if card:is_playing_card() then
+                                local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
+                                local rank_suffix =_rank
+                                card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                            elseif set == 'Tarot' then
+                            else
+                                card:override_rank(_rank)
+                            end
+                        return true end }))
+                    end  
+                    G.hand:change_size(-1)
+                end
+                for i=1, #G.hand.cards do
+                    local percent = 0.85 + (i-0.999)/(#G.hand.cards-0.998)*0.3
+                    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.15,func = function() G.hand.cards[i]:flip();play_sound('tarot2', percent, 0.6);G.hand.cards[i]:juice_up(0.3, 0.3);return true end }))
+                end
+                delay(0.5)
+            
+                
+            elseif self.ability.name == 'Wraith' then
+                
+                if pick_from_areas(function (c) return 
+                    (c.ability.set == 'Joker' and c.config.center.rarity >= 3 and not (
+                        c.config.center.no_pool_flag and G.GAME.pool_flags[c.config.center.no_pool_flag] or
+                        c.config.center.yes_pool_flag and not G.GAME.pool_flags[c.config.center.yes_pool_flag]
+                    )) end, {G.deck, G.discard, G.graveyard}, G.hand) then
+
+                    play_sound('timpani')
+                    used_tarot:juice_up(0.3, 0.5)
+                end
+            elseif self.ability.name == 'The Soul' then
+                
+                local applicable = {}
+
+                for _, joker in ipairs(G.jokers.cards) do
+                    if joker.config.center.eternal_compat then
+                        table.insert(applicable, joker)
+                    end
+                    joker:set_eternal(nil)
+                end
+
+                if #applicable > 0 then
+                    local card = pseudorandom_element(applicable, pseudoseed('soul'..G.GAME.round_resets.ante))
+                    used_tarot:juice_up(0.3, 0.5)
+                    play_sound('gold_seal', 1.2, 0.4)
+                    card:set_eternal(true)
+                end
+            else
+                use_consumeable_ref(self, area, copier)
+            end
+        end
+    else
+        use_consumeable_ref(self, area, copier)
+    end
+end
+
+
 function Card:calculate_joker(context)
     
     if self.ability.set ~= "Joker" or not BalatroTCG.GameActive then
@@ -86,21 +252,13 @@ function Card:calculate_joker(context)
             if self.ability.name == 'Riff-raff' and not (context.blueprint_card or self).getting_sliced and #G.jokers.cards + G.GAME.joker_buffer < G.jokers.config.card_limit then
                 local jokers_to_create = math.min(1, G.jokers.config.card_limit - (#G.jokers.cards + G.GAME.joker_buffer))
                 
-                for k, v in ipairs(G.deck.cards) do
-                    if v.ability.set == 'Joker' and not (
-                        v.config.center.no_pool_flag and G.GAME.pool_flags[v.config.center.no_pool_flag] or
-                        v.config.center.yes_pool_flag and not G.GAME.pool_flags[v.config.center.yes_pool_flag]
-                    ) then
-                        G.GAME.joker_buffer = G.GAME.joker_buffer + jokers_to_create
-                        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                            v.area:remove_card(v)
-                            G.jokers:emplace(v)
-                            v:add_to_deck()
-                            G.GAME.joker_buffer = 0
-                            return true end }))
-                        delay(0.6)
-                        break
-                    end
+                
+                if pick_from_areas(function (c) return c.ability.set == 'Joker' and c.config.center.rarity == 1 end, {G.deck, G.discard}, G.jokers) then
+                    G.GAME.joker_buffer = G.GAME.joker_buffer + jokers_to_create
+                    G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                        G.GAME.joker_buffer = 0
+                        return true end }))
+                    delay(0.6)
                 end
 
                 return nil
@@ -419,6 +577,7 @@ function Card:calculate_joker(context)
                         else
                             self.ability.x_mult = self.ability.x_mult * self.ability.extra
                         end
+                        return nil
                     end
                 elseif context.after then
                 elseif context.joker_main then
@@ -709,7 +868,7 @@ function Card:set_ability(center, initial, delay_sprites)
             elseif name == 'Fortune Teller' then
                 self.ability.extra = 5
             elseif name == 'Bootstraps' then
-                self.ability.extra.mult = 5
+                self.ability.extra.mult = 4
             elseif name == 'Supernova' then
                 self.ability.extra = 8
 
@@ -742,8 +901,6 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.config.center.generate_ui = modified_desc
             elseif name == 'Lucky Cat' then
                 self.ability.extra = 0.5
-            elseif name == 'Throwback' then
-                self.config.center.generate_ui = modified_desc
             elseif name == "Driver's License" then
                 self.ability.extra = 10
             elseif name == 'Hit The Road' then
@@ -895,6 +1052,25 @@ function Card:set_ability(center, initial, delay_sprites)
             self.config.center.tcg_estimate = function(self, context)
                 
             end
+        elseif name == 'Throwback' then
+            self.config.center.generate_ui = modified_desc
+            self.ability.discards = 0
+            
+            self.tcg_calculate = function(self, context)
+                if not context.repetition and not context.individual and context.end_of_round then
+                    self.ability.discards = (self.ability.discards or 0) + G.GAME.current_round.discards_left
+                    return {
+                        message = localize('k_upgrade_ex'),
+                        card = self
+                    }
+                elseif context.joker_main and self.ability.discards > 0 then
+                    local x_mult = self.ability.extra * self.ability.discards + 1
+                    return {
+                        message = localize{type='variable',key='a_xmult',vars={x_mult}},
+                        Xmult_mod = x_mult,
+                    }
+                end
+            end
         elseif name == 'Rocket' then
             self.ability.extra.dollars = 2
             self.ability.extra.increase = 4
@@ -999,6 +1175,7 @@ function TCG_Override_Desc(self, loc_vars)
     elseif self.ability.name == 'Dusk' then loc_vars = {self.ability.extra}
     elseif self.ability.name == 'Mr. Bones' then loc_vars = {self.ability.extra}
     elseif self.ability.name == 'Swashbuckler' then loc_vars = {self.ability.mult + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_joker_cost or 0)}
+    elseif self.ability.name == 'Throwback' then loc_vars = {self.ability.extra, self.ability.extra * self.ability.discards + 1}
 
     end
 

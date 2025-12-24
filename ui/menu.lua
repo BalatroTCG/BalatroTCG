@@ -113,7 +113,7 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'Blue Deck' then loc_args = {effect_config.hands - default.hands}
 	elseif name_to_check == 'Red Deck' then loc_args = {effect_config.discards - default.discards}
 	elseif name_to_check == 'Yellow Deck' then loc_args = {effect_config.dollars - default.dollars}
-	elseif name_to_check == 'Green Deck' then loc_args = { 3 }
+	elseif name_to_check == 'Green Deck' then loc_args = { 2 }
 	elseif name_to_check == 'Black Deck' then loc_args = { 1, 1}
 	elseif name_to_check == 'Magic Deck' then  loc_args = { 3 }
 	elseif name_to_check == 'Nebula Deck' then loc_args = { 5, -1 }
@@ -328,8 +328,6 @@ function G.FUNCS.set_betting(e)
 		local ai_bet = pseudorandom(generate_starting_seed(), BalatroTCG.AI.bet_min, BalatroTCG.AI.bet_max)
 		local player_goes = false
 
-		print(ai_bet)
-
 		if ai_bet <= BalatroTCG.BetAmount then
 			player_goes = true
 		else
@@ -338,7 +336,7 @@ function G.FUNCS.set_betting(e)
 
 		switch_player(player_goes)
 		if player_goes then
-			ease_dollars(-BalatroTCG.BetAmount)
+			if (BalatroTCG.BetAmount > 0) then ease_dollars(-BalatroTCG.BetAmount) end
 		else
 			BalatroTCG.Player:send_message({ type = 'damage', damage = ai_bet, index = 0 })
 		end

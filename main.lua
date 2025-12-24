@@ -314,6 +314,7 @@ function Game:start_tcg_game(args)
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
     
+    BalatroTCG.Player:apply()
 
     BalatroTCG.Player.Other = BalatroTCG.Opponent
     BalatroTCG.Opponent.Other = BalatroTCG.Player
@@ -530,8 +531,6 @@ function end_tcg_round()
             func = (function(t) return math.floor(t) end)
         }))
 
-        G.GAME.unused_discards = (G.GAME.unused_discards or 0) + G.GAME.current_round.discards_left
-
         if BalatroTCG.PlayerActive then
             delay(0.5)
         end
@@ -546,7 +545,7 @@ function end_tcg_round()
             BalatroTCG.Status_Current.back.calculate_deck({ end_of_round = true, status = BalatroTCG.Status_Current, full_deck = BalatroTCG.Status_Current.deck})
         end
         
-        G.GAME.unused_discards = (G.GAME.unused_discards or 0) + G.GAME.current_round.discards_left
+        BalatroTCG.Status_Current.status.unused_discards = (BalatroTCG.Status_Current.status.unused_discards or 0) + G.GAME.current_round.discards_left
 
         G.FUNCS.draw_from_hand_to_discard()
         G.FUNCS.draw_from_discard_to_deck()

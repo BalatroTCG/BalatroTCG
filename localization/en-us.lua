@@ -343,6 +343,14 @@ return {
                     "when your opponent starts"
                 },
             },
+            j_throwback_tcg={
+                name="Throwback",
+                text={
+                    "Gains {X:mult,C:white} X#1# {} Mult for each",
+                    "discard not used this round.",
+                    "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
+                },
+            },
         },
         Other={
             tcg_joker_health={

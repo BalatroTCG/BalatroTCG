@@ -11,8 +11,8 @@ function TCG_PlayerStatus:init(deck, player)
 
     if deck.back == 'Green Deck' then
         back.calculate_deck = function(context)
-            if context.end_of_round then
-                ease_dollars(G.GAME.current_round.discards_left * 3)
+            if context.end_of_round and G.GAME.current_round.discards_left > 0 then
+                ease_dollars(G.GAME.current_round.discards_left * 2)
             end
         end
     elseif deck.back == 'Plasma Deck' then
@@ -127,6 +127,7 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.opponent_joker_cost = 0
     self.status.opponent_health = 50
     self.status.bankrupt_at = 0
+    self.status.unused_discards = 0
 end
 
 
@@ -213,6 +214,9 @@ function TCG_PlayerStatus:apply()
     for _, joker in ipairs(self.opponentJokers.cards) do
         joker.states.collide.can = true
     end
+    
+        
+    G.GAME.unused_discards = self.status.unused_discards
     
     reset_idol_card()
     reset_mail_rank()

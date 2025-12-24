@@ -201,13 +201,13 @@ BalatroTCG.DefaultDecks = {
         { type = 'j', c = 'j_hanging_chad' },
         { type = 'j', c = 'j_business' },
         { type = 'j', c = 'j_riff_raff' },
-        { type = 'j', c = 'j_supernova' },
+        { type = 'j', c = 'j_drunkard' },
         
         { type = 'j', c = 'j_oops' },
         { type = 'j', c = 'j_hiker' },
         { type = 'j', c = 'j_space' },
         
-        { type = 'j', c = 'j_invisible' },
+        { type = 'j', c = 'j_dna' },
         
         { type = 'c', c = 'c_judgement' },
         { type = 'c', c = 'c_hermit' },
@@ -276,11 +276,11 @@ BalatroTCG.DefaultDecks = {
         { type = 'j', c = 'j_splash' },
         { type = 'j', c = 'j_riff_raff' },
         
-        { type = 'j', c = 'j_vampire' },
+        { type = 'j', c = 'j_throwback' },
         { type = 'j', c = 'j_bootstraps' },
         { type = 'j', c = 'j_midas_mask' },
         
-        { type = 'j', c = 'j_burnt' },
+        { type = 'j', c = 'j_obelisk' },
         
         { type = 'c', c = 'c_devil' },
         { type = 'c', c = 'c_hermit' },
@@ -998,7 +998,7 @@ BalatroTCG.DefaultDecks = {
         
         { type = 'j', c = 'j_mime' },
         { type = 'j', c = 'j_space' },
-        { type = 'j', c = 'j_pareidolia' },
+        { type = 'j', c = 'j_oops' },
         
         { type = 'j', c = 'j_baron' },
         
