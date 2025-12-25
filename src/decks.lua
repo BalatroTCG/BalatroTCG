@@ -547,7 +547,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
         { type = 'p', r = '6', s = 'C' },
-        { type = 'p', r = '6', s = 'C' },
+        { type = 'p', r = '5', s = 'C' },
         
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
@@ -562,11 +562,11 @@ BalatroTCG.DefaultDecks = {
         { type = 'j', c = 'j_green_joker' },
         { type = 'j', c = 'j_sly' },
         { type = 'j', c = 'j_mail' },
-        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_droll' },
         { type = 'j', c = 'j_cavendish' },
         { type = 'j', c = 'j_gros_michel' },
         
-        { type = 'j', c = 'j_showman' },
+        { type = 'j', c = 'j_mime' },
         { type = 'j', c = 'j_cloud_9' },
         { type = 'j', c = 'j_stencil' },
         
