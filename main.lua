@@ -477,9 +477,9 @@ function TCG_GetDamage()
     local value = G.GAME.chips
 
     if value > 0 then
-        value = math.floor(math.log10(value))
+        value = math.log10(value)
         value = value * value
-        return value
+        return math.floor(value)
     else
         return 0
     end
