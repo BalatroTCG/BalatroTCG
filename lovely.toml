@@ -694,4 +694,24 @@ payload = '''
 match_indent = true
 overwrite = true
 
- 
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''if self.children.back then self.children.back:remove() end'''
+position = "after"
+payload = '''
+if self.back == 'opponent_back' or self.back == 'player_back' then
+    local center = G.GAME[self.back] or G.P_CENTERS['b_red']
+    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, 
+        G.ASSET_ATLAS[center.atlas or 'centers'],
+        (self.playing_card and center.pos))
+    self.children.back.states.hover = self.states.hover
+    self.children.back.states.click = self.states.click
+    self.children.back.states.drag = self.states.drag
+    self.children.back.states.collide.can = false
+    self.children.back:set_role({major = self, role_type = 'Glued', draw_major = self})
+    return
+end
+'''
+match_indent = true
+overwrite = true
