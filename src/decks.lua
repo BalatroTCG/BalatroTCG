@@ -1295,6 +1295,7 @@ function save_decks(decks)
     love.filesystem.write('tcg_decks.jkr', toWrite)
 end
 
+
 local type_rating = {p = 0, j = 1, c = 2 }
 local set_rating = {Tarot = 0, Planet = 1, Spectral = 2 }
 local suit_rating = {S = 0, H = 1, C = 2, D = 3 }
@@ -1309,21 +1310,23 @@ rank_rating['3'] = 11
 rank_rating['2'] = 12
 function BalatroTCG.Deck:sort()
     function compare_cards(a, b)
-        if a.type == 'c' and b.type == 'c' then
-            return set_rating[G.P_CENTERS[a.c].set] < set_rating[G.P_CENTERS[b.c].set]
-        elseif a.type == 'j' and b.type == 'j' then
-            return G.P_CENTERS[a.c].rarity < G.P_CENTERS[b.c].rarity
-        elseif a.type == 'p' and b.type == 'p' then
-            if suit_rating[a.s] == suit_rating[b.s] then
-                return rank_rating[a.r] < rank_rating[b.r]
-            else
-                return suit_rating[a.s] < suit_rating[b.s]
-            end
-        else
-            return type_rating[a.type] < type_rating[b.type]
-        end
+        return card_nominal(a) < card_nominal(b)
     end
     table.sort(self.cards, compare_cards)
+end
+
+function card_nominal(card)
+    local factor = type_rating[card.type] * 100
+    
+    if card.type == 'c' then
+        factor = factor + set_rating[G.P_CENTERS[card.c].set] + pseudohash(card.c) * 0.01
+    elseif card.type == 'j' then
+        factor = factor + G.P_CENTERS[card.c].rarity + pseudohash(card.c) * 0.01
+    elseif card.type == 'p' then
+        factor = factor + rank_rating[card.r] * 0.01 + suit_rating[card.s]
+    end
+
+    return factor
 end
 
 
