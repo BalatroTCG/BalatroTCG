@@ -122,12 +122,12 @@ function TCG_PlayerStatus:init(deck, player)
 
     self.status.dollars = params.dollars
     self.status.round = 1
-    self.status.damage = 0
     self.status.opponent_jokers = 0
     self.status.opponent_joker_cost = 0
     self.status.opponent_health = 50
     self.status.bankrupt_at = 0
     self.status.unused_discards = 0
+    self.attacks = {}
 end
 
 
@@ -177,9 +177,6 @@ function TCG_PlayerStatus:apply()
     G.deck:shuffle('nr' .. self.status.round)
     SMODS.calculate_context({setting_blind = true, blind = G.GAME.round_resets.blind})
 
-    self:damage(self.status.damage)
-    self.status.damage = 0
-    
     if self.back.calculate_deck then
         self.back.calculate_deck({ start_of_round = true, status = self, full_deck = self.deck})
     end
@@ -227,84 +224,15 @@ function TCG_PlayerStatus:receive_message(message)
 		G.FUNCS.exit_overlay_menu()
 
         message.damage = tonumber(message.damage)
-        self:receive_message({type = 'damage', damage = message.damage})
+        self:receive_message({type = 'attack', damage = message.damage})
         switch_player(message.starting == 'true')
         
-    elseif message.type == 'damage' then
+    elseif message.type == 'attack' then
+        self.attacks[#self.attacks + 1] = {
+            damage = tonumber(message.damage),
+            index = tonumber(message.index),
+        }
         
-        G.E_MANAGER:add_event(Event({
-            no_delete = true,
-            func = function()
-            local return_table = {}
-            message.damage = tonumber(message.damage)
-            
-            if self.jokers then
-                table.sort(self.jokers.cards, function(a,b) return a.T.x < b.T.x end)
-                for _, joker in ipairs(self.jokers.cards) do
-                    local value = joker:calculate_joker({tcg_take_damage = true, damage = message.damage })
-                    if value then
-                        value.activator = joker
-                        return_table[#return_table + 1] = value
-                    end
-                end
-            end
-
-            local joker = nil
-            message.index = tonumber(message.index)
-
-            for k, v in ipairs(return_table) do
-                if v.percent then
-                    print('Percent')
-                    message.damage = math.floor(message.damage * (1 - v.percent))
-                    
-                    play_sound('tarot1')
-                    v.activator:juice_up(0.3, 0.5)
-                    delay(0.3)
-                elseif v.reduce then
-                    print('Reduce')
-                    message.damage = math.max(message.damage - v.reduce, 0)
-
-                    play_sound('tarot1')
-                    v.activator:juice_up(0.3, 0.5)
-                    delay(0.3)
-                elseif v.redirect then
-                    print('Redirect')
-                    joker = v.redirect
-                    message.index = 0
-
-                    play_sound('tarot1')
-                    v.activator:juice_up(0.3, 0.5)
-                    delay(0.3)
-                end
-            end
-
-            if self.jokers then
-                for _, j in ipairs(self.jokers.cards) do
-                    message.index = message.index - 1
-                    if message.index == 0 then
-                        joker = j
-                    end
-                end
-            end
-
-            if joker and joker.ability.eternal then
-                joker = nil
-            end
-
-            if joker == nil then 
-                self.status.damage = math.max(self.status.damage or 0, 0) + message.damage
-                
-                self:send_message({ type = "health", health = self.status.dollars - self.status.damage})
-            else
-                joker:remove_tcg_health(message.damage)
-                if self.is_player then
-                    play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
-                end
-                joker:juice_up(0.3, 0.5)
-            end
-            return true
-        end
-        }))
     elseif message.type == 'win_game' then
         end_tcg_game(true)
     elseif message.type == 'lose_game' then
@@ -341,6 +269,88 @@ function TCG_PlayerStatus:receive_message(message)
     end
 end
 
+function TCG_PlayerStatus:take_attacks()
+    
+    for k, att in ipairs(self.attacks) do
+        G.E_MANAGER:add_event(Event({
+            no_delete = true,
+            func = function()
+            local return_table = {}
+            
+            if self.jokers then
+                table.sort(self.jokers.cards, function(a,b) return a.T.x < b.T.x end)
+                for _, joker in ipairs(self.jokers.cards) do
+                    local value = joker:calculate_joker({tcg_take_damage = true, damage = att.damage })
+                    if value then
+                        value.activator = joker
+                        return_table[#return_table + 1] = value
+                    end
+                end
+            end
+    
+            local joker = nil
+    
+            for k, v in ipairs(return_table) do
+                if v.percent then
+                    print('Percent')
+                    att.damage = math.floor(att.damage * (1 - v.percent))
+                    
+                    play_sound('tarot1')
+                    v.activator:juice_up(0.3, 0.5)
+                    delay(0.3)
+                elseif v.reduce then
+                    print('Reduce')
+                    att.damage = math.max(att.damage - v.reduce, 0)
+    
+                    play_sound('tarot1')
+                    v.activator:juice_up(0.3, 0.5)
+                    delay(0.3)
+                elseif v.redirect then
+                    print('Redirect')
+                    joker = v.redirect
+                    att.index = 0
+    
+                    play_sound('tarot1')
+                    v.activator:juice_up(0.3, 0.5)
+                    delay(0.3)
+                end
+            end
+    
+            if self.jokers then
+                for _, j in ipairs(self.jokers.cards) do
+                    att.index = att.index - 1
+                    if att.index == 0 then
+                        joker = j
+                    end
+                end
+            end
+    
+            if joker and joker.ability.eternal then
+                joker = nil
+            end
+            
+            print(att.damage)
+    
+            if joker == nil then 
+                local damage = att.damage
+
+                
+                self:damage(damage)
+            else
+                joker:remove_tcg_health(att.damage)
+                if self.is_player then
+                    play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
+                end
+                joker:juice_up(0.3, 0.5)
+            end
+            return true
+        end
+        }))
+    end
+
+    self.attacks = {}
+end
+
 function TCG_PlayerStatus:send_message(message)
     if MP and MP.LOBBY and MP.LOBBY.code then
         message.action = "tcgPlayerStatus"
@@ -355,6 +365,8 @@ function TCG_PlayerStatus:damage(amount)
 
     self.status.dollars = self.status.dollars - amount
     G.GAME.dollars = self.status.dollars
+
+    self:send_message({ type = "health", health = self.status.dollars })
     
     if self.is_player then
         local dollar_UI = G.HUD:get_UIE_by_ID('dollar_text_UI')
@@ -386,6 +398,7 @@ function TCG_PlayerStatus:damage(amount)
     if G.GAME.dollars <= G.GAME.bankrupt_at then
         end_tcg_game(not self.is_player)
     end
+    
     
     G.HUD:recalculate()
     
