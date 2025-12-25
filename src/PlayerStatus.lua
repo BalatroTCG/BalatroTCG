@@ -333,13 +333,16 @@ function TCG_PlayerStatus:take_attacks()
             if joker and joker.ability.eternal then
                 joker = nil
             end
+            
+            print(att.damage)
     
             if joker == nil then 
-                local damage = message.damage
+                local damage = att.damage
+
                 
-                self:send_message({ type = "health", health = self.status.dollars - damage})
+                self:damage(damage)
             else
-                joker:remove_tcg_health(message.damage)
+                joker:remove_tcg_health(att.damage)
                 if self.is_player then
                     play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
                 end
@@ -367,6 +370,8 @@ function TCG_PlayerStatus:damage(amount)
 
     self.status.dollars = self.status.dollars - amount
     G.GAME.dollars = self.status.dollars
+
+    self:send_message({ type = "health", health = self.status.dollars })
     
     if self.is_player then
         local dollar_UI = G.HUD:get_UIE_by_ID('dollar_text_UI')
@@ -398,6 +403,7 @@ function TCG_PlayerStatus:damage(amount)
     if G.GAME.dollars <= G.GAME.bankrupt_at then
         end_tcg_game(not self.is_player)
     end
+    
     
     G.HUD:recalculate()
     

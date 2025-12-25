@@ -564,7 +564,7 @@ function end_tcg_round()
                     index = i
                 end
             end
-            BalatroTCG.Status_Current:send_message({ type = 'damage', damage = damage, index = index })
+            BalatroTCG.Status_Current:send_message({ type = 'attack', damage = damage, index = index })
             if BalatroTCG.Status_Current.back.calculate_deck then
                 BalatroTCG.Status_Current.back.calculate_deck({ damaging = true, status = BalatroTCG.Status_Current, damage = damage})
             end
