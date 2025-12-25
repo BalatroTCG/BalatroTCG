@@ -338,7 +338,7 @@ function G.FUNCS.set_betting(e)
 		if player_goes then
 			if (BalatroTCG.BetAmount > 0) then ease_dollars(-BalatroTCG.BetAmount) end
 		else
-			BalatroTCG.Player:send_message({ type = 'damage', damage = ai_bet, index = 0 })
+			BalatroTCG.Player:send_message({ type = 'attack', damage = ai_bet, index = 0 })
 		end
 		
 		G.SETTINGS.paused = false
