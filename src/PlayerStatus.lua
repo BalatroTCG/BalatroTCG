@@ -101,7 +101,7 @@ function TCG_PlayerStatus:init(deck, player)
     for k, v in ipairs(deck.cards) do
         G.playing_card = (G.playing_card and G.playing_card + 1) or 1
 
-        local _card = deck:card_from_control_ex(self.deck, self.back, v)
+        local _card = deck:card_from_control_ex(self.deck, { is_player = self.is_player }, v)
         self.deck:emplace(_card)
         table.insert(self.playing_cards, _card)
         if _card.ability.set == 'Joker' then
