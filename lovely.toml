@@ -715,3 +715,12 @@ end
 '''
 match_indent = true
 overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''if G.STAGE == G.STAGES.RUN then'''
+position = "at"
+payload = '''if G.STAGE == G.STAGES.RUN and G.jokers and G.jokers.config then'''
+match_indent = true
+overwrite = true
