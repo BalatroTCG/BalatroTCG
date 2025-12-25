@@ -665,9 +665,8 @@ pattern = '''if G.FUNCS.draw_from_deck_to_hand(nil) then'''
 position = "before"
 payload = '''
 BalatroTCG.MuteAudio = not (MP and MP.LOBBY and MP.LOBBY.code) and BalatroTCG.GameActive and not BalatroTCG.PlayerActive
-if BalatroTCG.GameActive and BalatroTCG.Status_Current.status.damage > 0 then
-    BalatroTCG.Status_Current:damage(BalatroTCG.Status_Current.status.damage)
-    BalatroTCG.Status_Current.status.damage = 0
+if BalatroTCG.GameActive and G.hand and #G.hand.cards > 0 then
+    BalatroTCG.Status_Current:take_attacks()
 end
 '''
 match_indent = true
