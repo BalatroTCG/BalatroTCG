@@ -1033,7 +1033,7 @@ function Card:set_ability(center, initial, delay_sprites)
             self.config.center.generate_ui = modified_desc
 
             self.tcg_calculate = function(self, context)
-                if context.discard then
+                if context.discard and context.other_card == context.full_hand[#context.full_hand] then
                     local face_cards = 0
                     for k, v in ipairs(context.full_hand) do
                         if not v:is_playing_card() then face_cards = face_cards + 1 end
@@ -1047,6 +1047,11 @@ function Card:set_ability(center, initial, delay_sprites)
                             message_colour = G.C.RED
                         })
                     end
+                elseif context.joker_main and self.ability.mult > 0 then
+                    return {
+                        message = localize{type='variable',key='a_mult',vars={self.ability.mult}},
+                        mult_mod = self.ability.mult
+                    }
                 end
             end
             self.config.center.tcg_estimate = function(self, context)

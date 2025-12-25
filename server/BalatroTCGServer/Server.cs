@@ -143,10 +143,14 @@ namespace BalatroTCGServer {
 					for (int i = 0; i < receiveBuffer.Length; i++) {
 						if (receiveBuffer[i] == 10) {
 
-							if (inputData.ToString() == "ce_cache") {
+							if (inputData.ToString() == "\"ce_cache\"") {
 								inputData.Clear();
 								break;
 							}
+
+
+							if (!inputData.ToString().Contains("keepAlive"))
+								Console.WriteLine(inputData.ToString());
 
 							JObject obj = JsonConvert.DeserializeObject<JObject>(inputData.ToString());
 
@@ -156,7 +160,7 @@ namespace BalatroTCGServer {
 								switch (action) {
 									default:
 										OnReceive?.Invoke(obj);
-										Console.WriteLine($"Recieved {obj["action"]!}");
+										//Console.WriteLine($"Recieved {obj["action"]!}");
 										break;
 									case "keepAlive":
 										SendPacket(("action", "keepAliveAck"));

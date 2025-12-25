@@ -620,7 +620,7 @@ function switch_player(playerActive)
     else
         
         BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
-        if _RELEASE_MODE then
+        if _RELEASE_MODE and not (MP and MP.LOBBY and MP.LOBBY.code) then
             G.SETTINGS.GAMESPEED = 1000
         end
 
