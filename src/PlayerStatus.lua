@@ -276,7 +276,7 @@ end
 
 function TCG_PlayerStatus:take_attacks()
     
-    for k, att in ipairs(self.attacks) dollar_text_UI
+    for k, att in ipairs(self.attacks) do
         G.E_MANAGER:add_event(Event({
             no_delete = true,
             func = function()
