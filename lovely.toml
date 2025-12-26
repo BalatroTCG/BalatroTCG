@@ -464,6 +464,19 @@ elseif parsedAction.action == "tcgStartTurn" then
     switch_player(true)
 elseif parsedAction.action == "startGame" and BalatroTCG.MP_Lobby then
     G.FUNCS.tcg_start_multi({ starting = parsedAction.starting })
+elseif parsedAction.action == "tcg_compatible" then
+    BalatroTCG.MultiCompat = true
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''if parsedAction.action == "connected" then'''
+position = "after"
+payload = '''
+    BalatroTCG.MultiCompat = false
 '''
 match_indent = true
 overwrite = true

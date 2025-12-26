@@ -248,7 +248,7 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 					}}
 				end},
 			}
-	if MP then
+	if MP and BalatroTCG.MultiCompat then
 		tabs[#tabs + 1] = 
 			{ label = localize("b_tcgtab_online"), chosen = false, tab_definition_function = function()
 				

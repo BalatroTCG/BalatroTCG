@@ -311,6 +311,7 @@ namespace BalatroTCGServer {
 					break;
 				case "version":
 					Version = (string)data["version"];
+					Socket.SendPacket(("action", "tcg_compatible"));
 					break;
 				case "readyLobby":
 					Ready = true;
