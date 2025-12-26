@@ -2,7 +2,7 @@
 local play_cards_from_highlighted_ref = G.FUNCS.play_cards_from_highlighted
 
 G.FUNCS.play_cards_from_highlighted = function(e)
-    if BalatroTCG.GameActive then
+    if BalatroTCG.GameActive and G.GAME.current_round.hands_left < 1 then
         for _, joker in ipairs(G.jokers.cards) do
             joker:highlight(false)
             joker.states.drag.can = false
@@ -239,7 +239,7 @@ end
 
 function get_TCG_params(back)
     local ret = {
-        dollars = 50,
+        dollars = 75,
         hand_size = 8,
         discards = 2,
         hands = 1,
@@ -266,7 +266,7 @@ function get_TCG_params(back)
         elseif back == 'Blue Deck' then
             ret.hands = ret.hands + 1
         elseif back == 'Yellow Deck' then
-            ret.dollars = ret.dollars + 20
+            ret.dollars = ret.dollars + 25
         elseif back == 'Green Deck' then
             -- Green
         elseif back == 'Black Deck' then

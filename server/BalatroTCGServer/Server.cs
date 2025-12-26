@@ -16,7 +16,7 @@ namespace BalatroTCGServer {
 
 		List<Client> connectedInstances;
 		Dictionary<string, Lobby> lobbies;
-
+		Dictionary<Lobby, int> deadTimer;
 
 		public void Start() {
 			serverClient = new TcpListener(IPAddress.Any, 8788);
@@ -149,8 +149,8 @@ namespace BalatroTCGServer {
 							}
 
 
-							if (!inputData.ToString().Contains("keepAlive"))
-								Console.WriteLine(inputData.ToString());
+							//if (!inputData.ToString().Contains("keepAlive"))
+							//	Console.WriteLine(inputData.ToString());
 
 							JObject obj = JsonConvert.DeserializeObject<JObject>(inputData.ToString());
 
@@ -160,7 +160,7 @@ namespace BalatroTCGServer {
 								switch (action) {
 									default:
 										OnReceive?.Invoke(obj);
-										//Console.WriteLine($"Recieved {obj["action"]!}");
+										//Console.WriteLine($"Received {obj["action"]!}");
 										break;
 									case "keepAlive":
 										SendPacket(("action", "keepAliveAck"));
@@ -217,8 +217,11 @@ namespace BalatroTCGServer {
 
 					JObject j = JsonConvert.DeserializeObject<JObject>(data);
 					
-					if (j["action"].ToString() != "keepAlive" && j["action"].ToString() != "keepAliveAck")
+					if (!j["action"].ToString().Contains("keepAlive")) {
+
+						Console.WriteLine($"");
 						Console.WriteLine($"Sending {data} at {fullData.Length + 1}");
+					}
 
 					List<ArraySegment<byte>> segments = new List<ArraySegment<byte>>();
 
@@ -475,9 +478,12 @@ namespace BalatroTCGServer {
 				if (ConnectedPlayers.Count == 0 || Host == null) {
 					Host = client;
 				}
+				if (client.Lobby != null) {
+					client.Lobby.RemoveClient(client);
+				}
 				client.Lobby = this;
 				ConnectedPlayers.Add(client);
-				client.OnReceive += Recieve;
+				client.OnReceive += Receive;
 				client.Send(("action", "joinedLobby"), ("type", GameMode), ("code", LobbyCode));
 				BroadcastOptions();
 				BroadcastInfo();
@@ -488,7 +494,9 @@ namespace BalatroTCGServer {
 				client.Lobby = null;
 				client.Ready = false;
 				ConnectedPlayers.Remove(client);
-				client.OnReceive -= Recieve;
+				client.OnReceive -= Receive;
+
+				BroadcastInfo();
 			}
 		}
 
@@ -524,7 +532,7 @@ namespace BalatroTCGServer {
 				tosend.Add(("guestCached", guest.Cached));
 				tosend.Add(("guestReady", guest.Ready));
 			}
-			
+
 			foreach (var kv in Options) {
 				tosend.Add((kv.Key, kv.Value));
 			}
@@ -553,7 +561,7 @@ namespace BalatroTCGServer {
 			}
 		}
 
-		private void Recieve(Client client, JObject data) {
+		private void Receive(Client client, JObject data) {
 			string action = (string)data["action"]!;
 
 			switch (action) {

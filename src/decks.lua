@@ -626,7 +626,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '3', s = 'D' },
         { type = 'p', r = '2', s = 'D' },
         
-        { type = 'j', c = 'j_green_joker' },
+        { type = 'j', c = 'j_ride_the_bus' },
         { type = 'j', c = 'j_sly' },
         { type = 'j', c = 'j_mail' },
         { type = 'j', c = 'j_cavendish' },
@@ -635,7 +635,7 @@ BalatroTCG.DefaultDecks = {
         
         { type = 'j', c = 'j_card_sharp' },
         { type = 'j', c = 'j_rough_gem' },
-        { type = 'j', c = 'j_constellation' },
+        { type = 'j', c = 'j_burglar' },
         
         { type = 'j', c = 'j_brainstorm' },
         
@@ -770,8 +770,8 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '3', s = 'D' },
         { type = 'p', r = '2', s = 'D' },
         
-        { type = 'j', c = 'j_green_joker' },
-        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_droll' },
+        { type = 'j', c = 'j_crafty' },
         { type = 'j', c = 'j_ticket' },
         { type = 'j', c = 'j_hanging_chad' },
         { type = 'j', c = 'j_cavendish' },
@@ -1376,11 +1376,11 @@ function BalatroTCG.Deck:is_legal()
 
         local limits = {
             deck_size = 60,
-            max_jokers = 10,
-            max_tarots = 7,
-            max_planets = 3,
-            max_spectrals = 4,
-            max_consumables = 14,
+            max_jokers = 12,
+            max_tarots = 10,
+            max_planets = 10,
+            max_spectrals = 10,
+            max_consumables = 15,
             max_uncommons = 3,
             max_rares = 1,
             no_faces = false,
@@ -1407,16 +1407,10 @@ function BalatroTCG.Deck:is_legal()
         }
                 
         if self.back == 'Magic Deck' then
-            limits.max_consumables = 17
-            limits.max_tarots = 10
             limits.tarot_copies = 1
         elseif self.back == 'Nebula Deck' then
-            limits.max_consumables = 19
-            limits.max_planets = 8
-            limits.planet_copies = 20
+            limits.planet_copies = 1
         elseif self.back == 'Ghost Deck' then
-            limits.max_consumables = 16
-            limits.max_spectrals = 6
             limits.spectral_copies = 1
         elseif self.back == 'Abandoned Deck' then
             limits.no_faces = true

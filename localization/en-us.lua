@@ -351,6 +351,16 @@ return {
                     "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
                 },
             },
+            j_ceremonial_tcg={
+                name="Ceremonial Dagger",
+                text={
+                    "At start of round,",
+                    "destroy Joker to the right",
+                    "and permanently add {C:attention}#1#x",
+                    "its sell value to this {C:red}Mult",
+                    "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)",
+                },
+            },
         },
         Other={
             tcg_joker_health={

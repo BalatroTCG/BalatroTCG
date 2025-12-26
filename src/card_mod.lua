@@ -777,9 +777,9 @@ function Card:set_ability(center, initial, delay_sprites)
     elseif self.ability.set == 'Tarot' then
         if not BalatroTCG.Unbalance then
             if name == 'The Hermit' then
-                self.ability.extra = 10
+                self.ability.extra = 15
             elseif name == 'Temperance' then
-                self.ability.extra = 25
+                self.ability.extra = 30
             end
         end
     elseif self.ability.set == 'Spectral' then
@@ -856,10 +856,16 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.ability.extra.discard_sub = 4
             elseif name == 'Ride the Bus' then
                 self.ability.extra = 4
+            elseif name == 'Half Joker' then
+                self.ability.extra.mult = 35
             elseif name == 'Abstract Joker' then
                 self.ability.extra = 6
+            elseif name == 'Mystic Summit' then
+                self.ability.extra.mult = 25
             elseif name == 'Even Steven' then
                 self.ability.extra = 6
+            elseif name == 'Spare Trousers' then
+                self.ability.extra = 8
             elseif name == 'Popcorn' then
                 self.ability.mult = 30
                 self.ability.extra = 5
@@ -871,6 +877,11 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.ability.extra.mult = 4
             elseif name == 'Supernova' then
                 self.ability.extra = 8
+            elseif name == 'Ceremonial Dagger' then
+                self.ability.extra = {
+                    mult = 0,
+                    growth = 3,
+                }
 
             -- XMult
             elseif name == 'Loyalty Card' then
@@ -959,6 +970,12 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.config.center.generate_ui = modified_desc
             end
         else
+            if name == 'Ceremonial Dagger' then
+                self.ability.extra = {
+                    mult = 0,
+                    growth = 2,
+                }
+            end
         end
         
         -- self.tcg_calculate = function(self, context) end
@@ -983,6 +1000,50 @@ function Card:set_ability(center, initial, delay_sprites)
                     }
                 end
             end
+        elseif name == 'Ceremonial Dagger' then
+            self.config.center.generate_ui = modified_desc
+
+            
+            self.tcg_calculate = function(self, context)
+                if context.setting_blind and not self.getting_sliced and not context.blueprint then
+                    local my_pos = nil
+                    for i = 1, #G.jokers.cards do
+                        if G.jokers.cards[i] == self then my_pos = i; break end
+                    end
+                    if my_pos and G.jokers.cards[my_pos+1] and not self.getting_sliced and not SMODS.is_eternal(G.jokers.cards[my_pos+1], self) and not G.jokers.cards[my_pos+1].getting_sliced then
+                        local sliced_card = G.jokers.cards[my_pos+1]
+                        sliced_card.getting_sliced = true
+                        G.GAME.joker_buffer = G.GAME.joker_buffer - 1
+                        G.E_MANAGER:add_event(Event({func = function()
+                            G.GAME.joker_buffer = 0
+
+                            self:juice_up(0.8, 0.8)
+                            sliced_card:start_dissolve({HEX("57ecab")}, nil, 1.6)
+                            play_sound('slice1', 0.96+math.random()*0.08)
+                        return true end }))
+                        SMODS.scale_card(self, {
+                            ref_table = self.ability.extra,
+                            ref_value = "mult",
+                            scalar_table = sliced_card,
+                            scalar_value = "sell_cost",
+                            operation = function(ref_table, ref_value, initial, scaling)
+                                ref_table[ref_value] = initial + ref_table['growth'] * scaling
+                            end,
+                            scaling_message = {
+                                message = localize{type = 'variable', key = 'a_mult', vars = {self.ability.extra.mult + self.ability.extra.growth * sliced_card.sell_cost}},
+                                colour = G.C.RED,
+                                no_juice = true
+                            }
+                        })
+                        return nil, true
+                    end
+                elseif context.joker_main and self.ability.extra.mult > 0 then
+                    return {
+                        message = localize{type='variable',key='a_mult',vars={self.ability.extra.mult}},
+                        mult_mod = self.ability.extra.mult
+                    }
+                end
+            end
         elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
             self.config.center.tcg_estimate = function(self, context)
                 if context.purchase == self then
@@ -1001,7 +1062,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 
             end
         elseif name == 'Business Card' then
-            self.ability.money = 1
+            self.ability.money = 2
             self.config.center.generate_ui = modified_desc
             self.tcg_calculate = function(self, context)
                 if context.individual and context.cardarea == G.play then
@@ -1089,7 +1150,7 @@ function Card:set_ability(center, initial, delay_sprites)
             self.ability.initial = 1
             self.config.center.generate_ui = modified_desc
         elseif name == 'Campfire' then
-            self.ability.extra = 2
+            self.ability.extra = 1.5
             self.ability.reduce = 1
             self.config.center.generate_ui = modified_desc
         elseif name == 'Vagabond' then
@@ -1107,6 +1168,12 @@ function Card:set_ability(center, initial, delay_sprites)
                     return {
                         reduce = math.floor(self.ability.nine_tally / self.ability.extra)
                     }
+                elseif context.end_of_round and not context.repetition and not context.individual then
+                    
+                    self.ability.nine_tally = 0
+                    for k, v in pairs(G.playing_cards) do
+                        if v:get_id() == 9 then self.ability.nine_tally = self.ability.nine_tally+1 end
+                    end
                 end
             end
         elseif name == 'Golden Joker' then
@@ -1181,6 +1248,8 @@ function TCG_Override_Desc(self, loc_vars)
     elseif self.ability.name == 'Mr. Bones' then loc_vars = {self.ability.extra}
     elseif self.ability.name == 'Swashbuckler' then loc_vars = {self.ability.mult + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_joker_cost or 0)}
     elseif self.ability.name == 'Throwback' then loc_vars = {self.ability.extra, self.ability.extra * self.ability.discards + 1}
+    elseif self.ability.name == 'Ceremonial Dagger' then loc_vars = {self.ability.extra.growth, self.ability.extra.mult}
+    elseif self.ability.name == 'Abstract Joker' then loc_vars = {self.ability.extra, ((G.jokers and G.jokers.cards and #G.jokers.cards or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_jokers or 0))*self.ability.extra}
 
     end
 

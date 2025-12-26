@@ -699,7 +699,7 @@ target = 'game.lua'
 pattern = '''if self.STATE == self.STATES.SELECTING_HAND then'''
 position = "at"
 payload = '''
-if G.hand and self.STATE == self.STATES.SELECTING_HAND then
+if BalatroTCG.Status_Current and G.hand and self.STATE == self.STATES.SELECTING_HAND then
     BalatroTCG.Status_Current:take_attacks()
 '''
 match_indent = true
@@ -743,6 +743,6 @@ overwrite = true
 target = 'card.lua'
 pattern = '''if G.STAGE == G.STAGES.RUN then'''
 position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN and G.jokers and G.jokers.config then'''
+payload = '''if G.STAGE == G.STAGES.RUN and not BalatroTCG.GameActive then'''
 match_indent = true
 overwrite = true
