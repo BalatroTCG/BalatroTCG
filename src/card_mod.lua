@@ -54,6 +54,26 @@ function Card:use_consumeable(area, copier)
                 play_sound('timpani')
                 used_tarot:juice_up(0.3, 0.5)
                 
+            elseif self.ability.name == 'Death' then
+                
+                local rightmost = G.hand.highlighted[1]
+                local leftmost = G.hand.highlighted[1]
+                for i=1, #G.hand.highlighted do
+                    if G.hand.highlighted[i].T.x < leftmost.T.x then leftmost = G.hand.highlighted[i] end
+                    if G.hand.highlighted[i].T.x > rightmost.T.x then rightmost = G.hand.highlighted[i] end
+                end
+
+                use_consumeable_ref(self, area, copier)
+
+                leftmost.ability.set = rightmost.ability.set
+                leftmost.consumable = rightmost.consumable
+
+                leftmost.children.use_button:remove()
+                leftmost.children.use_button = nil
+                leftmost.ability.has_health = nil
+                leftmost.ability.health_amount = nil
+                leftmost.ability.max_health = nil
+                
             elseif self.ability.name == 'The High Priestess' then
                 pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard}, G.consumeables)
                 play_sound('timpani')
