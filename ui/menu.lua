@@ -248,18 +248,28 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 					}}
 				end},
 			}
-	if MP and BalatroTCG.MultiCompat then
+	if MP then
 		tabs[#tabs + 1] = 
 			{ label = localize("b_tcgtab_online"), chosen = false, tab_definition_function = function()
 				
-				return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
-					UIBox_button({
-						label = { localize("b_tcgtab_online_start") },
-						colour = G.C.BLUE,
-						button = "start_tcg_lobby",
-						minw = 5,
-					})
-				}}
+				if BalatroTCG.MultiCompat then
+					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
+						UIBox_button({
+							label = { localize("b_tcgtab_online_start") },
+							colour = G.C.BLUE,
+							button = "start_tcg_lobby",
+							minw = 5,
+						})
+					}}
+				else
+					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
+						UIBox_button({
+							label = { localize("b_tcgtab_online_cant") },
+							colour = G.C.RED,
+							minw = 5,
+						})
+					}}
+				end
 			end}
 	end
 	return (
