@@ -927,4 +927,16 @@ function Card:click()
     end
 end
 
+local old_uidef_run_info = G.UIDEF.run_info
+function G.UIDEF.run_info(...)
+    if BalatroTCG.GameActive then
+        return create_UIBox_generic_options({contents = {
+            {n=G.UIT.O, config={object = UIBox{definition = create_UIBox_current_hands(), config = {offset = {x=0,y=0}}}}},
+        }})
+
+    else
+        return old_uidef_run_info(...)
+    end
+end
+
 load_custom_decks()
