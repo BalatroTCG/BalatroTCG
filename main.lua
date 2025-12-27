@@ -18,30 +18,10 @@ Rebalancing Numbers:
 -- 5 Mult
 -- 1.1x on trigger
 -- 0.5x growth
--- 1 damage
+-- 0.5 damage?
 -- 3 dollars earned
 -- 1 dollars of defence
 ]]
-
--- 1.1x  = 0.04 damage
--- 1.25x = 0.10 damage
--- 1.5x  = 0.18 damage
--- 2x    = 0.30 damage
--- 3x    = 0.48 damage
--- 4x    = 0.60 damage
-
--- Average bloodstone = 1.5 ^ 2.5 = 0.44 points of damage
--- with sock = 1.5 ^ 5 = 0.88
--- with sock and dice = 1.5 ^ 10 = 1.76
-
--- Reworked bloodstone = 1.5 ^ 1.5 = 0.26 points of damage
--- with sock = 1.5 ^ 3.5 = 0.62
--- with sock and dice = 1.5 ^ 6.5 = 1.14
-
--- Reworked bloodstone = 1.25 ^ 2.5 = 0.24 points of damage
--- with sock = 1.25 ^ 5 = 0.48
--- with sock and dice = 1.25 ^ 10 = 0.97
-
 
 --[[
 Modifications:
@@ -338,6 +318,8 @@ function Game:start_tcg_game(args)
     G.C.UI_MULT[1], G.C.UI_MULT[2], G.C.UI_MULT[3], G.C.UI_MULT[4] = G.C.RED[1], G.C.RED[2], G.C.RED[3], G.C.RED[4]
 
     G.GAME.chips_text = ''
+    G.GAME.chips_damage = 0
+    G.GAME.chips_damage_text = ''
 
     G:save_settings()
 
@@ -486,16 +468,12 @@ function TCG_GetDamage()
 end
 
 G.FUNCS.chip_UI_damage = function(e)
-    
-    local value = TCG_GetDamage()
-    if not BalatroTCG.PlayerActive then
-        value = 0
-    end
-    local new_chips_text = number_format(value)
 
-    if G.GAME.chips_damage ~= new_chips_text then
+    local new_chips_text = number_format(G.GAME.chips_damage)
+
+    if G.GAME.chips_damage_text ~= new_chips_text then
         e.config.scale = math.min(0.8, scale_number(value, 1.1))
-        G.GAME.chips_damage = new_chips_text
+        G.GAME.chips_damage_text = new_chips_text
     end
 end
 
@@ -521,18 +499,31 @@ function end_tcg_round()
         func = function()
             
     
-        G.E_MANAGER:add_event(Event({
-            trigger = 'ease',
-            blocking = false,
-            ref_table = G.GAME,
-            ref_value = 'chips',
-            ease_to = 0,
-            delay =  0.5,
-            func = (function(t) return math.floor(t) end)
-        }))
 
         if BalatroTCG.PlayerActive then
             delay(0.5)
+
+            G.E_MANAGER:add_event(Event({
+                trigger = 'ease',
+                blocking = false,
+                ref_table = G.GAME,
+                ref_value = 'chips_damage',
+                ease_to = damage,
+                delay = 0.5,
+                func = (function(t) return math.floor(t) end)
+            }))
+            G.E_MANAGER:add_event(Event({
+                trigger = 'ease',
+                blocking = false,
+                ref_table = G.GAME,
+                ref_value = 'chips',
+                ease_to = 0,
+                delay =  0.5,
+                func = (function(t) return math.floor(t) end)
+            }))
+        else
+            G.GAME.chips = 0
+            G.GAME.chips_damage = 0
         end
 
         SMODS.calculate_context({end_of_round = true, game_over = false })
@@ -584,6 +575,7 @@ function end_tcg_round()
             joker:highlight(false)
         end
         
+        
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 1.5,
@@ -591,6 +583,17 @@ function end_tcg_round()
                 if MP and MP.LOBBY and MP.LOBBY.code then
                     Client.send({action = "tcgEndTurn" })
                 end
+                
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'ease',
+                    blocking = false,
+                    ref_table = G.GAME,
+                    ref_value = 'chips_damage',
+                    ease_to = 0,
+                    delay = 0.5,
+                    func = (function(t) return math.floor(t) end)
+                }))
+                
                 switch_player(not BalatroTCG.PlayerActive)
                 return true
             end

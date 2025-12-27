@@ -40,7 +40,7 @@ pattern = "  local new_chips_text = number_format(G.GAME.chips)"
 position = "after"
 payload = '''
 if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
-    --new_chips_text = '0'
+    new_chips_text = '0'
 end
 '''
 match_indent = false
@@ -283,28 +283,6 @@ target = '=[SMODS _ "src/overrides.lua"]'
 pattern = '''if (v.area and v.area == G.deck) or v.ability.wheel_flipped then'''
 position = "at"
 payload = '''if ((v.area and v.area == G.deck) or v.ability.wheel_flipped) and v:is_playing_card() then'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = '=[SMODS _ "src/overrides.lua"]'
-pattern = '''if self.children.back then self.children.back:remove() end'''
-position = "after"
-payload = '''
-if self.back == 'opponent_back' or self.back == 'player_back' then
-    local center = G.GAME[self.back] or G.P_CENTERS['b_red']
-    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, 
-        G.ASSET_ATLAS[center.atlas or 'centers'],
-        (self.playing_card and center.pos))
-    self.children.back.states.hover = self.states.hover
-    self.children.back.states.click = self.states.click
-    self.children.back.states.drag = self.states.drag
-    self.children.back.states.collide.can = false
-    self.children.back:set_role({major = self, role_type = 'Glued', draw_major = self})
-    return
-end
-'''
 match_indent = true
 overwrite = true
 
@@ -573,7 +551,6 @@ payload = '''($0 and not BalatroTCG.GameActive)'''
 match_indent = true
 overwrite = true
 
-
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
@@ -712,8 +689,10 @@ target = 'game.lua'
 pattern = '''if self.STATE == self.STATES.SELECTING_HAND then'''
 position = "at"
 payload = '''
-if BalatroTCG.Status_Current and G.hand and self.STATE == self.STATES.SELECTING_HAND then
-    BalatroTCG.Status_Current:take_attacks()
+if G.hand and self.STATE == self.STATES.SELECTING_HAND then
+    if BalatroTCG.GameActive then
+        BalatroTCG.Status_Current:take_attacks()
+    end
 '''
 match_indent = true
 overwrite = true
@@ -729,33 +708,4 @@ payload = '''
 match_indent = true
 overwrite = true
 
-[[patches]]
-[patches.pattern]
-target = '=[SMODS _ "src/overrides.lua"]'
-pattern = '''if self.children.back then self.children.back:remove() end'''
-position = "after"
-payload = '''
-if self.back == 'opponent_back' or self.back == 'player_back' then
-    local center = G.GAME[self.back] or G.P_CENTERS['b_red']
-    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, 
-        G.ASSET_ATLAS[center.atlas or 'centers'],
-        (self.playing_card and center.pos))
-    self.children.back.states.hover = self.states.hover
-    self.children.back.states.click = self.states.click
-    self.children.back.states.drag = self.states.drag
-    self.children.back.states.collide.can = false
-    self.children.back:set_role({major = self, role_type = 'Glued', draw_major = self})
-    return
-end
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = 'card.lua'
-pattern = '''if G.STAGE == G.STAGES.RUN then'''
-position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN and not BalatroTCG.GameActive then'''
-match_indent = true
-overwrite = true
+ 

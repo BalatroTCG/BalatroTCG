@@ -272,77 +272,136 @@ end
 function TCG_PlayerStatus:take_attacks()
     
     for k, att in ipairs(self.attacks) do
+        
         G.E_MANAGER:add_event(Event({
             no_delete = true,
+            trigger = 'immediate',
             func = function()
-            local return_table = {}
             
-            if self.jokers then
-                table.sort(self.jokers.cards, function(a,b) return a.T.x < b.T.x end)
-                for _, joker in ipairs(self.jokers.cards) do
-                    local value = joker:calculate_joker({tcg_take_damage = true, damage = att.damage })
-                    if value then
-                        value.activator = joker
-                        return_table[#return_table + 1] = value
-                    end
-                end
-            end
-    
-            local joker = nil
-    
-            for k, v in ipairs(return_table) do
-                if v.percent then
-                    print('Percent')
-                    att.damage = math.floor(att.damage * (1 - v.percent))
-                    
-                    play_sound('tarot1')
-                    v.activator:juice_up(0.3, 0.5)
-                    delay(0.3)
-                elseif v.reduce then
-                    print('Reduce')
-                    att.damage = math.max(att.damage - v.reduce, 0)
-    
-                    play_sound('tarot1')
-                    v.activator:juice_up(0.3, 0.5)
-                    delay(0.3)
-                elseif v.redirect then
-                    print('Redirect')
-                    joker = v.redirect
-                    att.index = 0
-    
-                    play_sound('tarot1')
-                    v.activator:juice_up(0.3, 0.5)
-                    delay(0.3)
-                end
-            end
-    
-            if self.jokers then
-                for _, j in ipairs(self.jokers.cards) do
-                    att.index = att.index - 1
-                    if att.index == 0 then
-                        joker = j
-                    end
-                end
-            end
-    
-            if joker and joker.ability.eternal then
-                joker = nil
-            end
-            
-            print(att.damage)
-    
-            if joker == nil then 
-                local damage = att.damage
 
+            if self.is_player then
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'ease',
+                    blocking = true,
+                    ref_table = G.GAME,
+                    ref_value = 'chips_damage',
+                    ease_to = att.damage,
+                    delay = 0.2,
+                    func = (function(t) return math.floor(t) end)
+                }))
                 
-                self:damage(damage)
+                delay(0.5)
             else
-                joker:remove_tcg_health(att.damage)
-                if self.is_player then
-                    play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
-                end
-                joker:juice_up(0.3, 0.5)
+                G.GAME.chips_damage = att.damage
             end
+
+            G.E_MANAGER:add_event(Event({
+                no_delete = true,
+                trigger = 'immediate',
+                func = function()
+                local return_table = {}
+                if self.jokers then
+                    table.sort(self.jokers.cards, function(a,b) return a.T.x < b.T.x end)
+                    for _, joker in ipairs(self.jokers.cards) do
+                        local value = joker:calculate_joker({tcg_take_damage = true, damage = att.damage })
+                        if value then
+                            value.activator = joker
+                            return_table[#return_table + 1] = value
+                        end
+                    end
+                end
+        
+                local joker = nil
+        
+                for k, v in ipairs(return_table) do
+                    if v.percent then
+                        
+                        if att.damage > 0 then
+                            att.damage = math.floor(att.damage * (1 - v.percent))
+                            G.E_MANAGER:add_event(Event({
+                                no_delete = true,
+                                trigger = 'after',
+                                func = function()
+                                play_sound('tarot1')
+                                v.activator:juice_up(0.3, 0.5)
+                                G.GAME.chips_damage = math.floor(G.GAME.chips_damage * (1 - v.percent))
+                                return true
+                            end
+                            }))
+                            delay(0.3)
+                        end
+                    elseif v.reduce then
+        
+                        if att.damage > 0 then
+                            att.damage = math.max(att.damage - v.reduce, 0)
+                            G.E_MANAGER:add_event(Event({
+                                no_delete = true,
+                                trigger = 'after',
+                                func = function()
+                                play_sound('tarot1')
+                                v.activator:juice_up(0.3, 0.5)
+                                G.GAME.chips_damage = math.max(G.GAME.chips_damage - v.reduce, 0)
+                                return true
+                            end
+                            }))
+                            delay(0.3)
+                        end
+                    elseif v.redirect then
+
+                        joker = v.redirect
+                        att.index = 0
+        
+                        G.E_MANAGER:add_event(Event({
+                            no_delete = true,
+                            trigger = 'after',
+                            func = function()
+                            play_sound('tarot1')
+                            v.activator:juice_up(0.3, 0.5)
+                            return true
+                        end
+                        }))
+                        delay(0.3)
+                    end
+                end
+                delay(0.5)
+                
+                G.E_MANAGER:add_event(Event({
+                    no_delete = true,
+                    trigger = 'after',
+                    func = function()
+                    if self.jokers then
+                        for _, j in ipairs(self.jokers.cards) do
+                            att.index = att.index - 1
+                            if att.index == 0 then
+                                joker = j
+                            end
+                        end
+                    end
+            
+                    if joker and joker.ability.eternal then
+                        joker = nil
+                    end
+            
+                    if joker == nil then 
+                        local damage = G.GAME.chips_damage
+
+                        self:damage(damage)
+                    else
+                        joker:remove_tcg_health(G.GAME.chips_damage)
+                        if self.is_player then
+                            play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
+                        end
+                        joker:juice_up(0.3, 0.5)
+                    end
+
+                    G.GAME.chips_damage = 0
+                    return true
+                end
+                }))
+                return true
+            end
+            }))
+
             return true
         end
         }))

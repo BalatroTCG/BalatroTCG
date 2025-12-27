@@ -417,6 +417,7 @@ return {
 			b_tcgtab_deck = "Build Deck",
 			b_tcgtab_online = "Online Match",
 			b_tcgtab_online_start = "Online Match",
+			b_tcgtab_online_cant = "Incompatible Server",
 			b_tcgtab_select = "Select Deck",
             
 			b_tcg_attack = "Attack",

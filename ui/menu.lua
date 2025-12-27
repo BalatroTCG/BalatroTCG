@@ -875,6 +875,7 @@ function TCG_create_UIBox_HUD()
 		}}
 
     contents.dollars_chips = 
+
 	{n=G.UIT.R, config={align = "cm",r=0.1, padding = 0,colour = G.C.DYN_UI.BOSS_MAIN, emboss = 0.05, id = 'row_dollars_chips'}, nodes={
 		{n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
 			{n=G.UIT.C, config={align = "cm", minw = 1.3}, nodes={
@@ -890,15 +891,17 @@ function TCG_create_UIBox_HUD()
 			{n=G.UIT.T, config={ref_table = G.GAME, ref_value = 'chips_text', lang = G.LANGUAGES['en-us'], scale = 0.85, colour = G.C.WHITE, id = 'chip_UI_count', func = 'chip_UI_set', shadow = true}}
 			}}
 		}},
+	}}
+	
+    contents.attack = 
+	
+	{n=G.UIT.R, config={align = "cm",r=0.1, padding = 0,colour = G.C.DYN_UI.BOSS_MAIN, emboss = 0.05, id = 'row_attack'}, nodes={
 		{n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
-			{n=G.UIT.C, config={align = "cm", minw = 1.3}, nodes={
-				{n=G.UIT.R, config={align = "cm", padding = 0, maxw = 1.3}, nodes={
-				{n=G.UIT.T, config={text = localize('b_tcg_attack'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
-				}},
+			{n=G.UIT.R, config={align = "cm", minw = 1.3}, nodes={
+				{n=G.UIT.R, config={align = "cm", padding = 0, maxw = 1.3}, nodes={{n=G.UIT.T, config={text = localize('b_tcg_attack'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}}},
 			}},
-			{n=G.UIT.C, config={align = "cm", minw = 3.3, minh = 0.7, r = 0.1, colour = G.C.DYN_UI.BOSS_DARK}, nodes={
-			{n=G.UIT.B, config={w=0.1,h=0.1}},
-			{n=G.UIT.T, config={ref_table = G.GAME, ref_value = 'chips_damage', lang = G.LANGUAGES['en-us'], scale = 0.85, colour = G.C.WHITE, id = 'damage_UI_count', func = 'chip_UI_damage', shadow = true}}
+			{n=G.UIT.R, config={align = "cm", minw = 1.0, minh = 1.0, r = 0.1, colour = G.C.DYN_UI.BOSS_DARK}, nodes={
+				{n=G.UIT.T, config={ref_table = G.GAME, ref_value = 'chips_damage_text', lang = G.LANGUAGES['en-us'], scale = 0.85, colour = G.C.WHITE, id = 'damage_UI_count', func = 'chip_UI_damage', shadow = true}}
 			}}
 		}}
 	}}
@@ -926,7 +929,8 @@ function TCG_create_UIBox_HUD()
       {n=G.UIT.R, config = {align = "cm", padding= 0.05, colour = G.C.DYN_UI.MAIN, r=0.1}, nodes={
         {n=G.UIT.R, config={align = "cm", colour = G.C.DYN_UI.BOSS_DARK, r=0.1, minh = 30, padding = 0.08}, nodes={
           {n=G.UIT.R, config={align = "cm", minh = 0.3}, nodes={}},
-          {n=G.UIT.R, config={align = "cm", id = 'row_blind', minw = 1, minh = 3.75}, nodes={}},
+          {n=G.UIT.R, config={align = "cm", id = 'row_blind', minw = 1, minh = 3.0}, nodes={}},
+          contents.attack,
           contents.dollars_chips,
           contents.hand,
           {n=G.UIT.R, config={align = "cm", id = 'row_round'}, nodes={
@@ -952,15 +956,29 @@ function TCG_create_UIBox_HUD_blind()
 	}
 
 
+	--{n=G.UIT.T, config={text = localize('k_round'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
 	return {n=G.UIT.ROOT, config={align = "cm", minw = 4.5, r = 0.1, colour = G.C.BLACK, emboss = 0.05, padding = 0.05, id = 'HUD_blind'}, nodes={
-		{n=G.UIT.R, config={align = "cm", minh = 0, r = 0.0, emboss = 0, colour = G.C.UI.TRANSPARENT}, nodes={
+		{n=G.UIT.R, config={align = "cm", minw = 4.5, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.MAIN}, nodes={
+			{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
+				{n=G.UIT.O, config={object = DynaText({string = 'Opponent', shadow = true, rotate = true, silent = true, float = true, scale = 1.6*scale, y_offset = -4}),id = 'HUD_blind_name'}},
+			}},
+			
+			-- {n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.MONEY}, rotate = true, bump = true, silent = true, scale = 0}),id = 'dollars_to_be_earned'}},
+			-- {n=G.UIT.T, config={ref_table = blinds, ref_value = 'chip_text', scale = 0.0, colour = G.C.RED, id = 'HUD_blind_count' }},
+
+			-- {n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
+			-- 	{n=G.UIT.O, config={object = DynaText({string = {{ref_table = blinds, ref_value = 'loc_name'}}, shadow = true, rotate = true, silent = true, float = true, scale = 1.6*scale, y_offset = -4}),id = 'HUD_blind_name'}},
+			-- }},
+			-- {n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
+			-- 	{n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'opponent_health', prefix = localize('$')}}, maxw = 1.35, colours = {G.C.MONEY}, font = G.LANGUAGES['en-us'].font, shadow = true,spacing = 2, bump = true, scale = 2.2*scale}), id = 'dollar_text_opponent'}}
+			-- }},
+			
+		}},
+		{n=G.UIT.R, config={align = "cm", minw = 4.5, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.DARK}, nodes={
 			{n=G.UIT.R, config={align = "cm", minw = 3}, nodes={
-				{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.MONEY}, rotate = true, bump = true, silent = true, scale = 0}),id = 'dollars_to_be_earned'}},
+				{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.MONEY}, rotate = true, bump = true, silent = true, scale = 0}), id = 'dollars_to_be_earned'}},
 				{n=G.UIT.T, config={ref_table = blinds, ref_value = 'chip_text', scale = 0.0, colour = G.C.RED, id = 'HUD_blind_count' }},
 
-				{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
-					{n=G.UIT.O, config={object = DynaText({string = {{ref_table = blinds, ref_value = 'loc_name'}}, shadow = true, rotate = true, silent = true, float = true, scale = 1.6*scale, y_offset = -4}),id = 'HUD_blind_name'}},
-				}},
 				{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
 					{n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'opponent_health', prefix = localize('$')}}, maxw = 1.35, colours = {G.C.MONEY}, font = G.LANGUAGES['en-us'].font, shadow = true,spacing = 2, bump = true, scale = 2.2*scale}), id = 'dollar_text_opponent'}}
 				}},
