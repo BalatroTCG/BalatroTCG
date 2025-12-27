@@ -40,7 +40,7 @@ pattern = "  local new_chips_text = number_format(G.GAME.chips)"
 position = "after"
 payload = '''
 if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
-    --new_chips_text = '0'
+    new_chips_text = '0'
 end
 '''
 match_indent = false
@@ -551,7 +551,6 @@ payload = '''($0 and not BalatroTCG.GameActive)'''
 match_indent = true
 overwrite = true
 
-
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
@@ -691,7 +690,9 @@ pattern = '''if self.STATE == self.STATES.SELECTING_HAND then'''
 position = "at"
 payload = '''
 if G.hand and self.STATE == self.STATES.SELECTING_HAND then
-    BalatroTCG.Status_Current:take_attacks()
+    if BalatroTCG.GameActive then
+        BalatroTCG.Status_Current:take_attacks()
+    end
 '''
 match_indent = true
 overwrite = true
