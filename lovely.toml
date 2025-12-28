@@ -565,28 +565,6 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'card.lua'
-pattern = '''
-self.T.r = -0.2
-self:juice_up(0.3, 0.4)
-self.states.drag.is = true
-self.children.center.pinch.x = true'''
-position = "at"
-payload = '''
-if BalatroTCG.GameActive then
-    self:start_dissolve()
-else
-    self.T.r = -0.2
-    self:juice_up(0.3, 0.4)
-    self.states.drag.is = true
-    self.children.center.pinch.x = true
-end
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
 target = 'functions/UI_definitions.lua'
 pattern = '''restart = UIBox_button{id = 'restart_button', label = {localize('b_start_new_run')}, button = "setup_run", minw = 5}'''
 position = "at"
@@ -735,6 +713,37 @@ overwrite = true
 target = 'card.lua'
 pattern = '''if G.STAGE == G.STAGES.RUN then'''
 position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN and not BalatroTCG.GameActive then'''
+payload = '''if G.STAGE == G.STAGES.RUN and BalatroTCG.GameStarted and (not BalatroTCG.GameActive or not (self.area and self.area.config.type == 'joker' and self.area ~= G.jokers)) then'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/utils.lua'
+pattern = '''cards[i]:start_dissolve()'''
+position = "after"
+payload = '''print('destroying')'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''
+self.T.r = -0.2
+self:juice_up(0.3, 0.4)
+self.states.drag.is = true
+self.children.center.pinch.x = true'''
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    --self:start_dissolve()
+else
+    self.T.r = -0.2
+    self:juice_up(0.3, 0.4)
+    self.states.drag.is = true
+    self.children.center.pinch.x = true
+end
+'''
 match_indent = true
 overwrite = true
