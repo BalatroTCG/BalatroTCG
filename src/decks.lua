@@ -584,14 +584,12 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_uranus' },
         { type = 'c', c = 'c_jupiter' },
         
-        { type = 'c', c = 'c_immolate' },
         { type = 'c', c = 'c_ectoplasm' },
         { type = 'c', c = 'c_cryptid' },
         { type = 'c', c = 'c_cryptid' },
         { type = 'c', c = 'c_soul' },
         { type = 'c', c = 'c_ankh' },
         { type = 'c', c = 'c_ankh' },
-        { type = 'c', c = 'c_talisman' },
 
     }),
     BalatroTCG.Deck('Abandoned Deck', "Bus Deck", 
