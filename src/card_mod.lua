@@ -1054,6 +1054,23 @@ function Card:set_ability(center, initial, delay_sprites)
             self.config.center.generate_ui = modified_desc
         elseif name == 'Swashbuckler' then
             self.config.center.generate_ui = modified_desc
+        elseif name == 'Perkeo' then
+            self.config.center.generate_ui = modified_desc
+
+            self.tcg_calculate = function(self, context)
+                if context.setting_blind and G.consumeables.cards[1] then
+                    G.E_MANAGER:add_event(Event({
+                        func = function() 
+                            local card = copy_card(pseudorandom_element(G.consumeables.cards, pseudoseed('perkeo')), nil)
+                            card:set_edition({negative = true}, true)
+                            card:add_to_deck()
+                            G.consumeables:emplace(card) 
+                            return true
+                        end}))
+                    card_eval_status_text(context_blueprint_card or self, 'extra', nil, nil, nil, {message = localize('k_duplicated_ex')})
+                    return nil, true
+                end
+            end
         elseif name == 'Luchador' then
             self.config.center.generate_ui = modified_desc
             self.ability.extra = 0.5
