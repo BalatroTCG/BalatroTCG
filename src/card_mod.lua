@@ -68,8 +68,10 @@ function Card:use_consumeable(area, copier)
                 leftmost.ability.set = rightmost.ability.set
                 leftmost.consumable = rightmost.consumable
 
-                leftmost.children.use_button:remove()
-                leftmost.children.use_button = nil
+                if leftmost.children.use_button then
+                    leftmost.children.use_button:remove()
+                    leftmost.children.use_button = nil
+                end
                 leftmost.ability.has_health = nil
                 leftmost.ability.health_amount = nil
                 leftmost.ability.max_health = nil
