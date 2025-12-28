@@ -166,6 +166,14 @@ function TCG_PlayerStatus:apply()
     G.GAME.current_round.hands_played = 0
     G.GAME.current_round.discards_used = 0
     G.GAME.current_round.any_hand_drawn = nil
+    
+    G.GAME.selected_back_key = self.back_key
+    G.GAME.selected_back:change_to(get_deck_from_name(self.back_key))
+    if G.GAME.viewed_back then
+        G.GAME.viewed_back:change_to(get_deck_from_name(self.back_key))
+    else
+        G.GAME.viewed_back = Back(get_deck_from_name(self.back_key))
+    end
 
     G.GAME.discount_percent = self.params.discount
     
