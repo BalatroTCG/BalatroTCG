@@ -20,7 +20,7 @@ return {
                 name="Black Deck",
                 text={
                     "{C:attention}+#1#{} Joker slot",
-                    "{C:attention}-#2#{} hand size",
+                    "{C:red}-#2#{} hand size",
                 },
             },
             b_blue_tcg={
@@ -33,8 +33,9 @@ return {
             b_challenge_tcg={
                 name="Challenge Deck",
                 text={
-                    "No Jokers, {C:attention}30{} of any",
-					"Consumeable, can be reused"
+                    "No Jokers, {C:attention}#1#{} Consumeables",
+					"Consumeables can have",
+                    "{C:attention}1{} duplicate",
                 },
             },
             b_checkered_tcg={
@@ -42,22 +43,22 @@ return {
                 text={
                     "One {C:spades}Black{} suit and",
 					"one {C:hearts}Red{} suit,",
-                    "Playing cards can have one copy",
+                    "Playing cards can have",
+                    "{C:attention}1{} duplicate",
                 },
             },
             b_erratic_tcg={
                 name="Erratic Deck",
                 text={
                     "Can have {C:attention}#1#",
-                    "playing card repeats",
+                    "playing card duplicates",
                 },
             },
             b_ghost_tcg={
                 name="Ghost Deck",
                 text={
-                    "{C:attention}+#1#{} Spectral cards",
-                    "Can have one copy of",
-					"each Spectral card",
+                    "Spectral cards can have",
+                    "{C:attention}1{} duplicate",
                 },
             },
             b_green_tcg={
@@ -70,17 +71,15 @@ return {
             b_magic_tcg={
                 name="Magic Deck",
                 text={
-                    "{C:attention}+#1#{} Tarots",
-                    "Can have one copy",
-					"of each Tarot",
+                    "Tarot cards can have",
+                    "{C:attention}1{} duplicate",
                 },
             },
             b_nebula_tcg={
                 name="Nebula Deck",
                 text={
-                    "{C:attention}+#1#{} Planets",
-                    "Planets cards can have copies",
-                    "{C:red}#2#{} consumable slot",
+                    "Planet cards can have",
+                    "{C:attention}1{} duplicate",
                 },
             },
             b_painted_tcg={
@@ -312,11 +311,35 @@ return {
                     "{C:inactive}(Currently {C:red}+#2#{C:inactive} Mult)",
                 },
             },
+            j_supernova_tcg={
+                name="Supernova",
+                text={
+                    "{C:red}+#1#{} Mult for number of",
+                    "times {C:attention}poker hand{}",
+                    "has been played this run",
+                },
+            },
+            j_to_the_moon_tcg={
+                name="To the Moon",
+                text={
+                    "Earn {C:money}$#1#{} of {C:attention}interest{}",
+                    "for every {C:money}$5{} you",
+                    "have at end of round",
+                },
+            },
             j_trading_tcg={
                 name="Trading Card",
                 text={
                     "If {C:attention}first discard{} of round",
                     "has only {C:attention}1{} card, destroy card",
+                },
+            },
+            j_diet_cola_tcg={
+                name="Diet Cola",
+                text={
+                    "Sell this card to",
+                    "gain {C:blue}+1{} hand and",
+                    "{C:red}+1{} discard"
                 },
             },
             j_swashbuckler_tcg={
@@ -326,6 +349,22 @@ return {
                     "of all other",
                     "{C:attention}Jokers{} to Mult",
                     "{C:inactive}(Currently {C:mult}+#1#{C:inactive} Mult)",
+                },
+            },
+            j_satellite_tcg={
+                name="Satellite",
+                text={
+                    "Reduce damage taken by",
+                    "{C:attention}1{} per unique {C:planet}Planet",
+                    "card used this run",
+                    "{C:inactive}(Currently {C:money}$#2#{C:inactive})",
+                }
+            },
+            j_troubadour_tcg={
+                name="Troubadour",
+                text={
+                    "{C:attention}+#1#{} hand size,",
+                    "{C:red}-#2#{} discard each round",
                 },
             },
             j_ring_master_tcg={
@@ -339,8 +378,9 @@ return {
             j_chaos_tcg={
                 name="Chaos the Clown",
                 text={
-                    "Shuffles and flips {C:attention}Jokers",
-                    "when your opponent starts"
+                    "Shuffles and flips",
+                    "{C:attention}Jokers{} when",
+                    "opponent starts"
                 },
             },
             j_throwback_tcg={

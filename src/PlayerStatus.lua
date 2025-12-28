@@ -127,22 +127,38 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.opponent_health = 50
     self.status.bankrupt_at = 0
     self.status.unused_discards = 0
+    self.status.last_tarot_planet = nil
+    self.status.hand_upgrades = copy_table(G.GAME.hands)
+    self.status.probabilities = copy_table(G.GAME.probabilities)
+    self.status.consumeable_usage = copy_table(G.GAME.consumeable_usage)
+
     self.attacks = {}
 end
 
+function TCG_PlayerStatus:pass_over()
+    self.status.bankrupt_at = G.GAME.bankrupt_at
+    self.status.unused_discards = G.GAME.unused_discards
+    self.status.last_tarot_planet = G.GAME.last_tarot_planet
+    self.probabilities = G.GAME.probabilities
+    self.status.hand_upgrades = G.GAME.hands
+    self.status.consumeable_usage = G.GAME.consumeable_usage
+end
 
 function TCG_PlayerStatus:apply()
 
     BalatroTCG.CurrentPlayer = self
     
+    G.GAME.hands = self.status.hand_upgrades
     
-
     G.GAME.round_resets.hands = self.params.hands
     G.GAME.round_resets.discards = self.params.discards
     G.GAME.starting_deck_size = self.starting_deck_size
-
+    G.GAME.last_tarot_planet = self.status.last_tarot_planet
+    G.GAME.probabilities = self.status.probabilities
+    G.GAME.consumeable_usage = self.status.consumeable_usage
     G.GAME.dollars = self.status.dollars
     G.GAME.bankrupt_at = self.status.bankrupt_at
+    
     G.GAME.current_round.hands_left = (math.max(1, G.GAME.round_resets.hands))
     G.GAME.current_round.discards_left = math.max(0, G.GAME.round_resets.discards)
     G.GAME.current_round.hands_played = 0
@@ -159,9 +175,6 @@ function TCG_PlayerStatus:apply()
     G.GAME.round_bonus.discards = 0
 
     G.GAME.pseudorandom = self.seed
-
-    self.status.hands = G.GAME.current_round.hands_left
-    self.status.discards = G.GAME.current_round.discards_left
     
     G.playing_cards = self.playing_cards
 
@@ -204,8 +217,6 @@ function TCG_PlayerStatus:apply()
         joker.states.collide.can = true
     end
     
-        
-    G.GAME.unused_discards = self.status.unused_discards
     
     reset_idol_card()
     reset_mail_rank()
@@ -474,11 +485,9 @@ function TCG_PlayerStatus:hard_set()
     self.graveyard:hard_set_cards()
 end
 
-function TCG_PlayerStatus:set_screen_positions(player)
+function TCG_PlayerStatus:set_screen_positions()
     
-    self.is_player = player
-    
-    if player then
+    if self.is_player then
         self.hand.T.x = G.TILE_W - self.hand.T.w - 2.85
         self.hand.T.y = G.TILE_H - self.hand.T.h
 

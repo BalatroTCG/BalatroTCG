@@ -1339,17 +1339,17 @@ function BalatroTCG.Deck:set_cost()
         self.cost = back.tcg_cost
     else
         if self.back == 'Abandoned Deck' then
-            self.cost = 40
+            self.cost = 15
         elseif self.back == 'Checkered Deck' then
-            self.cost = 35
+            self.cost = 10
         elseif self.back == 'Yellow Deck' then
-            self.cost = 35
+            self.cost = 10
         elseif self.back == 'Plasma Deck' then
-            self.cost = 40
+            self.cost = 15
         elseif self.back == 'Challenge Deck' then
-            self.cost = 40
+            self.cost = 25
         else
-            self.cost = 30
+            self.cost = 05
         end
     end
 
@@ -1540,6 +1540,10 @@ function BalatroTCG.Deck:is_legal()
             end
         end
         
+        self:set_cost()
+        if self.cost > 150 then
+            errors['tcg_err_cost'] = { 150 }
+        end
         if stats.jokers > limits.max_jokers then
             errors['tcg_err_joker_count'] = {stats.jokers, limits.max_jokers}
         end

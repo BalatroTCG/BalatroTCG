@@ -53,10 +53,24 @@ end
 
 local Card_add_to_deck_ref = Card.add_to_deck
 function Card:add_to_deck(from_debuff)
-    Card_add_to_deck_ref(self, from_debuff)
+    local obj = self.config.center
 
-    if BalatroTCG.GameActive then
-        BalatroTCG.Status_Current.bankrupt_at = G.GAME.bankrupt_at
+    if BalatroTCG.GameActive and obj and obj.tcg_add_to_deck and type(obj.tcg_add_to_deck) == 'function' then
+        obj.tcg_add_to_deck(self, from_debuff)
+        return
+    else
+        Card_add_to_deck_ref(self, from_debuff)
+    end
+end
+local Card_remove_from_deck_ref = Card.remove_from_deck
+function Card:remove_from_deck(from_debuff)
+    local obj = self.config.center
+
+    if BalatroTCG.GameActive and obj and obj.tcg_remove_from_deck and type(obj.tcg_remove_from_deck) == 'function' then
+        obj.tcg_remove_from_deck(self, from_debuff)
+        return
+    else
+        Card_remove_from_deck_ref(self, from_debuff)
     end
 end
 
@@ -273,7 +287,7 @@ function get_TCG_params(back)
             ret.joker_slots = ret.joker_slots + 1
             ret.hand_size = ret.hand_size - 1
         elseif back == 'Magic Deck' then
-            ret.consumable_slots = ret.consumable_slots + 1
+            --ret.consumable_slots = ret.consumable_slots + 1
             
         elseif back == 'Nebula Deck' then
         elseif back == 'Ghost Deck' then
@@ -571,7 +585,6 @@ end
 local reset_mail_rank_ref = reset_mail_rank
 function reset_mail_rank()
     if not BalatroTCG.GameActive then return reset_mail_rank_ref() end
-    --return reset_mail_rank_ref()
 
     G.GAME.current_round.mail_card.rank = 'Ace'
     local valid_mail_cards = {}

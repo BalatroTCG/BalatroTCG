@@ -299,8 +299,9 @@ function Game:start_tcg_game(args)
     BalatroTCG.Player.Other = BalatroTCG.Opponent
     BalatroTCG.Opponent.Other = BalatroTCG.Player
     
-    BalatroTCG.Player:set_screen_positions(true)
-    BalatroTCG.Opponent:set_screen_positions(false)
+    BalatroTCG.Player:set_screen_positions()
+    BalatroTCG.Opponent:set_screen_positions()
+    
 
     if args.online then
         BalatroTCG.AI = nil
