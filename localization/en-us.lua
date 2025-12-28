@@ -57,7 +57,7 @@ return {
             b_ghost_tcg={
                 name="Ghost Deck",
                 text={
-                    "Spectral cards can have",
+                    "{C:spectral}Spectral{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
@@ -71,14 +71,14 @@ return {
             b_magic_tcg={
                 name="Magic Deck",
                 text={
-                    "Tarot cards can have",
+                    "C:attention}Tarot{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
             b_nebula_tcg={
                 name="Nebula Deck",
                 text={
-                    "Planet cards can have",
+                    "C:attention}Planet{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
