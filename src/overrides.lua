@@ -646,6 +646,7 @@ function Game:delete_run(args)
     
     game_delete_run_ref(self, args)
     
+    BalatroTCG.GameStarted = false
     BalatroTCG.GameActive = false
     BalatroTCG.MuteAudio = false
     BalatroTCG.PlayerActive = false
