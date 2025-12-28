@@ -30,23 +30,15 @@ end
 
 G.FUNCS.change_viewed_tcg_deck = function(args)
 
-	BalatroTCG.SelectedDeck = args.to_key
+	BalatroTCG.DeckIndex = args.to_key
+	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[args.to_key]
 
-	local deck = get_tcg_deck(BalatroTCG.SelectedDeck)
-	
-	G.GAME.viewed_back:change_to(get_deck_from_name(deck.back))
-end
-
-G.FUNCS.change_viewed_tcg_build_deck = function(args)
-	
-	BalatroTCG.SelectedDeck = args.to_key
-	if _RELEASE_MODE then
-		BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck + #BalatroTCG.DefaultDecks
+	if BalatroTCG.SelectedDeck == 'new' then
+		G.GAME.viewed_back:change_to(G.P_CENTERS.b_red)
+	else
+		G.GAME.viewed_back:change_to(get_deck_from_name(BalatroTCG.SelectedDeck.back))
 	end
 
-	local deck = get_tcg_deck(BalatroTCG.SelectedDeck, true)
-	
-	G.GAME.viewed_back:change_to(get_deck_from_name(deck.back))
 end
 
 G.FUNCS.RUN_SETUP_check_tcg_back = function(e)
@@ -63,13 +55,14 @@ G.FUNCS.RUN_SETUP_check_tcg_back = function(e)
 end
 
 G.FUNCS.RUN_SETUP_check_tcgdeck_name = function(e)
-  if e.config.object and G.GAME.viewed_back and BalatroTCG.SelectedDeck ~= e.config.id then 
+  if e.config.object and G.GAME.viewed_back and BalatroTCG.DeckIndex ~= e.config.id then 
     --removes the UI from the previously selected back and adds the new one
-	local max = #BalatroTCG.DefaultDecks + #BalatroTCG.CustomDecks
-	local deck = get_tcg_deck(BalatroTCG.SelectedDeck)
+
+	local deck = BalatroTCG.SelectedDeck
 
 	local deckname, backname = nil, nil
-	if BalatroTCG.SelectedDeck > max then
+
+	if BalatroTCG.SelectedDeck == 'new' then
 		deckname, backname = 'New Deck', '???'
 	else
 		deckname, backname = deck.name, G.GAME.viewed_back:get_name()
@@ -80,16 +73,16 @@ G.FUNCS.RUN_SETUP_check_tcgdeck_name = function(e)
 		definition = {n=G.UIT.ROOT, config={align = "cm", colour = G.C.CLEAR}, nodes={
 			{n=G.UIT.R, config={align = "cm", colour = G.C.CLEAR, func = 'RUN_SETUP_check_tcgdeck_name'}, nodes={
 				{n=G.UIT.R, config={align = "cm", colour = G.C.CLEAR }, nodes={
-					{n=G.UIT.O, config={id = BalatroTCG.SelectedDeck, object = DynaText({string = deckname,maxw = 4, colours = {G.C.WHITE}, shadow = true, bump = true, scale = 0.45, pop_in = 0, silent = true})}},
+					{n=G.UIT.O, config={id = BalatroTCG.DeckIndex, object = DynaText({string = deckname,maxw = 4, colours = {G.C.WHITE}, shadow = true, bump = true, scale = 0.45, pop_in = 0, silent = true})}},
 				}},
 				{n=G.UIT.R, config={align = "cm", colour = G.C.CLEAR }, nodes={
-					{n=G.UIT.O, config={id = BalatroTCG.SelectedDeck, object = DynaText({string = '(' .. backname .. ')',maxw = 4, colours = {G.C.WHITE}, shadow = true, bump = true, scale = 0.3, pop_in = 0, silent = true})}},
+					{n=G.UIT.O, config={id = BalatroTCG.DeckIndex, object = DynaText({string = '(' .. backname .. ')',maxw = 4, colours = {G.C.WHITE}, shadow = true, bump = true, scale = 0.3, pop_in = 0, silent = true})}},
 				}},
 			}},
 		}},
 		config = {offset = {x=0,y=0}, align = 'cm', parent = e}
     }
-    e.config.id = BalatroTCG.SelectedDeck
+    e.config.id = BalatroTCG.DeckIndex
   end
 end
 
@@ -127,7 +120,7 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'Erratic Deck' then loc_args = { 5 }
 	elseif name_to_check == 'Challenge Deck' then loc_args = { 30 }
 	end
-	if BalatroTCG.SelectedDeck > #BalatroTCG.DefaultDecks + #BalatroTCG.CustomDecks then
+	if BalatroTCG.SelectedDeck == 'new' then
 		key_override = 'null'
 	end
 	localize{type = 'descriptions', key = key_override or (back_config.key .. '_tcg'), set = 'Back', nodes = loc_nodes, vars = loc_args}
@@ -139,6 +132,8 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
     }}
 end
 
+
+
 function select_tcg_deck(tab_type)
 
 	local area = CardArea(
@@ -148,27 +143,50 @@ function select_tcg_deck(tab_type)
 		{card_limit = 5, type = 'deck', highlight_limit = 0, deck_height = 0.75, thin_draw = 1})
 
 	local callback = 'change_viewed_tcg_deck'
-	local deck_selection = tableMerge(BalatroTCG.DefaultDecks, BalatroTCG.CustomDecks)
-	BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or 1
-	local selected = BalatroTCG.SelectedDeck
+	local full_decks = tableMerge(BalatroTCG.DefaultDecks, BalatroTCG.CustomDecks)
+	BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
+
+	BalatroTCG.TabDecks = full_decks
 	
 	if tab_type == 'build' then
-		callback = 'change_viewed_tcg_build_deck'
+		callback = 'change_viewed_tcg_deck'
 		if _RELEASE_MODE then
-			BalatroTCG.SelectedDeck = math.max(BalatroTCG.SelectedDeck, #BalatroTCG.DefaultDecks + 1)
-			deck_selection = tableMerge({}, BalatroTCG.CustomDecks)
-			selected = BalatroTCG.SelectedDeck - #BalatroTCG.DefaultDecks
-		else
-
+			BalatroTCG.TabDecks = tableMerge({}, BalatroTCG.CustomDecks)
 		end
-		deck_selection[#deck_selection + 1] = 'new'
+		BalatroTCG.TabDecks[#BalatroTCG.TabDecks + 1] = 'new'
 	elseif tab_type == 'legal' then
-		BalatroTCG.SelectedDeck = math.min(BalatroTCG.SelectedDeck, #BalatroTCG.DefaultDecks + #BalatroTCG.CustomDecks)
-		selected = BalatroTCG.SelectedDeck
+		BalatroTCG.TabDecks = tableMerge(BalatroTCG.DefaultDecks, {})
+
+		for k, v in ipairs(BalatroTCG.CustomDecks) do
+			if v:is_legal() == 'Legal' then
+				BalatroTCG.TabDecks[#BalatroTCG.TabDecks + 1] = v
+			end
+		end
 	end
+
+	local index = 1
+
+	for k, v in ipairs(full_decks) do
+		for k2, v2 in ipairs(BalatroTCG.TabDecks) do
+			if v == v2 then
+				index = k2
+				break
+			end
+		end
+		if v == BalatroTCG.SelectedDeck then
+			break
+		end
+	end
+
+	BalatroTCG.DeckIndex = index
 	
-	local deck = get_tcg_deck(BalatroTCG.SelectedDeck)
-	G.GAME.viewed_back = Back(get_deck_from_name(deck.back))
+	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[index]
+	
+	if BalatroTCG.SelectedDeck == 'new' then
+		G.GAME.viewed_back = nil
+	else
+		G.GAME.viewed_back = Back(get_deck_from_name(BalatroTCG.SelectedDeck.back))
+	end
 	
 	for i = 1, 10 do
 		local card = Card(G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h, G.CARD_W, G.CARD_H, pseudorandom_element(G.P_CARDS), G.P_CENTERS.c_base, {playing_card = i, viewed_back = true})
@@ -178,7 +196,7 @@ function select_tcg_deck(tab_type)
 	end
 
 	return { n = G.UIT.R, config = { align = 'cm', minh = 1, minw = 1, colour = G.C.CLEAR, }, nodes = {
-		create_option_cycle({options = deck_selection, opt_callback = callback, current_option = selected, colour = G.C.RED, w = 3.5, mid = 
+		create_option_cycle({options = BalatroTCG.TabDecks, opt_callback = callback, current_option = index, colour = G.C.RED, w = 3.5, mid = 
 			{ n=G.UIT.R, config = {align = 'cm', minh=3.3, minw = 5 }, nodes = {
 				{n=G.UIT.C, config={align = "cm", colour = G.C.BLACK, emboss = 0.05, padding = 0.15, r = 0.1}, nodes={
 					{n=G.UIT.C, config={align = "cm"}, nodes={
@@ -292,7 +310,7 @@ function G.UIDEF.starting_betting(e)
 
 	BalatroTCG.BetAmount = 0
 	
-	local deck = get_tcg_deck(BalatroTCG.SelectedDeck)
+	local deck = BalatroTCG.SelectedDeck
 	local params = get_TCG_params(deck.back_key)
 
 	for i = 0, (params.dollars - 1) do
@@ -371,12 +389,23 @@ function G.UIDEF.waiting_for_opponent(e)
 end
 
 function G.FUNCS.tcg_delete_check(e)
-    if BalatroTCG.SelectedDeck <= #BalatroTCG.DefaultDecks or BalatroTCG.SelectedDeck > (#BalatroTCG.DefaultDecks + #BalatroTCG.CustomDecks) then 
-        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-        e.config.button = nil
-    else
+	local active = true
+
+	if BalatroTCG.DeckIndex >= #BalatroTCG.TabDecks then
+		active = false
+	end
+	if not _RELEASE_MODE then
+		if BalatroTCG.DeckIndex <= #BalatroTCG.DefaultDecks then
+			active = false
+		end
+	end
+
+    if active then 
         e.config.colour = G.C.RED
         e.config.button = 'tcg_delete_deck'
+    else
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
     end
 end
 
@@ -400,7 +429,7 @@ function clear_collection()
 end
 
 function create_tcg_builder(type, callback)
-	BalatroTCG.BuildingDeck = BalatroTCG.BuildingDeck or load_building_deck(BalatroTCG.SelectedDeck)
+	BalatroTCG.BuildingDeck = BalatroTCG.BuildingDeck or BalatroTCG.SelectedDeck
 
     BalatroTCG.UseTCG_UI = true
 
@@ -589,8 +618,12 @@ end
 G.FUNCS.tcg_start_build = function(e)
 	G.SETTINGS.paused = true
 
-	BalatroTCG.BuildingDeck = load_building_deck(BalatroTCG.SelectedDeck)
+	BalatroTCG.BuildingDeck = BalatroTCG.SelectedDeck
 	
+	if BalatroTCG.BuildingDeck == 'new' then
+		BalatroTCG.BuildingDeck = get_new_deck()
+	end
+
 	G.FUNCS.overlay_menu{
 		definition = G.FUNCS.create_tcg_builder_menu()
 	}
@@ -600,7 +633,12 @@ end
 G.FUNCS.tcg_delete_deck = function(e)
 	G.SETTINGS.paused = true
 
-	table.remove(BalatroTCG.CustomDecks, BalatroTCG.SelectedDeck - #BalatroTCG.DefaultDecks)
+	for k, v in ipairs(BalatroTCG.CustomDecks) do
+		if v == BalatroTCG.SelectedDeck then
+			table.remove(BalatroTCG.CustomDecks, k)
+			break
+		end
+	end
 
 	save_decks()
 

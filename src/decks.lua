@@ -1574,92 +1574,82 @@ function BalatroTCG.Deck:is_legal()
     return 'Legal'
 end
 
-function load_building_deck(index)
-    
-    index = index or 1
-    if not _RELEASE_MODE then
-        if index <= #BalatroTCG.DefaultDecks then
-            BalatroTCG.DefaultDecks[index]:set_cost()
-            return BalatroTCG.DefaultDecks[index]
-        end
-    end
-    index = index - #BalatroTCG.DefaultDecks
-    index = math.max(index, 1)
+function get_new_deck()
 
-	if index > #BalatroTCG.CustomDecks then
-        BalatroTCG.CustomDecks[index] = BalatroTCG.Deck('Red Deck', 'New Deck', {
-            { type = 'p', r = 'A', s = 'S' },
-            { type = 'p', r = 'K', s = 'S' },
-            { type = 'p', r = 'Q', s = 'S' },
-            { type = 'p', r = 'J', s = 'S' },
-            { type = 'p', r = 'T', s = 'S' },
-            { type = 'p', r = '9', s = 'S' },
-            { type = 'p', r = '8', s = 'S' },
-            { type = 'p', r = '7', s = 'S' },
-            { type = 'p', r = '6', s = 'S' },
+    local index = #BalatroTCG.CustomDecks + 1
 
-            { type = 'p', r = 'A', s = 'H' },
-            { type = 'p', r = 'K', s = 'H' },
-            { type = 'p', r = 'Q', s = 'H' },
-            { type = 'p', r = 'J', s = 'H' },
-            { type = 'p', r = 'T', s = 'H' },
-            { type = 'p', r = '9', s = 'H' },
-            { type = 'p', r = '8', s = 'H' },
-            { type = 'p', r = '7', s = 'H' },
-            { type = 'p', r = '6', s = 'H' },
-            
-            { type = 'p', r = 'A', s = 'C' },
-            { type = 'p', r = 'K', s = 'C' },
-            { type = 'p', r = 'Q', s = 'C' },
-            { type = 'p', r = 'J', s = 'C' },
-            { type = 'p', r = 'T', s = 'C' },
-            { type = 'p', r = '9', s = 'C' },
-            { type = 'p', r = '8', s = 'C' },
-            { type = 'p', r = '7', s = 'C' },
-            { type = 'p', r = '6', s = 'C' },
-            
-            { type = 'p', r = 'A', s = 'D' },
-            { type = 'p', r = 'K', s = 'D' },
-            { type = 'p', r = 'Q', s = 'D' },
-            { type = 'p', r = 'J', s = 'D' },
-            { type = 'p', r = 'T', s = 'D' },
-            { type = 'p', r = '9', s = 'D' },
-            { type = 'p', r = '8', s = 'D' },
-            { type = 'p', r = '7', s = 'D' },
-            { type = 'p', r = '6', s = 'D' },
-            
-            { type = 'j', c = 'j_droll' },
-            { type = 'j', c = 'j_crafty' },
-            { type = 'j', c = 'j_mail' },
-            { type = 'j', c = 'j_cavendish' },
-            { type = 'j', c = 'j_business' },
-            { type = 'j', c = 'j_gros_michel' },
-            
-            { type = 'j', c = 'j_sock_and_buskin' },
-            { type = 'j', c = 'j_four_fingers' },
-            { type = 'j', c = 'j_merry_andy' },
-            
-            { type = 'j', c = 'j_ancient' },
-            
-            { type = 'c', c = 'c_devil' },
-            { type = 'c', c = 'c_hermit' },
-            { type = 'c', c = 'c_lovers' },
-            { type = 'c', c = 'c_death' },
-            { type = 'c', c = 'c_wheel_of_fortune' },
-            { type = 'c', c = 'c_fool' },
-            { type = 'c', c = 'c_hanged_man' },
-            
-            { type = 'c', c = 'c_ceres' },
-            { type = 'c', c = 'c_jupiter' },
-            { type = 'c', c = 'c_eris' },
-            
-            { type = 'c', c = 'c_sigil' },
-            { type = 'c', c = 'c_immolate' },
-            { type = 'c', c = 'c_deja_vu' },
-            { type = 'c', c = 'c_wraith' },
-        })
-	end
+    BalatroTCG.CustomDecks[index] = BalatroTCG.Deck('Red Deck', 'New Deck', {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
 
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_droll' },
+        { type = 'j', c = 'j_crafty' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_business' },
+        { type = 'j', c = 'j_gros_michel' },
+        
+        { type = 'j', c = 'j_sock_and_buskin' },
+        { type = 'j', c = 'j_four_fingers' },
+        { type = 'j', c = 'j_merry_andy' },
+        
+        { type = 'j', c = 'j_ancient' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_wheel_of_fortune' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_hanged_man' },
+        
+        { type = 'c', c = 'c_ceres' },
+        { type = 'c', c = 'c_jupiter' },
+        { type = 'c', c = 'c_eris' },
+        
+        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_wraith' },
+    })
+	
     BalatroTCG.CustomDecks[index]:set_cost()
     return BalatroTCG.CustomDecks[index]
 end

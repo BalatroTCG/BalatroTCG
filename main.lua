@@ -286,16 +286,15 @@ function Game:start_tcg_game(args)
     print(self.GAME.pseudorandom.seed)
     BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
-    local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
-    --local opponentDeck = get_tcg_deck(pseudorandom(generate_starting_seed(), 1, #BalatroTCG.DefaultDecks))
-    local opponentDeck = get_tcg_deck(1)
+    local playerDeck = BalatroTCG.SelectedDeck
+    local opponentDeck = get_tcg_deck(pseudorandom('', 1, #BalatroTCG.DefaultDecks))
+    --local opponentDeck = get_tcg_deck(1)
 
     if args.online then
         opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
     end
 
     G.GAME.player_back = Back(get_deck_from_name(playerDeck.back))
-    G.GAME.opponent_back = Back(get_deck_from_name(opponentDeck.back))
     
     BalatroTCG.Player = TCG_PlayerStatus(playerDeck, true)
     BalatroTCG.Opponent = TCG_PlayerStatus(opponentDeck, false)
@@ -315,6 +314,7 @@ function Game:start_tcg_game(args)
         BalatroTCG.AI = nil
     else
         BalatroTCG.AI = TCG_AI()
+        BalatroTCG.Player.opponent_back = Back(get_deck_from_name(opponentDeck.back))
     end
 
     G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
@@ -484,7 +484,7 @@ function end_tcg_round()
     
     BalatroTCG.Switching = true
 
-    BalatroTCG.Player:send_message({ type = 'deck', deck = BalatroTCG.Player.back_key })
+    BalatroTCG.Player:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
 
     local damage = TCG_GetDamage()
 
