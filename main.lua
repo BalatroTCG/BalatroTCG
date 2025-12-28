@@ -271,6 +271,13 @@ function Game:start_tcg_game(args)
 
     ease_background_colour_blind(G.STATE, 'Small Blind')
     
+    self.GAME = self:init_game_object()
+    self.GAME.modifiers = {}
+    self.GAME.stake = 1
+    self.GAME.STOP_USE = 0
+    self.GAME.selected_back = Back(G.P_CENTERS.b_red)
+
+    
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
@@ -296,6 +303,7 @@ function Game:start_tcg_game(args)
     BalatroTCG.Status_Other = nil
     
 
+
     BalatroTCG.Player.Other = BalatroTCG.Opponent
     BalatroTCG.Opponent.Other = BalatroTCG.Player
     
@@ -308,12 +316,6 @@ function Game:start_tcg_game(args)
     else
         BalatroTCG.AI = TCG_AI()
     end
-
-    self.GAME = self:init_game_object()
-    self.GAME.modifiers = {}
-    self.GAME.stake = 1
-    self.GAME.STOP_USE = 0
-    self.GAME.selected_back = Back(G.P_CENTERS.b_red)
 
     G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
     G.C.UI_MULT[1], G.C.UI_MULT[2], G.C.UI_MULT[3], G.C.UI_MULT[4] = G.C.RED[1], G.C.RED[2], G.C.RED[3], G.C.RED[4]
@@ -609,6 +611,7 @@ end
 
 function switch_player(playerActive)
     
+    BalatroTCG.GameStarted = true
     if BalatroTCG.Status_Current then
         SMODS.calculate_context({ switching_players = true, old_player = BalatroTCG.Status_Current, new_player = BalatroTCG.Status_Other })
     end
@@ -616,10 +619,10 @@ function switch_player(playerActive)
     BalatroTCG.PlayerActive = playerActive
     if BalatroTCG.PlayerActive then
         G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
-        G.SETTINGS.GAMESPEED = 4
 
         BalatroTCG.Status_Current = BalatroTCG.Player
         BalatroTCG.Status_Other = BalatroTCG.Opponent
+        BalatroTCG.Opponent:pass_over()
         BalatroTCG.Player:apply()
     else
         
@@ -630,6 +633,7 @@ function switch_player(playerActive)
 
         BalatroTCG.Status_Current = BalatroTCG.Opponent
         BalatroTCG.Status_Other = BalatroTCG.Player
+        BalatroTCG.Player:pass_over()
         BalatroTCG.Opponent:apply()
     end
     

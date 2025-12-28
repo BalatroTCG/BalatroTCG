@@ -115,9 +115,9 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'Yellow Deck' then loc_args = {effect_config.dollars - default.dollars}
 	elseif name_to_check == 'Green Deck' then loc_args = { 2 }
 	elseif name_to_check == 'Black Deck' then loc_args = { 1, 1}
-	elseif name_to_check == 'Magic Deck' then  loc_args = { 3 }
-	elseif name_to_check == 'Nebula Deck' then loc_args = { 5, -1 }
-	elseif name_to_check == 'Ghost Deck' then loc_args = { 2 }
+	elseif name_to_check == 'Magic Deck' then  loc_args = { 1 }
+	elseif name_to_check == 'Nebula Deck' then loc_args = { 1 }
+	elseif name_to_check == 'Ghost Deck' then loc_args = { }
 	elseif name_to_check == 'Abandoned Deck' then 
 	elseif name_to_check == 'Checkered Deck' then
 	elseif name_to_check == 'Zodiac Deck' then loc_args = { 1, effect_config.discount }
@@ -125,7 +125,7 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'Anaglyph Deck' then loc_args = {1, 3}
 	elseif name_to_check == 'Plasma Deck' then loc_args = { 1, 4 }
 	elseif name_to_check == 'Erratic Deck' then loc_args = { 5 }
-	elseif name_to_check == 'Challenge Deck' then loc_args = { 4 }
+	elseif name_to_check == 'Challenge Deck' then loc_args = { 30 }
 	end
 	if BalatroTCG.SelectedDeck > #BalatroTCG.DefaultDecks + #BalatroTCG.CustomDecks then
 		key_override = 'null'
@@ -949,18 +949,11 @@ end
 function TCG_create_UIBox_HUD_blind()
 	local scale = 0.4
 
-
-	local blinds = { 
-		chip_text = 'aaa',
-		loc_name = 'Opponent'
-	}
-
-
 	--{n=G.UIT.T, config={text = localize('k_round'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
 	return {n=G.UIT.ROOT, config={align = "cm", minw = 4.5, r = 0.1, colour = G.C.BLACK, emboss = 0.05, padding = 0.05, id = 'HUD_blind'}, nodes={
 		{n=G.UIT.R, config={align = "cm", minw = 4.5, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.MAIN}, nodes={
-			{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
-				{n=G.UIT.O, config={object = DynaText({string = 'Opponent', shadow = true, rotate = true, silent = true, float = true, scale = 1.6*scale, y_offset = -4}),id = 'HUD_blind_name'}},
+			{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff', padding = 0.15}, nodes={
+				{n=G.UIT.O, config={object = DynaText({string = localize('b_tcg_opponent'), shadow = true, rotate = true, silent = true, colours = {G.C.UI.TEXT_LIGHT}, float = true, scale = 0.8, y_offset = -4}),id = 'HUD_blind_name'}},
 			}},
 			
 			-- {n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.MONEY}, rotate = true, bump = true, silent = true, scale = 0}),id = 'dollars_to_be_earned'}},
@@ -976,11 +969,14 @@ function TCG_create_UIBox_HUD_blind()
 		}},
 		{n=G.UIT.R, config={align = "cm", minw = 4.5, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.DARK}, nodes={
 			{n=G.UIT.R, config={align = "cm", minw = 3}, nodes={
-				{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.MONEY}, rotate = true, bump = true, silent = true, scale = 0}), id = 'dollars_to_be_earned'}},
-				{n=G.UIT.T, config={ref_table = blinds, ref_value = 'chip_text', scale = 0.0, colour = G.C.RED, id = 'HUD_blind_count' }},
+				{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.RED}, rotate = true, bump = true, silent = true, scale = 0}), id = 'dollars_to_be_earned'}},
+				
+				{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff', padding = 0.01}, nodes={
+					{n=G.UIT.T, config={text=localize('b_tcg_healthopponent'), scale = 0.35, colour = G.C.UI.TEXT_LIGHT, id = 'HUD_blind_count' }},
+				}},
 
-				{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
-					{n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'opponent_health', prefix = localize('$')}}, maxw = 1.35, colours = {G.C.MONEY}, font = G.LANGUAGES['en-us'].font, shadow = true,spacing = 2, bump = true, scale = 2.2*scale}), id = 'dollar_text_opponent'}}
+				{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff', padding = 0.01}, nodes={
+					{n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'opponent_health', prefix = localize('$')}}, maxw = 1.35, colours = {G.C.MONEY}, font = G.LANGUAGES['en-us'].font, shadow = true,spacing = 2, bump = true, scale = 0.75}), id = 'dollar_text_opponent'}}
 				}},
 				
 			}},

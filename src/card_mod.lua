@@ -786,9 +786,9 @@ function Card:set_ability(center, initial, delay_sprites)
     elseif self.ability.set == 'Enhanced' then
         if not BalatroTCG.Unbalance then
             if name == 'Gold Card' then
-                self.config.center.no_suit = true
-                self.config.center.no_rank = true
-                self.config.center.replace_base_card = true
+                -- self.config.center.no_suit = true
+                -- self.config.center.no_rank = true
+                -- self.config.center.replace_base_card = true
                 self.config.center.generate_ui = modified_desc_enh
             elseif name == 'Lucky Card' then
                 self.ability.p_dollars = 10
@@ -1265,6 +1265,7 @@ function Card:set_ability(center, initial, delay_sprites)
         elseif name == 'Cloud 9' then
             self.ability.extra = 2
             self.config.center.generate_ui = modified_desc
+            self.config.center.blueprint_compat = false
             self.tcg_calculate = function(self, context)
                 if context.tcg_take_damage and not context.blueprint then
                     return {

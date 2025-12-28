@@ -402,6 +402,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'C' },
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
         
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
@@ -411,6 +412,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'D' },
         { type = 'p', r = '8', s = 'D' },
         { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
         
         { type = 'j', c = 'j_credit_card' },
         { type = 'j', c = 'j_fortune_teller' },
@@ -421,14 +423,12 @@ BalatroTCG.DefaultDecks = {
         
         { type = 'j', c = 'j_burglar' },
         { type = 'j', c = 'j_steel_joker' },
-        { type = 'j', c = 'j_constellation' },
+        { type = 'j', c = 'j_cloud_9' },
         
         { type = 'j', c = 'j_vagabond' },
         
         { type = 'c', c = 'c_devil' },
         { type = 'c', c = 'c_devil' },
-        { type = 'c', c = 'c_hanged_man' },
-        { type = 'c', c = 'c_hanged_man' },
         { type = 'c', c = 'c_chariot' },
         { type = 'c', c = 'c_chariot' },
         { type = 'c', c = 'c_death' },
@@ -1376,11 +1376,11 @@ function BalatroTCG.Deck:is_legal()
 
         local limits = {
             deck_size = 60,
-            max_jokers = 12,
-            max_tarots = 10,
-            max_planets = 10,
-            max_spectrals = 10,
-            max_consumables = 15,
+            max_jokers = 15,
+            max_tarots = 15,
+            max_planets = 15,
+            max_spectrals = 15,
+            max_consumables = 20,
             max_uncommons = 3,
             max_rares = 1,
             no_faces = false,
@@ -1405,7 +1405,7 @@ function BalatroTCG.Deck:is_legal()
             wrong_suits = false,
             playing_card_copies = 0,
         }
-                
+        
         if self.back == 'Magic Deck' then
             limits.tarot_copies = 1
         elseif self.back == 'Nebula Deck' then

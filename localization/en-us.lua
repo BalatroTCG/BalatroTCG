@@ -475,6 +475,9 @@ return {
             tcg_err_joker_count={
                 "Joker count too high (#1#), max count of #2#",
             },
+            tcg_err_cost={
+                "Deck too expensive, must be $#1# or less",
+            },
             tcg_err_deck_big={
                 "Deck is too big (#1#), required count of #2#",
             },
