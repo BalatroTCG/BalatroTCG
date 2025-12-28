@@ -314,14 +314,6 @@ function Card:calculate_joker(context)
                 end
                return true
             end
-            if self.ability.name == 'Rough Gem' and self.ability.destroy then
-                for k, v in ipairs(self.ability.destroy) do
-                    if v == context.destroying_card then
-                        table.remove(self.ability.destroy, k)
-                        return true
-                    end
-                end
-            end
         elseif context.cards_destroyed then
         elseif context.remove_playing_cards then
         elseif context.using_consumeable then
@@ -502,11 +494,11 @@ function Card:calculate_joker(context)
                     local suit = self.ability.tcg_extra.suit or "Diamonds"
                     
                     if context.other_card:is_suit(suit) then
-                        G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + self.ability.extra.gain
+                        G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + self.ability.extra
                         G.E_MANAGER:add_event(Event({func = (function() G.GAME.dollar_buffer = 0; return true end)}))
 
                         return {
-                            dollars = self.ability.extra.gain,
+                            dollars = self.ability.extra,
                             card = self,
                         }
                     end
