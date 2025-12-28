@@ -460,6 +460,9 @@ return {
 			b_tcgtab_online_cant = "Incompatible Server",
 			b_tcgtab_select = "Select Deck",
             
+			b_tcg_opponent = "Opponent",
+			b_tcg_healthopponent = "Health",
+
 			b_tcg_attack = "Attack",
 			b_tcg_buy = "Buy $",
 			b_tcg_bet = "Bet",
