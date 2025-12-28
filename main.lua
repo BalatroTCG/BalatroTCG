@@ -286,7 +286,7 @@ function Game:start_tcg_game(args)
     print(self.GAME.pseudorandom.seed)
     BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
-    local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
+    local playerDeck = BalatroTCG.SelectedDeck
     --local opponentDeck = get_tcg_deck(pseudorandom(generate_starting_seed(), 1, #BalatroTCG.DefaultDecks))
     local opponentDeck = get_tcg_deck(1)
 
