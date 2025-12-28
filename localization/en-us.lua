@@ -71,14 +71,14 @@ return {
             b_magic_tcg={
                 name="Magic Deck",
                 text={
-                    "C:attention}Tarot{} cards can have",
+                    "{C:attention}Tarot{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
             b_nebula_tcg={
                 name="Nebula Deck",
                 text={
-                    "C:attention}Planet{} cards can have",
+                    "{C:attention}Planet{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
