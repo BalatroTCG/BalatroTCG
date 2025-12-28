@@ -708,7 +708,7 @@ end
 local start_dissolve_ref = Card.start_dissolve
 function Card:start_dissolve(dissolve_colours, silent, dissolve_time_fac, no_juice)
 
-    if self.tcg_todeck then
+    if self.tcg_todeck and not (self.edition and self.edition.negative) then
         if self.area then self.area:remove_card(self) end
         self:remove_from_deck()
         if self.ability.queue_negative_removal then 

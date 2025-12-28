@@ -1055,7 +1055,6 @@ function Card:set_ability(center, initial, delay_sprites)
         elseif name == 'Swashbuckler' then
             self.config.center.generate_ui = modified_desc
         elseif name == 'Perkeo' then
-            self.config.center.generate_ui = modified_desc
 
             self.tcg_calculate = function(self, context)
                 if context.setting_blind and G.consumeables.cards[1] then

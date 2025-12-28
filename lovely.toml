@@ -319,7 +319,7 @@ target = 'card.lua'
 pattern = '''::skip_game_actions_during_remove::'''
 position = "before"
 payload = '''
-if BalatroTCG.GameActive then
+if BalatroTCG.GameActive and not (self.edition and self.edition.negative) then
     for k, v in ipairs(G.playing_cards) do
         if v == self then
             G.graveyard:emplace(self)
