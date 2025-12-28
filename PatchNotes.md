@@ -34,7 +34,7 @@
 - Supernova gives +8 mult per hand
 - Swashbuckler gives + mult for your opponents jokers
 - Loyalty card gives 10x mult
-- Steel gives 0.5x mult
+- Steel Joker gives 0.5x mult
 - Blackboard gives 5x mult
 - Cavendish gives 10x mult
 - Constellation gives 0.5x mult
@@ -89,3 +89,46 @@
 
 # 0.2.0
 - Chaos the Clown shuffles jokers at the start of your opponents turn
+- Luchador reduces damage taken by 50% for one round
+- Walkie Talkie's chips and mult have swapped
+- Scholar now gives +100 chips and +10 mult (likely will be changed)
+- Banner gives +80 chips
+- Blue joker now gives +3 chips per card
+- Scary face gives +45 chips
+- Stone joker gives +50 chips
+- Arrowhead gives +75 chips
+- Onyx Agate gives +12 mult
+- Erosion gives +6 mult per reduction
+- Supernova gives +5 mult
+- Ceremonial Dagger gives 3x the sell value to mult
+- Glass Joker gives 1.5x mult
+- Seeing Double gives 3x mult
+- Throwback gives 0.25x mult for every unused discard
+- Baron is reverted to vanilla
+- Vagabond triggers at $15 or lower
+- Faceless Joker gives $10
+- Satellite reduces $1 of damage per unique planet card
+- Cola gives +1 hand and +1 discard when sold
+- To the Moon and Delayed Gratification now work
+- Cloud 9 reduces damage for every 2 nines
+- Mail in Rebate gives $3, weights ranks like vanilla
+- Business card gives $2 dollars
+- Troubador removes one discard instead of one hand
+- Steel cards are reverted to vanilla
+- Gold cards now have rank and suit again
+- Added costs to deck types
+    - Abandoned deck costs $15
+    - Checkered deck costs $10
+    - Yellow deck costs $10
+    - Plasma deck costs $15
+    - Challenge deck costs $25
+    - All other decks cost $5
+- The full cost of a deck must be $150 or less
+- Money starts at $75 by default
+- Yellow deck starts at $100
+- Nebula and Magic deck no longer modify their consumeable slots
+- Nebula, Magic, and Ghost deck no longer allow extra consumeables of their respective types.  They all allow duplicates of their consumeable types.
+- Decks can now have 15 jokers, and up to 10 of any consumables.  Still limited to 20 total consumables
+- Plasma now takes 1 damage for every 4 damage given
+- Small changes to default decks
+- Damage is now more granular
