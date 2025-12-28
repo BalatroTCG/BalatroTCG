@@ -37,6 +37,8 @@ function Card:highlight(is_higlighted)
                     end
                 end
             end
+
+            
             
             self.children.use_button = UIBox{
                 definition = self.area.config.type == 'tcgdeck_buy' and G.UIDEF.tcg_add_to_deck(self) or G.UIDEF.tcg_remove_to_deck(self), 
@@ -201,11 +203,15 @@ function Card:is_playing_card()
 end
 
 function Card:override_rank(rank)
-    self.ability.tcg_extra.rank = G.P_CARDS['H_' .. rank].value
+    if self.ability.tcg_extra then
+        self.ability.tcg_extra.rank = G.P_CARDS['H_' .. rank].value
+    end
 end
 
 function Card:override_suit(suit)
-    self.ability.tcg_extra.suit = G.P_CARDS[suit .. '_2'].suit
+    if self.ability.tcg_extra then
+        self.ability.tcg_extra.suit = G.P_CARDS[suit .. '_2'].suit
+    end
 end
 
 local can_use_consumeable_ref = Card.can_use_consumeable

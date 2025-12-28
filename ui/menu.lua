@@ -507,6 +507,7 @@ function create_tcg_builder(type, callback)
 				local center = G.CARD_POOL[i+(j-1)*4 + (G.tcg_addition_page - 1) * 8]
 				if not center then break end
 				local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, center, G.P_CENTERS.c_base)
+				card.cost = 0
 				G.your_collection[j]:emplace(card)
 			end
 		end
@@ -691,6 +692,7 @@ G.FUNCS.your_collection_tcg_cards_page = function(args)
 			local center = G.CARD_POOL[i+(j-1)*4 + (4*#G.your_collection*(args.cycle_config.current_option - 1))]
 			if not center then break end
 			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, center, G.P_CENTERS['c_base'])
+			card.cost = 0
 			G.your_collection[j]:emplace(card)
 		end
 	end

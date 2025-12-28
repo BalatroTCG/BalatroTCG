@@ -1337,25 +1337,22 @@ function BalatroTCG.Deck:set_cost()
         self.cost = back.tcg_cost
     else
         if self.back == 'Abandoned Deck' then
-            self.cost = 15
+            self.cost = 30
         elseif self.back == 'Checkered Deck' then
-            self.cost = 10
-        elseif self.back == 'Yellow Deck' then
-            self.cost = 10
-        elseif self.back == 'Plasma Deck' then
-            self.cost = 15
-        elseif self.back == 'Challenge Deck' then
             self.cost = 25
+        elseif self.back == 'Yellow Deck' then
+            self.cost = 25
+        elseif self.back == 'Plasma Deck' then
+            self.cost = 30
+        elseif self.back == 'Challenge Deck' then
+            self.cost = 40
         else
-            self.cost = 05
+            self.cost = 20
         end
     end
 
     for i, card in ipairs(self.cards) do
-
-        if card.type == 'p' then
-            self.cost = self.cost + 1
-        else
+        if card.type ~= 'p' then
             local consumable = G.P_CENTERS[card.c]
             self.cost = self.cost + consumable.cost
         end
@@ -1539,8 +1536,8 @@ function BalatroTCG.Deck:is_legal()
         end
         
         self:set_cost()
-        if self.cost > 150 then
-            errors['tcg_err_cost'] = { 150 }
+        if self.cost > 125 then
+            errors['tcg_err_cost'] = { 125 }
         end
         if stats.jokers > limits.max_jokers then
             errors['tcg_err_joker_count'] = {stats.jokers, limits.max_jokers}
