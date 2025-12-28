@@ -117,6 +117,8 @@ function TCG_PlayerStatus:init(deck, player)
     self.deck:hard_set_T()
     self.deck:align_cards()
     self.deck:hard_set_cards()
+    
+    self.temp_safety = {}
 
     self.status = {}
 
@@ -280,6 +282,10 @@ function TCG_PlayerStatus:receive_message(message)
     end
 end
 
+function TCG_PlayerStatus:add_protection(protect)
+    self.temp_safety[#self.temp_safety + 1] = protect
+end
+
 function TCG_PlayerStatus:take_attacks()
     
     for k, att in ipairs(self.attacks) do
@@ -321,6 +327,8 @@ function TCG_PlayerStatus:take_attacks()
                         end
                     end
                 end
+                return_table = tableMerge(return_table, self.temp_safety)
+                self.temp_safety = {}
         
                 local joker = nil
         
@@ -334,7 +342,7 @@ function TCG_PlayerStatus:take_attacks()
                                 trigger = 'after',
                                 func = function()
                                 play_sound('tarot1')
-                                v.activator:juice_up(0.3, 0.5)
+                                if v.activator then v.activator:juice_up(0.3, 0.5) end
                                 G.GAME.chips_damage = math.floor(G.GAME.chips_damage * (1 - v.percent))
                                 return true
                             end
@@ -350,7 +358,7 @@ function TCG_PlayerStatus:take_attacks()
                                 trigger = 'after',
                                 func = function()
                                 play_sound('tarot1')
-                                v.activator:juice_up(0.3, 0.5)
+                                if v.activator then v.activator:juice_up(0.3, 0.5) end
                                 G.GAME.chips_damage = math.max(G.GAME.chips_damage - v.reduce, 0)
                                 return true
                             end
@@ -367,7 +375,7 @@ function TCG_PlayerStatus:take_attacks()
                             trigger = 'after',
                             func = function()
                             play_sound('tarot1')
-                            v.activator:juice_up(0.3, 0.5)
+                            if v.activator then v.activator:juice_up(0.3, 0.5) end
                             return true
                         end
                         }))

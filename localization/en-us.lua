@@ -375,6 +375,13 @@ return {
                     "card in your deck",
                 },
             },
+            j_luchador_tcg={
+                name="Luchador",
+                text={
+                    "Sell this card to reduce",
+                    "damage taken by {C:attention}#1#%",
+                },
+            },
             j_chaos_tcg={
                 name="Chaos the Clown",
                 text={

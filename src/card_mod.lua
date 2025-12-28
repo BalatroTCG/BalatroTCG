@@ -1062,6 +1062,15 @@ function Card:set_ability(center, initial, delay_sprites)
             self.config.center.generate_ui = modified_desc
         elseif name == 'Swashbuckler' then
             self.config.center.generate_ui = modified_desc
+        elseif name == 'Luchador' then
+            self.config.center.generate_ui = modified_desc
+            self.ability.extra = 0.5
+
+            self.tcg_calculate = function(self, context)
+                if context.selling_self then
+                    BalatroTCG.Status_Current:add_protection({ percent = self.ability.extra })
+                end
+            end
         elseif name == 'Diet Cola' then
             self.config.center.generate_ui = modified_desc
 
@@ -1365,6 +1374,7 @@ function TCG_Override_Desc(self, loc_vars)
     elseif self.ability.name == 'Ceremonial Dagger' then loc_vars = {self.ability.extra.growth, self.ability.extra.mult}
     elseif self.ability.name == 'Abstract Joker' then loc_vars = {self.ability.extra, ((G.jokers and G.jokers.cards and #G.jokers.cards or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_jokers or 0))*self.ability.extra}
     elseif self.ability.name == 'Supernova' then loc_vars = {self.ability.extra}
+    elseif self.ability.name == 'Luchador' then loc_vars = {math.floor(self.ability.extra * 100)}
 
     end
 
