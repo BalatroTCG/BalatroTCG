@@ -802,6 +802,8 @@ function Card:set_ability(center, initial, delay_sprites)
         end
         
     elseif self.ability.set == 'Planet' then
+            self.base_cost = self.base_cost - 1
+
     elseif self.ability.set == 'Joker' then
         
         if not BalatroTCG.Unbalance then
