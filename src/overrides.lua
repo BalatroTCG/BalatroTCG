@@ -684,6 +684,9 @@ function ease_dollars(mod, instant)
     if not BalatroTCG.GameActive then return ease_dollars_ref(mod, instant) end
     
     if BalatroTCG.PlayerActive then
+        if mod > 0 then
+            BalatroTCG.Player:add_play_stats('healing', mod, BalatroTCG.Player.status.round)
+        end
         ease_dollars_ref(mod, instant)
     else
         G.GAME.dollars = G.GAME.dollars + mod
