@@ -1074,6 +1074,27 @@ function Card:set_ability(center, initial, delay_sprites)
                     return nil, true
                 end
             end
+        elseif name == 'Hallucination' then
+
+            self.tcg_calculate = function(self, context)
+                if context.before then
+                    for k, card in pairs(context.full_hand) do
+                        if not card:is_playing_card() then
+                            if pseudorandom('halu') < G.GAME.probabilities.normal/self.ability.extra then
+                                if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
+                                    play_sound('timpani')
+                                    G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                                    G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                                        G.GAME.consumeable_buffer = 0
+                                        return true end }))
+                                end
+                            end
+                            break
+                        end
+                    end
+                    return nil, true
+                end
+            end
         elseif name == 'Luchador' then
             self.config.center.generate_ui = modified_desc
             self.ability.extra = 0.5
