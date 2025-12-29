@@ -1003,6 +1003,8 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.ability.extra = 2
             elseif name == 'Trading Card' then
                 self.config.center.generate_ui = modified_desc
+            elseif name == 'Riff-Raff' then
+                self.ability.extra = 1
             end
         else
             if name == 'Ceremonial Dagger' then
@@ -1342,10 +1344,8 @@ function Card:set_ability(center, initial, delay_sprites)
         elseif name == 'Chaos the Clown' then
             self.config.center.generate_ui = modified_desc
         elseif name == 'Riff-Raff' then
-            self.ability.extra = 1
-            self.config.center.tcg_estimate = function(self, context)
-                
-            end
+            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Matador' then
             self.config.center.eternal_compat = false
             self.config.center.blueprint_compat = false
