@@ -826,7 +826,7 @@ function Card:set_ability(center, initial, delay_sprites)
             end
         end
     elseif self.ability.set == 'Spectral' then
-        if name == 'The Soul' or name == 'Wraith' then
+        if name == 'The Soul' or name == 'Wraith' or name == 'Immolate' then
             self.config.center.generate_ui = modified_desc_spec
         end
         
