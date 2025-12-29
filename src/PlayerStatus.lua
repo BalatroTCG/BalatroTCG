@@ -120,6 +120,16 @@ function TCG_PlayerStatus:init(deck, player)
     
     self.temp_safety = {}
 
+    self.play_stats = {
+        rounds = {},
+        total_damage_given = 0,
+        total_damage_taken = 0,
+        total_healing = 0,
+        total_purchase = 0,
+        total_joker_damage = 0,
+    }
+
+
     self.status = {}
 
     self.status.dollars = params.dollars
@@ -148,6 +158,7 @@ end
 
 function TCG_PlayerStatus:apply()
 
+    self:add_play_stats('damage', 0, self.status.round)
     BalatroTCG.CurrentPlayer = self
     
     G.GAME.hands = self.status.hand_upgrades
@@ -414,6 +425,9 @@ function TCG_PlayerStatus:take_attacks()
 
                         self:damage(damage)
                     else
+                        
+                        self:add_play_stats('joker_damage', amount, self.status.round)
+
                         joker:remove_tcg_health(G.GAME.chips_damage)
                         if self.is_player then
                             play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
@@ -446,11 +460,27 @@ function TCG_PlayerStatus:send_message(message)
     end
 end
 
+function TCG_PlayerStatus:add_play_stats(stat, amount, round)
+    self.play_stats.rounds[round] = self.play_stats.rounds[round] or {
+        damage_given = 0,
+        damage_taken = 0,
+        healing = 0,
+        purchase = 0,
+        joker_damage = 0,
+    }
+
+    self.play_stats['total_' .. stat] = (self.play_stats['total_' .. stat] or 0) + amount
+    self.play_stats.rounds[self.status.round][stat] = (self.play_stats.rounds[self.status.round][stat] or 0) + amount
+end
+
 function TCG_PlayerStatus:damage(amount)
     if amount <= 0 then return end
 
     self.status.dollars = self.status.dollars - amount
     G.GAME.dollars = self.status.dollars
+
+    self:add_play_stats('damage_taken', amount, self.status.round)
+
 
     self:send_message({ type = "health", health = self.status.dollars })
     

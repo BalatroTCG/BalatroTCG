@@ -690,52 +690,115 @@ function end_tcg_game(win)
     }))
 end
 
+
+function create_UIBox_tcg_stats_row(score, text_colour)
+  local label = localize('ph_tcg_score_'..score)
+  local score_tab = {}
+  local label_w, score_w, h = ({damage=true,attack=true})[score] and 3.5 or 2.9, ({damage=true,attack=true})[score] and 3.5 or 1, 0.5
+
+  if score == 'spent' then
+    --label_w = 1.9
+    label = 'Money Spent'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_purchase)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.05,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_purchase / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+      --{n=G.UIT.O, config={object = DynaText({string = {}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+    }
+  end
+  if score == 'damage' then
+    --label_w = 1.9
+    label = 'Damage Taken'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_damage_taken)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.15,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_damage_taken / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+    }
+  end
+  if score == 'attack' then
+    --label_w = 1.9
+    label = 'Damage Given'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_damage_given)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.15,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_damage_given / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+    }
+  end
+  if score == 'jokers' then
+    --label_w = 1.9
+    label = 'Joker Damage'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_joker_damage)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.05,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_joker_damage / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+    }
+  end
+
+  local label_scale = 0.5
+
+  return {n=G.UIT.R, config={align = "cm", padding = 0.05, r = 0.1, colour = darken(G.C.JOKER_GREY, 0.1), emboss = 0.05, func = nil, id = score}, nodes={
+    {n=G.UIT.C, config={align = "cm", padding = 0.02, minw = label_w, maxw = label_w}, nodes={
+        {n=G.UIT.T, config={text = label, scale = label_scale, colour = G.C.UI.TEXT_LIGHT, shadow = true}},
+    }},
+    {n=G.UIT.C, config={align = "cr"}, nodes={
+      {n=G.UIT.C, config={align = "cm", minh = h, r = 0.1, minw = score_w, colour = G.C.BLACK, emboss = 0.05}, nodes={
+        {n=G.UIT.C, config={align = "cm", padding = 0.05, r = 0.1, minw = score_w}, nodes=score_tab},
+      }}
+    }},
+  }}
+end
+  
 function create_tcg_end_box(win)
-  local show_lose_cta = false
-  local eased_green = copy_table(win and G.C.GREEN or G.C.RED)
-  eased_green[4] = 0
-  ease_value(eased_green, 4, 0.5, nil, nil, true)
-  local t = create_UIBox_generic_options({ padding = 0, bg_colour = eased_green , colour = G.C.BLACK, outline_colour = G.C.EDITION, no_back = true, no_esc = true, contents = {
-    {n=G.UIT.R, config={align = "cm"}, nodes={
-      win and {n=G.UIT.O, config={object = DynaText({string = {localize('ph_you_win')}, colours = {G.C.EDITION},shadow = true, float = true, spacing = 10, rotate = true, scale = 1.5, pop_in = 0.4, maxw = 6.5})}}
-      or      {n=G.UIT.O, config={object = DynaText({string = {localize('ph_game_over')}, colours = {G.C.RED},shadow = true, float = true, spacing = 10, scale = 1.5, pop_in = 0.4, maxw = 6.5})}},
-    }},
-    {n=G.UIT.R, config={align = "cm", padding = 0.15}, nodes={
-      {n=G.UIT.C, config={align = "cm"}, nodes={
-    {n=G.UIT.R, config={align = "cm", padding = 0.08}, nodes={
-      create_UIBox_round_scores_row('hand'),
-      create_UIBox_round_scores_row('poker_hand'),
-    }},
-    {n=G.UIT.R, config={align = "cm"}, nodes={
-      {n=G.UIT.C, config={align = "cm", padding = 0.08}, nodes={
-        create_UIBox_round_scores_row('cards_played', G.C.BLUE),
-        create_UIBox_round_scores_row('cards_discarded', G.C.RED),
-        create_UIBox_round_scores_row('cards_purchased', G.C.MONEY),
-      }},
-      BalatroTCG.MP_Lobby and 
-      {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
-        UIBox_button({id = 'from_game_won', button = 'mp_return_to_lobby', label = {localize('b_return_lobby')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
-        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
-      }}
-      or 
-      {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
-        UIBox_button({id = 'from_game_won', button = 'start_campaign', label = {localize('b_start_new_run')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
-        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
-      }}
-    }}
-  }}
-  }}
-  }}) 
-  t.nodes[1] = {n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
-      {n=G.UIT.C, config={align = "cm", padding = 2}, nodes={
-        {n=G.UIT.O, config={padding = 0, id = 'jimbo_spot', object = Moveable(0,0,G.CARD_W*1.1, G.CARD_H*1.1)}},
-      }},
-      {n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={t.nodes[1]}
-    }}
-  }
-  --t.nodes[1].config.mid = true
-  t.config.id = 'you_win_UI'
-  return t
+    local show_lose_cta = false
+    local eased_green = copy_table(win and G.C.GREEN or G.C.RED)
+    eased_green[4] = 0
+    ease_value(eased_green, 4, 0.5, nil, nil, true)
+    local t = create_UIBox_generic_options({ padding = 0, bg_colour = eased_green , colour = G.C.BLACK, outline_colour = G.C.EDITION, no_back = true, no_esc = true, contents = {
+        {n=G.UIT.R, config={align = "cm"}, nodes={
+            win and {n=G.UIT.O, config={object = DynaText({string = {localize('ph_you_win')}, colours = {G.C.EDITION},shadow = true, float = true, spacing = 10, rotate = true, scale = 1.5, pop_in = 0.4, maxw = 6.5})}}
+            or      {n=G.UIT.O, config={object = DynaText({string = {localize('ph_game_over')}, colours = {G.C.RED},shadow = true, float = true, spacing = 10, scale = 1.5, pop_in = 0.4, maxw = 6.5})}},
+        }},
+        {n=G.UIT.R, config={align = "cm", padding = 0.15}, nodes={
+            {n=G.UIT.C, config={align = "cm"}, nodes={
+                {n=G.UIT.R, config={align = "cm", padding = 0.08}, nodes={
+                    create_UIBox_tcg_stats_row('damage'),
+                    create_UIBox_tcg_stats_row('attack'),
+                }},
+                {n=G.UIT.R, config={align = "cm"}, nodes={
+                    {n=G.UIT.C, config={align = "cm", padding = 0.08}, nodes={
+                        create_UIBox_round_scores_row('cards_played', G.C.BLUE),
+                        create_UIBox_round_scores_row('cards_discarded', G.C.RED),
+                        create_UIBox_tcg_stats_row('jokers'),
+                        create_UIBox_tcg_stats_row('spent'),
+                    }},
+                    BalatroTCG.MP_Lobby and 
+                    {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
+                        UIBox_button({id = 'from_game_won', button = 'mp_return_to_lobby', label = {localize('b_return_lobby')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
+                        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
+                    }}
+                    or 
+                    {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
+                        UIBox_button({id = 'from_game_won', button = 'start_campaign', label = {localize('b_start_new_run')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
+                        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
+                    }}
+                }}
+            }}
+        }}
+    }}) 
+    t.nodes[1] = {n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
+        {n=G.UIT.C, config={align = "cm", padding = 2}, nodes={
+            {n=G.UIT.O, config={padding = 0, id = 'jimbo_spot', object = Moveable(0,0,G.CARD_W*1.1, G.CARD_H*1.1)}},
+        }},
+        {n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={t.nodes[1]}
+        }}
+    }
+    --t.nodes[1].config.mid = true
+    t.config.id = 'you_win_UI'
+    return t
 end
 
 init()

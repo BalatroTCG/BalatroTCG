@@ -49,6 +49,19 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'functions/button_callbacks.lua'
+pattern = "ease_dollars(-c1.cost)"
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    BalatroTCG.Status_Current:add_play_stats('purchase', c1.cost, BalatroTCG.Status_Current.status.round)
+end
+'''
+match_indent = false
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/button_callbacks.lua'
 pattern = "  local new_mult_text = number_format(G.GAME.current_round.current_hand.mult)"
 position = "after"
 payload = '''
