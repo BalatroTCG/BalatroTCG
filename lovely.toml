@@ -420,33 +420,10 @@ position = "at"
 payload = '''
 local card
 if G.GAME.last_hand_played and BalatroTCG.GameActive then
-    local card = nil
-    for k, v in ipairs(G.deck.cards) do
-        if v.ability.set == 'Planet' then
-            if not card or v.ability.consumeable.hand_type == G.GAME.last_hand_played then
-                card = v
-            end
-        end
+    
+    if pick_from_areas(function (c) return c.ability.set == 'Planet' and c.ability.consumeable.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
+        G.GAME.consumeable_buffer = 0
     end
-    for k, v in ipairs(G.discard.cards) do
-        if v.ability.set == 'Planet' then
-            if v.ability.consumeable.hand_type == G.GAME.last_hand_played then
-                card = v
-            end
-        end
-    end
-    for k, v in ipairs(G.hand.cards) do
-        if v.ability.set == 'Planet' then
-            if v.ability.consumeable.hand_type == G.GAME.last_hand_played then
-                card = v
-            end
-        end
-    end
-    if card then
-        card:add_to_deck()
-        draw_from_graveyard_to_area(card, G.consumeables)
-    end
-    G.GAME.consumeable_buffer = 0
 elseif G.GAME.last_hand_played then
 '''
 match_indent = true
