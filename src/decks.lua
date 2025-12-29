@@ -1310,18 +1310,18 @@ rank_rating['3'] = 11
 rank_rating['2'] = 12
 function BalatroTCG.Deck:sort()
     function compare_cards(a, b)
-        return card_nominal(a) < card_nominal(b)
+        return tcg_card_nominal(a) < tcg_card_nominal(b)
     end
     table.sort(self.cards, compare_cards)
 end
 
-function card_nominal(card)
+function tcg_card_nominal(card)
     local factor = type_rating[card.type] * 100
     
     if card.type == 'c' then
         factor = factor + set_rating[G.P_CENTERS[card.c].set] + pseudohash(card.c) * 0.01
     elseif card.type == 'j' then
-        factor = factor + G.P_CENTERS[card.c].rarity + pseudohash(card.c) * 0.01
+        factor = factor + G.P_CENTERS[card.c].rarity + G.P_CENTERS[card.c].cost * 0.01 + pseudohash(card.c) * 0.0001
     elseif card.type == 'p' then
         factor = factor + rank_rating[card.r] * 0.01 + suit_rating[card.s]
     end
