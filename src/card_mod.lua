@@ -1212,7 +1212,7 @@ function Card:set_ability(center, initial, delay_sprites)
         end
 
         if name == 'Red Card' then
-            self.ability.extra = 10
+            self.ability.extra = 6
             self.ability.cards = 3
             self.config.center.generate_ui = modified_desc
 
