@@ -97,7 +97,14 @@ function Card:use_consumeable(area, copier)
                 end
                 delay(0.2)
                 if self.ability.name == 'Sigil' then
-                    local _suit = pseudorandom_element(SMODS.Suits, pseudoseed('sigil')).card_key
+                    local suits = {}
+                    for k, v in pairs(SMODS.Suits) do
+                        if string.sub(v.card_key, 1, 5) ~= 'tcgb_' then table.insert(suits, v) end
+                        --print(v.card_key)
+                    end
+                    --use_consumeable_ref(self, area, copier)
+
+                    local _suit = pseudorandom_element(suits, pseudoseed('sigil')).card_key
                     for i=1, #G.hand.cards do
                         G.E_MANAGER:add_event(Event({func = function()
                             local card = G.hand.cards[i]
