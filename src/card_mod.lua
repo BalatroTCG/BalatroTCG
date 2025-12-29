@@ -77,9 +77,10 @@ function Card:use_consumeable(area, copier)
                 leftmost.ability.max_health = nil
                 
             elseif self.ability.name == 'The High Priestess' then
-                pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard}, G.consumeables)
-                play_sound('timpani')
-                used_tarot:juice_up(0.3, 0.5)
+                if pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
+                    play_sound('timpani')
+                    used_tarot:juice_up(0.3, 0.5)
+                end
 
             elseif self.ability.name == 'Immolate' then
                 self.ability.extra.dollars = 0
@@ -744,6 +745,15 @@ function modified_desc(self, info_queue, card, desc_nodes, specific_vars, full_U
     end
     localize { type = 'descriptions', set = "Joker", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
 end
+function modified_desc_tarot(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
+    SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
+    if not BalatroTCG.UseTCG_UI then return end
+
+    for i = #desc_nodes, 1, -1 do
+        table.remove(desc_nodes, i)
+    end
+    localize { type = 'descriptions', set = "Tarot", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
+end
 function modified_desc_spec(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
     SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
     if not BalatroTCG.UseTCG_UI then return end
@@ -807,6 +817,10 @@ function Card:set_ability(center, initial, delay_sprites)
         if not BalatroTCG.Unbalance then
             if name == 'The Hermit' then
                 self.ability.extra = 15
+            -- elseif name == 'The Emperor' then
+            --     self.ability.consumeable.tarots = 1
+            -- elseif name == 'The High Priestess' then
+            --     self.ability.consumeable.planets = 1
             elseif name == 'Temperance' then
                 self.ability.extra = 30
             end
