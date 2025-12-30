@@ -1359,7 +1359,8 @@ function BalatroTCG.Deck:set_cost()
             self.cost = self.cost + 1
         else
             local consumable = G.P_CENTERS[card.c]
-            self.cost = self.cost + consumable.cost
+
+            self.cost = self.cost + tcg_base_cost(consumable.name, consumable.set, consumable.cost)
         end
     end
 end

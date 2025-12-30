@@ -785,6 +785,28 @@ function modified_desc_enh(self, info_queue, card, desc_nodes, specific_vars, fu
     localize { type = 'descriptions', set = "Enhanced", key = key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
 end
 
+function tcg_base_cost(set, name, base_cost)
+    if BalatroTCG.Unbalance then return end
+
+    if set == 'Planet' then
+        return base_cost - 1
+    elseif set == 'Joker' then
+        if name == 'Joker' then
+            return 1
+        elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
+            return base_cost - 2
+        elseif name == 'Jolly Joker' or name == 'Zany Joker' or name == 'Mad Joker' or name == 'Crazy Joker' or name == 'Droll Joker' or name == 'Sly Joker' or name == 'Wily Joker' or name == 'Clever Joker' or name == 'Devious Joker' or name == 'Crafty Joker' then
+            return base_cost - 1
+        elseif name == 'Brainstorm' then
+            return 8
+        elseif name == 'Oops! All 6s' then
+            return 7
+        end
+    end
+
+    return base_cost
+end
+
 local set_ability = Card.set_ability
 function Card:set_ability(center, initial, delay_sprites)
 
@@ -797,9 +819,11 @@ function Card:set_ability(center, initial, delay_sprites)
     
     local name = self.ability.name
 
+    self.base_cost = tcg_base_cost(self.ability.set, name, self.base_cost)
 
-    if self.tcg_modify and type(obj.tcg_modify) == 'function' then
-        self:tcg_modify()
+
+    if self.config.center.tcg_modify and type(self.config.center.tcg_modify) == 'function' then
+        self.config.center.tcg_modify(self)
     elseif self.ability.set == 'Enhanced' then
         if not BalatroTCG.Unbalance then
             if name == 'Gold Card' then
@@ -835,13 +859,10 @@ function Card:set_ability(center, initial, delay_sprites)
         
         if not BalatroTCG.Unbalance then
             if name == 'Joker' then
-                self.base_cost = 1
                 self.ability.mult = 5
             elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-                self.base_cost = self.base_cost - 2
                 self.ability.extra.s_mult = 5
             elseif (self.ability.t_mult or 0) > 0 or (self.ability.t_chips or 0) > 0 then
-                self.base_cost = self.base_cost - 1
 
                 if name == 'Jolly Joker' then
                     self.ability.t_mult = 10
@@ -864,9 +885,6 @@ function Card:set_ability(center, initial, delay_sprites)
                 elseif name == 'Crafty Joker' then
                     self.ability.t_chips = 120
                 end
-
-            elseif name == 'Brainstorm' then
-                self.base_cost = 8
 
             -- Combo
             elseif name == 'Walkie Talkie' then
@@ -1024,8 +1042,6 @@ function Card:set_ability(center, initial, delay_sprites)
             -- Misc
             elseif name == 'Merry Andy' then
                 self.ability.d_size = 2
-            elseif name == 'Oops! All 6s' then
-                self.base_cost = 7
             elseif name == 'Burglar' then
                 self.ability.extra = 2
             elseif name == 'Trading Card' then
