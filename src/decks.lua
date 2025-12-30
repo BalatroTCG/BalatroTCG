@@ -1337,7 +1337,7 @@ function BalatroTCG.Deck:set_cost()
         self.cost = back.tcg_cost
     else
         if self.back == 'Abandoned Deck' then
-            self.cost = 30
+            self.cost = 25
         elseif self.back == 'Checkered Deck' then
             self.cost = 25
         elseif self.back == 'Yellow Deck' then
