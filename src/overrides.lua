@@ -2,7 +2,7 @@
 local play_cards_from_highlighted_ref = G.FUNCS.play_cards_from_highlighted
 
 G.FUNCS.play_cards_from_highlighted = function(e)
-    if BalatroTCG.GameActive and G.GAME.current_round.hands_left < 1 then
+    if BalatroTCG.GameActive and G.GAME.current_round.hands_left <= 1 then
         for _, joker in ipairs(G.jokers.cards) do
             joker:highlight(false)
             joker.states.drag.can = false
