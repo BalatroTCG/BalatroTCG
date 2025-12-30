@@ -1308,18 +1308,18 @@ rank_rating['3'] = 11
 rank_rating['2'] = 12
 function BalatroTCG.Deck:sort()
     function compare_cards(a, b)
-        return card_nominal(a) < card_nominal(b)
+        return tcg_card_nominal(a) < tcg_card_nominal(b)
     end
     table.sort(self.cards, compare_cards)
 end
 
-function card_nominal(card)
+function tcg_card_nominal(card)
     local factor = type_rating[card.type] * 100
     
     if card.type == 'c' then
         factor = factor + set_rating[G.P_CENTERS[card.c].set] + pseudohash(card.c) * 0.01
     elseif card.type == 'j' then
-        factor = factor + G.P_CENTERS[card.c].rarity + pseudohash(card.c) * 0.01
+        factor = factor + G.P_CENTERS[card.c].rarity + G.P_CENTERS[card.c].cost * 0.01 + pseudohash(card.c) * 0.0001
     elseif card.type == 'p' then
         factor = factor + rank_rating[card.r] * 0.01 + suit_rating[card.s]
     end
@@ -1354,7 +1354,8 @@ function BalatroTCG.Deck:set_cost()
     for i, card in ipairs(self.cards) do
         if card.type ~= 'p' then
             local consumable = G.P_CENTERS[card.c]
-            self.cost = self.cost + consumable.cost
+
+            self.cost = self.cost + tcg_base_cost(consumable.name, consumable.set, consumable.cost)
         end
     end
 end
@@ -1588,6 +1589,10 @@ function get_new_deck()
         { type = 'p', r = '8', s = 'S' },
         { type = 'p', r = '7', s = 'S' },
         { type = 'p', r = '6', s = 'S' },
+        { type = 'p', r = '5', s = 'S' },
+        { type = 'p', r = '4', s = 'S' },
+        { type = 'p', r = '3', s = 'S' },
+        { type = 'p', r = '2', s = 'S' },
 
         { type = 'p', r = 'A', s = 'H' },
         { type = 'p', r = 'K', s = 'H' },
@@ -1598,6 +1603,10 @@ function get_new_deck()
         { type = 'p', r = '8', s = 'H' },
         { type = 'p', r = '7', s = 'H' },
         { type = 'p', r = '6', s = 'H' },
+        { type = 'p', r = '5', s = 'H' },
+        { type = 'p', r = '4', s = 'H' },
+        { type = 'p', r = '3', s = 'H' },
+        { type = 'p', r = '2', s = 'H' },
         
         { type = 'p', r = 'A', s = 'C' },
         { type = 'p', r = 'K', s = 'C' },
@@ -1608,6 +1617,10 @@ function get_new_deck()
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
         { type = 'p', r = '6', s = 'C' },
+        { type = 'p', r = '5', s = 'C' },
+        { type = 'p', r = '4', s = 'C' },
+        { type = 'p', r = '3', s = 'C' },
+        { type = 'p', r = '2', s = 'C' },
         
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
@@ -1618,36 +1631,21 @@ function get_new_deck()
         { type = 'p', r = '8', s = 'D' },
         { type = 'p', r = '7', s = 'D' },
         { type = 'p', r = '6', s = 'D' },
+        { type = 'p', r = '5', s = 'D' },
+        { type = 'p', r = '4', s = 'D' },
+        { type = 'p', r = '3', s = 'D' },
+        { type = 'p', r = '2', s = 'D' },
         
-        { type = 'j', c = 'j_droll' },
-        { type = 'j', c = 'j_crafty' },
-        { type = 'j', c = 'j_mail' },
         { type = 'j', c = 'j_cavendish' },
-        { type = 'j', c = 'j_business' },
+        { type = 'j', c = 'j_joker' },
         { type = 'j', c = 'j_gros_michel' },
         
-        { type = 'j', c = 'j_sock_and_buskin' },
-        { type = 'j', c = 'j_four_fingers' },
-        { type = 'j', c = 'j_merry_andy' },
+        { type = 'j', c = 'j_blueprint' },
         
-        { type = 'j', c = 'j_ancient' },
-        
-        { type = 'c', c = 'c_devil' },
-        { type = 'c', c = 'c_hermit' },
-        { type = 'c', c = 'c_lovers' },
-        { type = 'c', c = 'c_death' },
-        { type = 'c', c = 'c_wheel_of_fortune' },
         { type = 'c', c = 'c_fool' },
-        { type = 'c', c = 'c_hanged_man' },
-        
-        { type = 'c', c = 'c_ceres' },
-        { type = 'c', c = 'c_jupiter' },
-        { type = 'c', c = 'c_eris' },
-        
-        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_hermit' },
         { type = 'c', c = 'c_immolate' },
-        { type = 'c', c = 'c_deja_vu' },
-        { type = 'c', c = 'c_wraith' },
+        { type = 'c', c = 'c_ectoplasm' },
     })
 	
     BalatroTCG.CustomDecks[index]:set_cost()

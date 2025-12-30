@@ -2,7 +2,7 @@
 local play_cards_from_highlighted_ref = G.FUNCS.play_cards_from_highlighted
 
 G.FUNCS.play_cards_from_highlighted = function(e)
-    if BalatroTCG.GameActive and G.GAME.current_round.hands_left < 1 then
+    if BalatroTCG.GameActive and G.GAME.current_round.hands_left <= 1 then
         for _, joker in ipairs(G.jokers.cards) do
             joker:highlight(false)
             joker.states.drag.can = false
@@ -652,8 +652,8 @@ function Game:delete_run(args)
     
     game_delete_run_ref(self, args)
     
-    BalatroTCG.GameStarted = false
     BalatroTCG.GameActive = false
+    BalatroTCG.GameStarted = false
     BalatroTCG.MuteAudio = false
     BalatroTCG.PlayerActive = false
     BalatroTCG.UseTCG_UI = false
@@ -689,6 +689,9 @@ function ease_dollars(mod, instant)
     if not BalatroTCG.GameActive then return ease_dollars_ref(mod, instant) end
     
     if BalatroTCG.PlayerActive then
+        if mod > 0 then
+            BalatroTCG.Player:add_play_stats('healing', mod, BalatroTCG.Player.status.round)
+        end
         ease_dollars_ref(mod, instant)
     else
         G.GAME.dollars = G.GAME.dollars + mod

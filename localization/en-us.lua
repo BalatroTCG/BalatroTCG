@@ -423,8 +423,10 @@ return {
             c_soul_tcg={
                 name="The Soul",
                 text={
-                    "Removes {C:attention}Eternal{} from",
-                    "all {C:attention}Jokers{}, makes one {C:attention}Eternal{}",
+                    "One random {C:attention}Joker",
+                    "becomes {C:attention}Eternal,",
+                    "removes {C:attention}Eternal{} from",
+                    "the rest"
                 },
             },
             c_wraith_tcg={
@@ -435,7 +437,7 @@ return {
                     "to hand",
                 },
             },
-            c_immolate={
+            c_immolate_tcg={
                 name="Immolate",
                 text={
                     "Destroys {C:attention}#1#{} random",
@@ -443,8 +445,24 @@ return {
                 },
             },
         },
-        TCG_Errors={
-        }
+        Tarot={
+            c_emperor_tcg={
+                name="The Emperor",
+                text={
+                    "Creates up to {C:attention}#1#",
+                    "random {C:tarot}Tarot{} card",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            c_high_priestess_tcg={
+                name="The High Priestess",
+                text={
+                    "Creates up to {C:attention}#1#",
+                    "random {C:planet}Planet{} card",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+        },
 	},
 	misc = {
 		dictionary = {
