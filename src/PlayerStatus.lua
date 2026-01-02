@@ -121,6 +121,7 @@ function TCG_PlayerStatus:init(deck, player)
 
     self.status.max_budget = params.max_budget
     self.status.dollars = params.dollars
+    self.status.used_vouchers = {}
     self.status.round = 1
     self.status.opponent_jokers = 0
     self.status.opponent_joker_cost = 0
@@ -145,6 +146,7 @@ function TCG_PlayerStatus:pass_over()
     self.probabilities = G.GAME.probabilities
     self.status.hand_upgrades = G.GAME.hands
     self.status.consumeable_usage = G.GAME.consumeable_usage
+    self.status.used_vouchers = G.GAME.used_vouchers
 end
 
 function TCG_PlayerStatus:apply()
@@ -162,6 +164,7 @@ function TCG_PlayerStatus:apply()
     G.GAME.consumeable_usage = self.status.consumeable_usage
     G.GAME.dollars = self.status.dollars
     G.GAME.bankrupt_at = self.status.bankrupt_at
+    G.GAME.used_vouchers = self.status.used_vouchers
     
     G.GAME.current_round.hands_left = (math.max(1, G.GAME.round_resets.hands))
     G.GAME.current_round.discards_left = math.max(0, G.GAME.round_resets.discards)
@@ -198,6 +201,7 @@ function TCG_PlayerStatus:apply()
     G.play = self.play
     G.graveyard = self.graveyard
     G.opponentJokers = self.opponentJokers
+    G.vouchers = self.vouchers
     
     G.deck:shuffle('nr' .. self.status.round)
     SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind})
@@ -232,6 +236,19 @@ function TCG_PlayerStatus:apply()
     reset_castle_card()
 end
 
+function TCG_PlayerStatus:remove()
+    self.jokers:remove()
+    self.consumeables:remove()
+    self.jokers:remove()
+    self.discard:remove()
+    self.deck:remove()
+    self.hand:remove()
+    self.play:remove()
+    self.graveyard:remove()
+    self.opponentJokers:remove()
+    self.vouchers:remove()
+    
+end
 
 function TCG_PlayerStatus:receive_message(message)
     
@@ -574,6 +591,9 @@ function TCG_PlayerStatus:set_screen_positions()
     self.graveyard.T.x = self.discard.T.x
     self.graveyard.T.y = self.discard.T.y - 3.5
     
+    self.vouchers.T.x = self.discard.T.x
+    self.vouchers.T.y = self.discard.T.y
+
     self.hand:hard_set_VT()
     self.play:hard_set_VT()
     self.jokers:hard_set_VT()
@@ -581,5 +601,6 @@ function TCG_PlayerStatus:set_screen_positions()
     self.deck:hard_set_VT()
     self.discard:hard_set_VT()
     self.graveyard:hard_set_VT()
+    self.vouchers:hard_set_VT()
     
 end

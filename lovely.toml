@@ -43,7 +43,17 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     new_chips_text = '0'
 end
 '''
-match_indent = false
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/button_callbacks.lua'
+pattern = "if card.ability.set == 'Voucher' then"
+position = "at"
+payload = '''if card.ability.set == 'Voucher' and not BalatroTCG.GameActive then 
+'''
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -336,20 +346,6 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = '=[SMODS _ "src/overrides.lua"]'
-pattern = '''for k, v in ipairs(rank_name_mapping) do'''
-position = "before"
-payload = '''
-hidden_suits['tcgb_Joker'] = true
-hidden_suits['tcgb_Planet'] = true
-hidden_suits['tcgb_Tarot'] = true
-hidden_suits['tcgb_Spectral'] = true
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
 target = 'card.lua'
 pattern = '''::skip_game_actions_during_remove::'''
 position = "before"
@@ -555,6 +551,16 @@ if BalatroTCG.GameActive then
 else
     self.cost = math.max(1, math.floor((self.base_cost + self.extra_cost + 0.5)*(100-G.GAME.discount_percent)/100))
 end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = "if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) then"
+position = "at"
+payload = '''if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) or (BalatroTCG.GameActive and self.ability.set == 'Voucher') then
 '''
 match_indent = true
 overwrite = true

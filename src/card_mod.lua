@@ -99,10 +99,6 @@ function Card:use_consumeable(area, copier)
                 delay(0.2)
                 if self.ability.name == 'Sigil' then
                     local suits = {}
-                    for k, v in pairs(SMODS.Suits) do
-                        if string.sub(v.card_key, 1, 5) ~= 'tcgb_' then table.insert(suits, v) end
-                        --print(v.card_key)
-                    end
                     --use_consumeable_ref(self, area, copier)
 
                     local _suit = pseudorandom_element(suits, pseudoseed('sigil')).card_key
@@ -847,8 +843,6 @@ function Card:set_ability(center, initial, delay_sprites)
         end
         
     elseif self.ability.set == 'Planet' then
-            self.base_cost = self.base_cost - 1
-
     elseif self.ability.set == 'Joker' then
         
         if not BalatroTCG.Unbalance then

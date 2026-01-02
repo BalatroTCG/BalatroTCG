@@ -195,7 +195,7 @@ G.FUNCS.add_tcg_card = function(e)
                         table.insert(BalatroTCG.BuildingDeck.cards, { type = 'j', c = c.original_id })
                     elseif c.ability.set == 'Default' then
                         table.insert(BalatroTCG.BuildingDeck.cards, { type = 'p', r = SMODS.Ranks[c.base.value].card_key, s = SMODS.Suits[c.base.suit].card_key })
-                    elseif c.ability.set == 'Spectral' or c.ability.set == 'Tarot' or c.ability.set == 'Planet' then
+                    elseif c.ability.set == 'Spectral' or c.ability.set == 'Tarot' or c.ability.set == 'Planet' or c.ability.set == 'Voucher' then
                         table.insert(BalatroTCG.BuildingDeck.cards, { type = 'c', c = c.original_id })
                     end
                 end
@@ -311,7 +311,6 @@ function Card:can_use_consumeable(any_state, skip_check)
     end
 end
 
-
 function get_TCG_params(back)
     local ret = {
         max_budget = 1e308,
@@ -415,31 +414,27 @@ function get_TCG_params(back)
     return ret
 end
 
-local SMODS_inject_p_card_ref = SMODS.inject_p_card
-SMODS.inject_p_card = function(suit, rank)
-    if suit.card_key == 'tcgb_Jk' or suit.card_key == 'tcgb_Pl' or suit.card_key == 'tcgb_Sp' or suit.card_key == 'tcgb_Tr' then return end
-    SMODS_inject_p_card_ref(suit, rank)
+G_UIDEF_deck_info_ref = G.UIDEF.deck_info
+function G.UIDEF.deck_info(_show_remaining)
+    BalatroTCG.GraveyardView = false
+    return G_UIDEF_deck_info_ref(_show_remaining)
 end
 
-local pseudorandom_element_ref = pseudorandom_element
-function pseudorandom_element(_t, seed, args)
-
-    local newTable = {}
-    for k, v in pairs(_t) do
-        if type(v) == "table" then
-            if k == 'tcgb_Jk' or k == 'tcgb_Pl' or k == 'tcgb_Sp' or k == 'tcgb_Tr' then
-
-            else
-                newTable[k] = v
-            end
-        else
-            newTable[k] = v
-        end
+-- local temp = G.playing_cards
+-- G.playing_cards = G.graveyard.cards or {}
+-- G.playing_cards = temp
+local G_UIDEF_view_deck_ref = G.UIDEF.view_deck
+function G.UIDEF.view_deck(args)
+    
+    if args == 'graveyard' then
+        BalatroTCG.GraveyardView = true
+        args = false
+    else
+        BalatroTCG.GraveyardView = false
     end
-
-    return pseudorandom_element_ref(newTable, seed, args)
+    
+    return G_UIDEF_view_deck_ref(args)
 end
-
 
 local ref_Card_get_id = Card.get_id
 function Card:get_id()
@@ -537,14 +532,26 @@ end
 G.FUNCS.can_buy_tcg = function(e)
     local v = e.config.ref_table
 
-    if (v.config.center.no_pool_flag and G.GAME.pool_flags[v.config.center.no_pool_flag]) or
+    local ignore = false
+    
+    if v.config.center.requires then 
+        ignore = true
+        for kk, vv in pairs(v.config.center.requires) do
+            if G.GAME.used_vouchers[vv] then
+                ignore = false
+            end
+        end
+    end
+
+    if ignore or (
+        (v.config.center.no_pool_flag and G.GAME.pool_flags[v.config.center.no_pool_flag]) or
         (v.config.center.yes_pool_flag and not G.GAME.pool_flags[v.config.center.yes_pool_flag]) or
-        ((e.config.ref_table.cost >= G.GAME.dollars - G.GAME.bankrupt_at) and (e.config.ref_table.cost > 0)) then
+        ((e.config.ref_table.cost >= G.GAME.dollars - G.GAME.bankrupt_at) and (e.config.ref_table.cost > 0))) then
         e.config.colour = G.C.UI.BACKGROUND_INACTIVE
         e.config.button = nil
     else
         e.config.colour = G.C.ORANGE
-        e.config.button = 'buy_from_shop'
+        e.config.button = v.ability.set == 'Voucher' and 'use_card' or 'buy_from_shop'
     end
     if e.config.ref_parent and e.config.ref_parent.children.buy_and_use then
       if e.config.ref_parent.children.buy_and_use.states.visible then
@@ -811,7 +818,17 @@ local game_delete_run_ref = Game.delete_run
 function Game:delete_run(args)
     
     game_delete_run_ref(self, args)
+
+    if BalatroTCG.Player then
+        BalatroTCG.Player:remove()
+        BalatroTCG.Opponent:remove()
+    end
+
+    -- Not sure why I need to do this but oh well
+    -- Shouldn't break anything?
+    SMODS.cards_to_draw = 0
     
+    BalatroTCG.GraveyardView = false
     BalatroTCG.GameActive = false
     BalatroTCG.GameStarted = false
     BalatroTCG.MuteAudio = false

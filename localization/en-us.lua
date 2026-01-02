@@ -516,6 +516,169 @@ return {
                 },
             },
         },
+        Voucher={
+            v_clearance_sale_tcg={
+                name="Clearance Sale",
+                text={
+                    "All {C:attention}Items{}",
+                    "are {C:attention}#1#%{} off",
+                },
+            },
+            v_directors_cut_tcg={
+                name="Director's Cut",
+                text={
+                    "Reroll Boss Blind",
+                    "{C:attention}1{} time per Ante,",
+                    "{C:money}$#1#{} per roll",
+                },
+            },
+            v_glow_up_tcg={
+                name="Glow Up",
+                text={
+                    "{C:dark_edition}Foil{}, {C:dark_edition}Holographic{}, and",
+                    "{C:dark_edition}Polychrome{} cards",
+                    "appear {C:attention}#1#X{} more often",
+                },
+            },
+            v_hieroglyph_tcg={
+                name="Hieroglyph",
+                text={
+                    "{C:attention}-#1#{} Ante,",
+                    "{C:red}-#1#{} discard",
+                    "each round",
+                },
+            },
+            v_hone_tcg={
+                name="Hone",
+                text={
+                    "{C:dark_edition}Foil{}, {C:dark_edition}Holographic{}, and",
+                    "{C:dark_edition}Polychrome{} cards",
+                    "appear {C:attention}#1#X{} more often",
+                },
+            },
+            v_illusion_tcg={
+                name="Illusion",
+                text={
+                    "{C:attention}Playing cards{} in shop",
+                    "may have an {C:enhanced}Enhancement{},",
+                    "{C:dark_edition}Edition{}, and/or a {C:attention}Seal{}",
+                },
+            },
+            v_liquidation_tcg={
+                name="Liquidation",
+                text={
+                    "All {C:attention}Items{}",
+                    "are {C:attention}#1#%{} off",
+                },
+            },
+            v_magic_trick_tcg={
+                name="Magic Trick",
+                text={
+                    "{C:attention}Playing cards{} can",
+                    "be bought"
+                },
+            },
+            v_money_tree_tcg={
+                name="Money Tree",
+                text={
+                    "Raise the cap on",
+                    "interest earned in",
+                    "each round to {C:money}$#1#{}",
+                },
+            },
+            v_omen_globe_tcg={
+                name="Omen Globe",
+                text={
+                    "{C:spectral}Spectral{} cards may",
+                    "appear in any of",
+                    "the {C:attention}Arcana Packs",
+                },
+            },
+            v_overstock_norm_tcg={
+                name="Overstock",
+                text={
+                    "{C:attention}+1{} card slot",
+                    "available in shop",
+                },
+            },
+            v_overstock_plus_tcg={
+                name="Overstock Plus",
+                text={
+                    "{C:attention}+1{} card slot",
+                    "available in shop",
+                },
+            },
+            v_petroglyph_tcg={
+                name="Petroglyph",
+                text={
+                    "{C:attention}-#1#{} Ante,",
+                    "{C:red}-#1#{} discard",
+                    "each round",
+                },
+            },
+            v_planet_merchant_tcg={
+                name="Planet Merchant",
+                text={
+                    "{C:planet}Planet{} cards appear",
+                    "{C:attention}#1#X{} more frequently",
+                    "in the shop",
+                },
+            },
+            v_planet_tycoon_tcg={
+                name="Planet Tycoon",
+                text={
+                    "{C:planet}Planet{} cards appear",
+                    "{C:attention}#1#X{} more frequently",
+                    "in the shop",
+                },
+            },
+            v_reroll_glut_tcg={
+                name="Reroll Glut",
+                text={
+                    "Extra Discards cost",
+                    "{C:money}$#1#{}",
+                },
+            },
+            v_reroll_surplus_tcg={
+                name="Reroll Surplus",
+                text={
+                    "Extra Discards cost",
+                    "{C:money}$#1#{}",
+                },
+            },
+            v_retcon_tcg={
+                name="Retcon",
+                text={
+                    "Reroll Boss Blind",
+                    "{C:attention}unlimited{} times,",
+                    "{C:money}$#1#{} per roll",
+                },
+            },
+            v_seed_money_tcg={
+                name="Seed Money",
+                text={
+                    "Raise the cap on",
+                    "interest earned in",
+                    "each round to {C:money}$#1#{}",
+                },
+            },
+            v_tarot_merchant_tcg={
+                name="Tarot Merchant",
+                text={
+                    "{C:tarot}Tarot{} cards appear",
+                    "{C:attention}#1#X{} more frequently",
+                    "in the shop",
+                },
+            },
+            v_tarot_tycoon_tcg={
+                name="Tarot Tycoon",
+                text={
+                    "{C:tarot}Tarot{} cards appear",
+                    "{C:attention}#1#X{} more frequently",
+                    "in the shop",
+                },
+            },
+        },
 	},
 	misc = {
 		dictionary = {

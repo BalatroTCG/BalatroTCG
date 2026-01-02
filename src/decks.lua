@@ -18,7 +18,7 @@ function BalatroTCG.Deck:init(back, name, cards)
 end
 
 BalatroTCG.DefaultDecks = {
-    BalatroTCG.Deck('Red Deck', "Ancient Deck", -- Done
+    BalatroTCG.Deck('b_red', "Ancient Deck", -- Done
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -91,7 +91,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_wraith' },
 
     }),
-    BalatroTCG.Deck('Blue Deck', "Green Joker Deck", 
+    BalatroTCG.Deck('b_blue', "Green Joker Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -1184,19 +1184,11 @@ function BalatroTCG.Deck:card_from_control_ex(deck, back, control)
     local _card = nil
 
     if control.type == 'p' then
-        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[control.s..'_'..control.r], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = back})
+        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[control.s..'_'..control.r], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.backs[1]})
     elseif control.type == 'j' then
-        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, tcg_back = back})
-        _card.base.suit = 'tcgb_Joker'
+        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, tcg_back = self.backs[1]})
     elseif control.type == 'c' then
-        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, tcg_back = back})
-        if _card.config.center.set == 'Planet' then
-            _card.base.suit = 'tcgb_Planet'
-        elseif _card.config.center.set == 'Tarot' then
-            _card.base.suit = 'tcgb_Tarot'
-        elseif _card.config.center.set == 'Spectral' then
-            _card.base.suit = 'tcgb_Spectral'
-        end
+        _card = Card(deck.T.x, deck.T.y, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[control.c], {playing_card = G.playing_card, tcg_back = self.backs[1]})
     end
 
     return _card
@@ -1210,6 +1202,7 @@ function BalatroTCG.Deck:has_decks()
 
     return true
 end
+
 
 function load_custom_decks()
     
@@ -1305,7 +1298,7 @@ end
 
 
 local type_rating = {p = 0, j = 1, c = 2 }
-local set_rating = {Tarot = 0, Planet = 1, Spectral = 2 }
+local set_rating = {Tarot = 0, Planet = 1, Spectral = 2, Voucher = 3, }
 local suit_rating = {S = 0, H = 1, C = 2, D = 3 }
 local rank_rating = {A = 0, K = 1, Q = 2, J = 3, T = 4 }
 rank_rating['9'] = 5

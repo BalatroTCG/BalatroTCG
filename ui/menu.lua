@@ -629,6 +629,16 @@ function create_tcg_builder(type, callback)
 				G.your_collection[j]:emplace(card)
 			end
 		end
+	elseif type == 'Voucher' then
+		for i = 1, 4 do
+			for j = 1, #G.your_collection do
+				local center = G.CARD_POOL[i+(j-1)*4 + (G.tcg_addition_page - 1) * 10]
+				if not center then break end
+				local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, nil, center)
+				card.original_id = center.original_id
+				G.your_collection[j]:emplace(card)
+			end
+		end
 	else
 		for i = 1, 5 do
 			for j = 1, #G.your_collection do
@@ -761,6 +771,11 @@ G.FUNCS.create_tcg_builder_menu = function(e)
 			G.tcg_tab = "Planets"
 			return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.1, colour = G.C.CLEAR, }, nodes = create_tcg_builder('Planet', 'your_collection_tcg_consumeables_page'), }
 		end},
+		{ label = "Vouchers", chosen = G.tcg_tab == "Vouchers", tab_definition_function = function()
+			if G.tcg_tab ~= "Vouchers" then G.tcg_addition_page = 1 end
+			G.tcg_tab = "Vouchers"
+			return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.1, colour = G.C.CLEAR, }, nodes = create_tcg_builder('Voucher', 'your_collection_tcg_vouchers_page'), }
+		end},
 		{ label = "Cards", chosen = G.tcg_tab == "Cards", tab_definition_function = function()
 			if G.tcg_tab ~= "Cards" then G.tcg_addition_page = 1 end
 			G.tcg_tab = "Cards"
@@ -889,6 +904,28 @@ G.FUNCS.your_collection_tcg_consumeables_page = function(args)
 	for i = 1, 5 do
 		for j = 1, #G.your_collection do
 			local center = G.CARD_POOL[i+(j-1)*5 + (5*#G.your_collection*(args.cycle_config.current_option - 1))]
+			if not center then break end
+			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.empty, center)
+			card.original_id = center.original_id
+			G.your_collection[j]:emplace(card)
+		end
+	end
+end
+
+G.FUNCS.your_collection_tcg_vouchers_page = function(args)
+	G.tcg_addition_page = args.cycle_config.current_option
+
+	if not args or not args.cycle_config then return end
+	for j = 1, #G.your_collection do
+		for i = #G.your_collection[j].cards,1, -1 do
+			local c = G.your_collection[j]:remove_card(G.your_collection[j].cards[i])
+			c:remove()
+			c = nil
+		end
+	end
+	for i = 1, 4 do
+		for j = 1, #G.your_collection do
+			local center = G.CARD_POOL[i+(j-1)*4 + (4*#G.your_collection*(args.cycle_config.current_option - 1))]
 			if not center then break end
 			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.empty, center)
 			card.original_id = center.original_id

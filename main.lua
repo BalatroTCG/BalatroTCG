@@ -178,84 +178,6 @@ G.FUNCS.tcg_start_multi = function(e)
     G.FUNCS.wipe_off()
 end
 
-
-SMODS.Suit {
-    key = 'Joker',
-    card_key = 'Jk',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-SMODS.Suit {
-    key = 'Planet',
-    card_key = 'Pl',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-SMODS.Suit {
-    key = 'Tarot',
-    card_key = 'Tr',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-SMODS.Suit {
-    key = 'Spectral',
-    card_key = 'Sp',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-
 function Game:start_tcg_game(args)
     args = args or {}
 
@@ -290,8 +212,8 @@ function Game:start_tcg_game(args)
     BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
     local playerDeck = BalatroTCG.SelectedDeck
-    local opponentDeck = get_tcg_deck(pseudorandom('', 1, #BalatroTCG.DefaultDecks))
     --local opponentDeck = get_tcg_deck(1)
+    local opponentDeck = get_tcg_deck(pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks))
 
     if args.online then
         opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
@@ -486,8 +408,10 @@ end
 function end_tcg_round()
     
     BalatroTCG.Switching = true
-
-    BalatroTCG.Player:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
+    
+    if MP and MP.LOBBY and MP.LOBBY.code then
+        BalatroTCG.Player:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
+    end
 
     local damage = TCG_GetDamage()
 
@@ -532,15 +456,13 @@ function end_tcg_round()
             G.GAME.chips_damage = 0
         end
 
-        SMODS.calculate_context({end_of_round = true, game_over = false })
+        SMODS.calculate_context({ end_of_round = true, game_over = false, status = BalatroTCG.Status_Current, full_deck = BalatroTCG.Status_Current.deck })
 
         for _,v in ipairs(SMODS.get_card_areas('playing_cards', 'end_of_round')) do
-            SMODS.calculate_end_of_round_effects({ cardarea = v, end_of_round = true })
+            SMODS.calculate_end_of_round_effects({ cardarea = v, end_of_round = true, status = BalatroTCG.Status_Current, full_deck = BalatroTCG.Status_Current.deck })
         end
+        
         delay(0.3)
-        if BalatroTCG.Status_Current.back.calculate_deck then
-            BalatroTCG.Status_Current.back.calculate_deck({ end_of_round = true, status = BalatroTCG.Status_Current, full_deck = BalatroTCG.Status_Current.deck})
-        end
         
         BalatroTCG.Status_Current.status.unused_discards = (BalatroTCG.Status_Current.status.unused_discards or 0) + G.GAME.current_round.discards_left
 
@@ -563,22 +485,6 @@ function end_tcg_round()
                 end
             end
             BalatroTCG.Status_Current:send_message({ type = 'attack', damage = damage, index = index })
-            if BalatroTCG.Status_Current.back.calculate_deck then
-                BalatroTCG.Status_Current.back.calculate_deck({ damaging = true, status = BalatroTCG.Status_Current, damage = damage})
-            end
-        end
-        BalatroTCG.Status_Current:send_message({ type = 'jokers', jokers = #BalatroTCG.Status_Current.jokers.cards })
-        BalatroTCG.Status_Current:send_message({ type = "health", health = BalatroTCG.Status_Current.status.dollars })
-        
-        local cost = 0
-        for _, joker in ipairs(G.jokers.cards) do
-            joker:set_cost()
-            cost = joker.sell_cost
-        end
-        BalatroTCG.Status_Current:send_message({ type = 'joker_cost', amount = cost })
-        
-        for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
-            joker:highlight(false)
         end
         
         
@@ -586,6 +492,24 @@ function end_tcg_round()
             trigger = 'after',
             delay = 1.5,
             func = function()
+                
+                if damage > 0 then
+                    SMODS.calculate_context({ damaging = true, status = BalatroTCG.Status_Current, damage = damage})
+                end
+                BalatroTCG.Status_Current:send_message({ type = 'jokers', jokers = #BalatroTCG.Status_Current.jokers.cards })
+                BalatroTCG.Status_Current:send_message({ type = "health", health = BalatroTCG.Status_Current.status.dollars })
+
+                local cost = 0
+                for _, joker in ipairs(G.jokers.cards) do
+                    joker:set_cost()
+                    cost = joker.sell_cost
+                end
+                BalatroTCG.Status_Current:send_message({ type = 'joker_cost', amount = cost })
+                
+                for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+                    joker:highlight(false)
+                end
+                
                 if MP and MP.LOBBY and MP.LOBBY.code then
                     Client.send({action = "tcgEndTurn" })
                 end
@@ -623,9 +547,11 @@ function switch_player(playerActive)
     if BalatroTCG.PlayerActive then
         G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
 
+        if BalatroTCG.Status_Current then BalatroTCG.Opponent:pass_over() end
+        
         BalatroTCG.Status_Current = BalatroTCG.Player
         BalatroTCG.Status_Other = BalatroTCG.Opponent
-        BalatroTCG.Opponent:pass_over()
+        
         BalatroTCG.Player:apply()
     else
         
@@ -633,10 +559,11 @@ function switch_player(playerActive)
         if _RELEASE_MODE and not (MP and MP.LOBBY and MP.LOBBY.code) then
             G.SETTINGS.GAMESPEED = 1000
         end
+        
+        if BalatroTCG.Status_Current then BalatroTCG.Player:pass_over() end
 
         BalatroTCG.Status_Current = BalatroTCG.Opponent
         BalatroTCG.Status_Other = BalatroTCG.Player
-        BalatroTCG.Player:pass_over()
         BalatroTCG.Opponent:apply()
     end
     
