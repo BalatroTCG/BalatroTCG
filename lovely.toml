@@ -56,7 +56,7 @@ if BalatroTCG.GameActive then
     BalatroTCG.Status_Current:add_play_stats('purchase', c1.cost, BalatroTCG.Status_Current.status.round)
 end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -69,7 +69,7 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     -- new_mult_text = '0'
 end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -82,7 +82,7 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     -- new_chip_text = '0'
 end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -95,7 +95,7 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     G.GAME.current_round.current_hand.handname_text = ''
 end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 
@@ -109,7 +109,7 @@ position = "at"
 payload = '''
 if self == G.hand and (BalatroTCG.PlayerActive or not BalatroTCG.GameActive) then
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -133,7 +133,7 @@ position = "at"
 payload = '''
 if not self.deck_preview and not G.OVERLAY_MENU and (
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -176,7 +176,7 @@ pattern = "function Card:get_chip_mult()"
 position = "at"
 payload = '''function Card:get_chip_mult(context)
     context = context or { }'''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -186,7 +186,7 @@ pattern = "function Card:get_p_dollars()"
 position = "at"
 payload = '''function Card:get_p_dollars(context)
     context = context or { }'''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -208,7 +208,7 @@ payload = '''
             end
         end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 
@@ -226,7 +226,7 @@ payload = '''
             return ret
         end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -248,7 +248,7 @@ payload = '''
             end
         end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -261,7 +261,7 @@ payload = '''
             BalatroTCG.Status_Current.status.round = G.GAME.round
         end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -274,7 +274,7 @@ payload = '''
         G.ARGS.flame_handler = {}
     end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -287,7 +287,29 @@ payload = '''
         return true
     end
 '''
-match_indent = false
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
+pattern = "if SMODS.no_resolve then SMODS.no_resolve = nil end"
+position = "before"
+payload = '''
+flags[#flags+1] = SMODS.calculate_card_areas('tcg_deck', context, return_table)
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
+pattern = "SMODS.calculate_card_areas('individual', context, effects, { main_scoring = true })"
+position = "after"
+payload = '''
+SMODS.calculate_card_areas('tcg_deck', context, effects, { main_scoring = true })
+'''
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -391,16 +413,6 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'functions/state_events.lua'
-pattern = '''-- TARGET: effects before deck final_scoring_step'''
-position = "after"
-payload = '''
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
 target = 'card.lua'
 pattern = '''
 local card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, '8ba')
@@ -477,7 +489,6 @@ target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
 pattern = '''elseif parsedAction.action == "joinedLobby" then'''
 position = "after"
 payload = '''
-    print("##### " .. parsedAction.type .. " #####")
     if parsedAction.type == 'tcg' then
         BalatroTCG.MP_Lobby = true
     end
@@ -495,7 +506,6 @@ if BalatroTCG.GameActive and card.area == G.hand then
     return {
     n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
         {n=G.UIT.R, config={ref_table = card, r = 0.08, padding = 0.1, align = "bmi", minw = 0.5*card.T.w - 0.15, minh = 0.8*card.T.h, maxw = 0.7*card.T.w - 0.15, hover = true, shadow = true, colour = G.C.UI.BACKGROUND_INACTIVE, one_press = true, button = 'buy_from_shop', func = 'can_buy_tcg'}, nodes={
-        --{n=G.UIT.T, config={text = localize('b_buy'),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}},
         {n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = card, ref_value = 'cost'}}, colours = {G.C.UI.TEXT_LIGHT},shadow = true, silent = true, bump = true, pop_in = 0, scale = 0.5})}},
         }},
     }}
@@ -767,3 +777,5 @@ end
 '''
 match_indent = true
 overwrite = true
+
+
