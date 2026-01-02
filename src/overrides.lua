@@ -964,7 +964,11 @@ end
 
 local is_face_ref = Card.is_face
 function Card:is_face(from_boss)
-    if BalatroTCG.GameActive and not self:is_playing_card() then return false end
+    if BalatroTCG.GameActive then 
+        if self:is_playing_card() then return false end
+        if is_face_ref(self, from_boss) then return true end
+        return self:is_rank_joker({11, 12, 13})
+    end
     return is_face_ref(self, from_boss)
 end
 

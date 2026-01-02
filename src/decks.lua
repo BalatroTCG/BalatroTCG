@@ -164,7 +164,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Yellow Deck', "Hiker Deck", 
+    BalatroTCG.Deck('b_yellow', "Hiker Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -237,7 +237,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_cryptid' },
 
     }),
-    BalatroTCG.Deck('Green Deck', "Bootstraps Deck", 
+    BalatroTCG.Deck('b_green', "Bootstraps Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -310,7 +310,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_medium' },
 
     }),
-    BalatroTCG.Deck('Black Deck', "Baseball Deck", 
+    BalatroTCG.Deck('b_black', "Baseball Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -383,7 +383,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_soul' },
 
     }),
-    BalatroTCG.Deck('Magic Deck', "Vagabond Deck", 
+    BalatroTCG.Deck('b_magic', "Vagabond Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -456,7 +456,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Nebula Deck', "Constellation Deck", 
+    BalatroTCG.Deck('b_nebula', "Constellation Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -529,7 +529,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Ghost Deck', "Stencil Deck", 
+    BalatroTCG.Deck('b_ghost', "Stencil Deck", 
     {
         { type = 'p', r = 'K', s = 'S' },
         { type = 'p', r = 'Q', s = 'S' },
@@ -602,7 +602,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_ankh' },
 
     }),
-    BalatroTCG.Deck('Abandoned Deck', "Bus Deck", 
+    BalatroTCG.Deck('b_abandoned', "Bus Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'T', s = 'S' },
@@ -665,7 +665,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Checkered Deck', "Bloodstone Deck", 
+    BalatroTCG.Deck('b_checkered', "Bloodstone Deck", 
     {
         { type = 'p', r = 'A', s = 'H' },
         { type = 'p', r = 'A', s = 'H' },
@@ -736,7 +736,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Zodiac Deck', "Campfire Deck", 
+    BalatroTCG.Deck('b_zodiac', "Campfire Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -809,7 +809,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Painted Deck', "Runner Deck", 
+    BalatroTCG.Deck('b_painted', "Runner Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -882,7 +882,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Anaglyph Deck', "Square Deck", 
+    BalatroTCG.Deck('b_anaglyph', "Square Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -955,7 +955,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_talisman' },
 
     }),
-    BalatroTCG.Deck('Plasma Deck', "Baron Deck", 
+    BalatroTCG.Deck('b_plasma', "Baron Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -1028,7 +1028,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_medium' },
 
     }),
-    BalatroTCG.Deck('Erratic Deck', "Wee Deck",
+    BalatroTCG.Deck('b_erratic', "Wee Deck",
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'A', s = 'H' },
@@ -1105,7 +1105,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_wraith' },
         { type = 'c', c = 'c_talisman' },
     }),
-    BalatroTCG.Deck('Challenge Deck', "Jokerless Deck", 
+    BalatroTCG.Deck('b_challenge', "Jokerless Deck", 
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },

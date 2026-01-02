@@ -1,6 +1,43 @@
 
 local calculate_joker_ref = Card.calculate_joker
 
+function Card:is_rank_joker(ranks)
+	if self.ability.effect == "Stone Card" or SMODS.has_no_rank(self) then return false end
+
+    if type(ranks) ~= 'table' then ranks = {ranks} end
+    if BalatroTCG.GameActive then
+        
+        for k, v in ipairs(BalatroTCG.Status_Current.backs) do
+
+            -- Find a way to make this not hard coded.
+            if v.name == 'b_mp_gradient' then
+		        local temp = {}
+                for i, v in ipairs(ranks) do
+                    temp[v - 1] = true
+                    temp[v] = true
+                    temp[v + 1] = true
+                end
+        
+                ranks = {}
+                for k, v in pairs(temp) do
+                    if k == 15 then
+                        k = 2
+                    elseif k == 1 then
+                        k = 14
+                    end
+
+                    table.insert(ranks, k)
+                end
+            end
+
+        end
+    end
+
+    for _, r in ipairs(ranks) do
+        if self:get_id() == r then return true end
+    end
+    return false
+end
 
 local use_consumeable_ref = Card.use_consumeable
 function Card:use_consumeable(area, copier)
@@ -302,7 +339,7 @@ function Card:calculate_joker(context)
                 return nil
             end
         elseif context.destroying_card and not context.blueprint then
-            if self.ability.name == 'Sixth Sense' and #context.full_hand == 1 and context.full_hand[1]:get_id() == 6 and G.GAME.current_round.hands_played == 0 then
+            if self.ability.name == 'Sixth Sense' and #context.full_hand == 1 and context.full_hand[1]:is_rank_joker(6) and G.GAME.current_round.hands_played == 0 then
                 
                 if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                         
@@ -357,7 +394,7 @@ function Card:calculate_joker(context)
                 end
             end
             if self.ability.name == 'Mail-In Rebate' and self.ability.tcg_extra.rank then
-                if not context.other_card.debuff and context.other_card:get_id() == self.ability.tcg_extra.rank then
+                if not context.other_card.debuff and context.other_card:is_rank_joker(self.ability.tcg_extra.rank) then
                     ease_dollars(self.ability.extra)
                     return {
                         message = localize('$')..self.ability.extra,
@@ -369,7 +406,7 @@ function Card:calculate_joker(context)
                 end
             end
             if self.ability.name == 'Hit the Road' and self.ability.tcg_extra.rank then
-                if not context.other_card.debuff and context.other_card:get_id() == self.ability.tcg_extra.rank and not context.blueprint then
+                if not context.other_card.debuff and context.other_card:is_rank_joker(self.ability.tcg_extra.rank) and not context.blueprint then
                     self.ability.x_mult = self.ability.x_mult + self.ability.extra
                     return {
                         message = localize{type='variable',key='a_xmult',vars={self.ability.x_mult}},
@@ -463,7 +500,7 @@ function Card:calculate_joker(context)
                     local suit = self.ability.tcg_extra.suit or G.GAME.current_round.idol_card.suit
                     local rank = self.ability.tcg_extra.rank or G.GAME.current_round.idol_card.id
 
-                    if context.other_card:get_id() == rank and context.other_card:is_suit(suit) then
+                    if context.other_card:is_rank_joker(rank) and context.other_card:is_suit(suit) then
                         return {
                             x_mult = self.ability.extra,
                             colour = G.C.RED,
@@ -661,7 +698,7 @@ function Card:calculate_joker(context)
                     if self.ability.name == 'Superposition' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                         local aces = 0
                         for i = 1, #context.scoring_hand do
-                            if context.scoring_hand[i]:get_id() == 14 then aces = aces + 1 end
+                            if context.scoring_hand[i]:is_rank_joker(14) then aces = aces + 1 end
                         end
                         if aces >= 1 and next(context.poker_hands["Straight"]) then
                             
@@ -695,12 +732,6 @@ function Card:calculate_joker(context)
                             end
                         end
                         return nil
-                    end
-                    if self.ability.name == 'Swashbuckler' and self.ability.mult > 0 then
-                        return {
-                            message = localize{type='variable',key='a_mult',vars={self.ability.mult + BalatroTCG.Status_Current.status.opponent_joker_cost}},
-                            mult_mod = self.ability.mult
-                        }
                     end
                     if self.ability.name == 'Card Sharp' then
                         
@@ -1060,6 +1091,9 @@ function Card:set_ability(center, initial, delay_sprites)
             end
         end
 
+        
+
+
         if name == 'Joker' then
             self.config.center.tcg_estimate = function(self, context)
                 if context.purchase == self then
@@ -1087,8 +1121,154 @@ function Card:set_ability(center, initial, delay_sprites)
             end
         elseif name == 'Supernova' then
             self.config.center.generate_ui = modified_desc
+        elseif name == "Driver's License" then 
+            self.tcg_calculate = function(self, context)
+                if context.updating then
+                    self.ability.driver_tally = 0
+                    for k, v in pairs(G.playing_cards) do
+                        if v.config.center ~= G.P_CENTERS.c_base then self.ability.driver_tally = self.ability.driver_tally+1 end
+                    end
+                end
+            end
+        elseif name == "Steel Joker" then 
+            self.tcg_calculate = function(self, context)
+                if context.updating then
+                    self.ability.steel_tally = 0
+                    for k, v in pairs(G.playing_cards) do
+                        if v.config.center == G.P_CENTERS.m_steel then self.ability.steel_tally = self.ability.steel_tally+1 end
+                    end
+                end
+            end
+        elseif name == "Stone Joker" then 
+            self.tcg_calculate = function(self, context)
+                if context.updating then
+                    self.ability.stone_tally = 0
+                    for k, v in pairs(G.playing_cards) do
+                        if v.config.center == G.P_CENTERS.m_stone then self.ability.stone_tally = self.ability.stone_tally+1 end
+                    end
+                end
+            end
+        elseif name == "Joker Stencil" then 
+            self.tcg_calculate = function(self, context)
+                if context.updating then
+                    self.ability.x_mult = (G.jokers.config.card_limit - #G.jokers.cards)
+                    for i = 1, #G.jokers.cards do
+                        if G.jokers.cards[i].ability.name == 'Joker Stencil' then self.ability.x_mult = self.ability.x_mult + 1 end
+                    end
+                end
+            end
+        elseif name == 'Blueprint' then
+            
+            if self.ability.name == "Blueprint" then
+            end
+            self.tcg_calculate = function(self, context)
+                if context.updating then
+                    local other_joker = nil
+                    for i = 1, #G.jokers.cards do
+                        if G.jokers.cards[i] == self then other_joker = G.jokers.cards[i+1] end
+                    end
+                    if other_joker and other_joker ~= self and other_joker.config.center.blueprint_compat then
+                        self.ability.blueprint_compat = 'compatible'
+                    else
+                        self.ability.blueprint_compat = 'incompatible'
+                    end
+                else
+                    local other_joker = nil
+                    for i = 1, #G.jokers.cards do
+                        if G.jokers.cards[i] == self then other_joker = G.jokers.cards[i+1] end
+                    end
+                    if other_joker and other_joker ~= self and not other_joker.debuff and not context.no_blueprint then
+                        if (context.blueprint or 0) > #G.jokers.cards then return end
+                        local old_context_blueprint = context.blueprint
+                        context.blueprint = (context.blueprint and (context.blueprint + 1)) or 1
+                        local old_context_blueprint_card = context.blueprint_card
+                        context.blueprint_card = context.blueprint_card or self
+                        local eff_card = context.blueprint_card
+                        local other_joker_ret = other_joker:calculate_joker(context)
+                        context.blueprint = old_context_blueprint
+                        context.blueprint_card = old_context_blueprint_card
+                        if other_joker_ret then 
+                            other_joker_ret.card = eff_card
+                            other_joker_ret.colour = G.C.BLUE
+                            return other_joker_ret
+                        end
+                    end
+                end
+            end
+        elseif name == 'Brainstorm' then
+            self.tcg_calculate = function(self, context)
+                if context.updating then
+                    local other_joker = G.jokers.cards[1]
+                    if other_joker and other_joker ~= self and other_joker.config.center.blueprint_compat then
+                        self.ability.blueprint_compat = 'compatible'
+                    else
+                        self.ability.blueprint_compat = 'incompatible'
+                    end
+                else
+                    local other_joker = G.jokers.cards[1]
+                    if other_joker and other_joker ~= self and not other_joker.debuff and not context.no_blueprint then
+                        if (context.blueprint or 0) > #G.jokers.cards then return end
+                        local old_context_blueprint = context.blueprint
+                        context.blueprint = (context.blueprint and (context.blueprint + 1)) or 1
+                        local old_context_blueprint_card = context.blueprint_card
+                        context.blueprint_card = context.blueprint_card or self
+                        local eff_card = context.blueprint_card
+                        local other_joker_ret = other_joker:calculate_joker(context)
+                        context.blueprint = old_context_blueprint
+                        context.blueprint_card = old_context_blueprint_card
+                        if other_joker_ret then 
+                            other_joker_ret.card = eff_card
+                            other_joker_ret.colour = G.C.RED
+                            return other_joker_ret
+                        end
+                    end
+                end
+            end
         elseif name == 'Swashbuckler' then
             self.config.center.generate_ui = modified_desc
+
+            self.tcg_calculate = function(self, context)
+                if context.updating then
+                    local sell_cost = 0
+                    for i = 1, #G.jokers.cards do
+                        if G.jokers.cards[i] ~= self and (G.jokers.cards[i].area and G.jokers.cards[i].area == G.jokers) then
+                            sell_cost = sell_cost + G.jokers.cards[i].sell_cost
+                        end
+                    end
+                    sell_cost = sell_cost + BalatroTCG.Status_Current.status.opponent_joker_cost
+
+                    self.ability.mult = sell_cost
+                
+                elseif context.joker_main and self.ability.mult > 0 then
+                    return {
+                        message = localize{type='variable',key='a_mult',vars={self.ability.mult}},
+                        mult_mod = self.ability.mult
+                    }
+                end
+            end
+        elseif name == 'Odd Todd' then
+            self.tcg_calculate = function(self, context)
+                if context.individual and context.cardarea == G.play then
+                    if context.other_card:is_rank_joker({3, 5, 7, 9, 14}) then
+                        return {
+                            chips = self.ability.extra,
+                            card = self
+                        }
+                    end
+                end
+            end
+        elseif name == 'Even Steven' then
+
+            self.tcg_calculate = function(self, context)
+                if context.individual and context.cardarea == G.play then
+                    if context.other_card:is_rank_joker({2, 4, 6, 8, 10}) then
+                        return {
+                            mult = self.ability.extra,
+                            card = self
+                        }
+                    end
+                end
+            end
         elseif name == 'Perkeo' then
 
             self.tcg_calculate = function(self, context)
@@ -1261,6 +1441,24 @@ function Card:set_ability(center, initial, delay_sprites)
                     }
                 end
             end
+        elseif name == '8 Ball' then
+            self.ability.money = 2
+            self.config.center.generate_ui = modified_desc
+            self.tcg_calculate = function(self, context)
+                if context.individual and context.cardarea == G.play then
+                    if context.other_card:is_rank_joker(8) and (SMODS.pseudorandom_probability(self, '8ball', 1, self.ability.extra)) then
+
+                        if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
+                            play_sound('timpani')
+                            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                                G.GAME.consumeable_buffer = 0
+                                return true end }))
+                        end
+
+                    end
+                end
+            end
         end
 
         if name == 'Red Card' then
@@ -1344,15 +1542,14 @@ function Card:set_ability(center, initial, delay_sprites)
                     return {
                         reduce = math.floor(self.ability.nine_tally / self.ability.extra)
                     }
-                elseif context.end_of_round and not context.repetition and not context.individual then
-                    
-                    -- self.ability.nine_tally = 0
-                    -- for k, v in pairs(G.playing_cards) do
-                    --     if v:get_id() == 9 then self.ability.nine_tally = self.ability.nine_tally+1 end
-                    -- end
+                elseif context.updating then
+                    self.ability.nine_tally = 0
+                    for k, v in pairs(G.playing_cards) do
+                        if v:is_rank_joker(9) then self.ability.nine_tally = self.ability.nine_tally+1 end
+                    end
                 end
             end
-        elseif self.ability.name == 'Troubadour' then
+        elseif name == 'Troubadour' then
             self.config.center.generate_ui = modified_desc
 
             self.config.center.tcg_add_to_deck = function(self, from_debuff)

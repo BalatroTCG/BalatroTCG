@@ -841,7 +841,11 @@ overwrite = true
 target = 'card.lua'
 pattern = '''if G.STAGE == G.STAGES.RUN then'''
 position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN and BalatroTCG.GameStarted and (not BalatroTCG.GameActive or not (self.area and self.area.config.type == 'joker' and self.area ~= G.jokers)) then'''
+payload = '''if G.STAGE == G.STAGES.RUN and BalatroTCG.GameStarted and (not BalatroTCG.GameActive or not (self.area and self.area.config.type == 'joker' and self.area ~= G.jokers)) then
+if self.tcg_calculate and type(self.tcg_calculate) == 'function' then
+    return self:tcg_calculate( { updating = true } )
+end
+'''
 match_indent = true
 overwrite = true
 

@@ -108,20 +108,20 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 		key_override = res.key
 	elseif name_to_check == 'b_blue' then loc_args = {effect_config.hands - default.hands}
 	elseif name_to_check == 'b_red' then loc_args = {effect_config.discards - default.discards}
-	elseif name_to_check == 'Yellow Deck' then loc_args = {effect_config.dollars - default.dollars}
-	elseif name_to_check == 'Green Deck' then loc_args = { 2 }
-	elseif name_to_check == 'Black Deck' then loc_args = { 1, 1}
-	elseif name_to_check == 'Magic Deck' then  loc_args = { 1 }
-	elseif name_to_check == 'Nebula Deck' then loc_args = { 1 }
-	elseif name_to_check == 'Ghost Deck' then loc_args = { }
-	elseif name_to_check == 'Abandoned Deck' then 
-	elseif name_to_check == 'Checkered Deck' then
-	elseif name_to_check == 'Zodiac Deck' then loc_args = { 1, effect_config.discount }
-	elseif name_to_check == 'Painted Deck' then loc_args = { 2, -1 }
-	elseif name_to_check == 'Anaglyph Deck' then loc_args = {1, 3}
-	elseif name_to_check == 'Plasma Deck' then loc_args = { 1, 4 }
-	elseif name_to_check == 'Erratic Deck' then loc_args = { 5 }
-	elseif name_to_check == 'Challenge Deck' then loc_args = { 30 }
+	elseif name_to_check == 'b_yellow' then loc_args = {effect_config.dollars - default.dollars}
+	elseif name_to_check == 'b_green' then loc_args = { 2 }
+	elseif name_to_check == 'b_black' then loc_args = { 1, 1}
+	elseif name_to_check == 'b_magic' then  loc_args = { 1 }
+	elseif name_to_check == 'b_nebula' then loc_args = { 1 }
+	elseif name_to_check == 'b_ghost' then loc_args = { }
+	elseif name_to_check == 'b_abandoned' then 
+	elseif name_to_check == 'b_checkered' then
+	elseif name_to_check == 'b_zodiac' then loc_args = { 1, effect_config.discount }
+	elseif name_to_check == 'b_painted' then loc_args = { 2, -1 }
+	elseif name_to_check == 'b_anaglyph' then loc_args = {1, 3}
+	elseif name_to_check == 'b_plasma' then loc_args = { 1, 4 }
+	elseif name_to_check == 'b_erratic' then loc_args = { 5 }
+	elseif name_to_check == 'b_challenge' then loc_args = { 30 }
 	
 	elseif name_to_check == 'b_mp_cocktail' then loc_args = { 2, 1 }
 	elseif name_to_check == 'b_mp_gradient' then loc_args = { }
@@ -166,20 +166,20 @@ function Card:generate_UIBox_tcg_table(other, ui_scale, min_dims)
 		key_override = res.key
 	elseif name_to_check == 'b_blue' then loc_args = {effect_config.hands - default.hands}
 	elseif name_to_check == 'b_red' then loc_args = {effect_config.discards - default.discards}
-	elseif name_to_check == 'Yellow Deck' then loc_args = {effect_config.dollars - default.dollars}
-	elseif name_to_check == 'Green Deck' then loc_args = { 2 }
-	elseif name_to_check == 'Black Deck' then loc_args = { 1, 1}
-	elseif name_to_check == 'Magic Deck' then  loc_args = { 1 }
-	elseif name_to_check == 'Nebula Deck' then loc_args = { 1 }
-	elseif name_to_check == 'Ghost Deck' then loc_args = { }
-	elseif name_to_check == 'Abandoned Deck' then 
-	elseif name_to_check == 'Checkered Deck' then
-	elseif name_to_check == 'Zodiac Deck' then loc_args = { 1, effect_config.discount }
-	elseif name_to_check == 'Painted Deck' then loc_args = { 2, -1 }
-	elseif name_to_check == 'Anaglyph Deck' then loc_args = {1, 3}
-	elseif name_to_check == 'Plasma Deck' then loc_args = { 1, 4 }
-	elseif name_to_check == 'Erratic Deck' then loc_args = { 5 }
-	elseif name_to_check == 'Challenge Deck' then loc_args = { 30 }
+	elseif name_to_check == 'b_yellow' then loc_args = {effect_config.dollars - default.dollars}
+	elseif name_to_check == 'b_green' then loc_args = { 2 }
+	elseif name_to_check == 'b_black' then loc_args = { 1, 1}
+	elseif name_to_check == 'b_magic' then  loc_args = { 1 }
+	elseif name_to_check == 'b_nebula' then loc_args = { 1 }
+	elseif name_to_check == 'b_ghost' then loc_args = { }
+	elseif name_to_check == 'b_abandoned' then 
+	elseif name_to_check == 'b_checkered' then
+	elseif name_to_check == 'b_zodiac' then loc_args = { 1, effect_config.discount }
+	elseif name_to_check == 'b_painted' then loc_args = { 2, -1 }
+	elseif name_to_check == 'b_anaglyph' then loc_args = {1, 3}
+	elseif name_to_check == 'b_plasma' then loc_args = { 1, 4 }
+	elseif name_to_check == 'b_erratic' then loc_args = { 5 }
+	elseif name_to_check == 'b_challenge' then loc_args = { 30 }
 	
 	elseif name_to_check == 'b_mp_cocktail' then loc_args = { 2, 1 }
 	elseif name_to_check == 'b_mp_gradient' then loc_args = { }
@@ -1009,7 +1009,7 @@ G.FUNCS.your_collection_tcg_deck_page = function(args)
 		for j = 1, #G.your_tcg_deck do
 			local control = BalatroTCG.BuildingDeck.cards[i+(j-1)*6 + (6*#G.your_tcg_deck*(args.cycle_config.current_option - 1))]
 			if not control then break end
-			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], 'Red Deck', control)
+			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], 'b_red', control)
 			G.your_tcg_deck[j]:emplace(card)
 		end
 	end
