@@ -276,6 +276,8 @@ function Card:can_use_consumeable(any_state, skip_check)
     if not BalatroTCG.GameActive then
         return value
     end
+
+    if self.ability.name == 'Wraith' then return true end
     
     if value then
         if self.ability.name == 'Death' then
@@ -965,7 +967,7 @@ end
 local is_face_ref = Card.is_face
 function Card:is_face(from_boss)
     if BalatroTCG.GameActive then 
-        if self:is_playing_card() then return false end
+        if not self:is_playing_card() then return false end
         if is_face_ref(self, from_boss) then return true end
         return self:is_rank_joker({11, 12, 13})
     end

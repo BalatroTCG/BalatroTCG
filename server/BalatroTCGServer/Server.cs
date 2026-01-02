@@ -521,9 +521,12 @@ namespace BalatroTCGServer {
 				("action", "lobbyInfo"),
 				("host", Host.UserName),
 				("hostHash", Host.ModHash),
-				("isHost", Host == client),
 				("hostCached", Host.Cached)
 			};
+
+			if (Host == client) {
+				tosend.Add(("isHost", true));
+			}
 
 			if (ConnectedPlayers.Count >= 2) {
 				var guest = ConnectedPlayers[1];
@@ -531,7 +534,8 @@ namespace BalatroTCGServer {
 				tosend.Add(("guest", guest.UserName));
 				tosend.Add(("guestHash", guest.ModHash));
 				tosend.Add(("guestCached", guest.Cached));
-				tosend.Add(("guestReady", guest.Ready));
+				if (guest.Ready)
+					tosend.Add(("guestReady", true));
 			}
 
 			foreach (var kv in Options) {

@@ -183,6 +183,7 @@ function Game:start_tcg_game(args)
 
     G.SAVED_GAME = nil
     G.hand = nil
+    G.jokers = nil
 
     BalatroTCG.GameActive = true
     BalatroTCG.UseTCG_UI = true
@@ -216,7 +217,7 @@ function Game:start_tcg_game(args)
     local opponentDeck = get_tcg_deck(pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks))
 
     if args.online then
-        opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
+        opponentDeck = BalatroTCG.Deck('b_red', 'empty', {})
     end
 
     G.GAME.player_back = Back(G.P_CENTERS[playerDeck.backs[1]])
@@ -409,8 +410,9 @@ function end_tcg_round()
     
     BalatroTCG.Switching = true
     
-    if MP and MP.LOBBY and MP.LOBBY.code then
+    if BalatroTCG.MP_Lobby then
         BalatroTCG.Player:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
+        Client.send({action = "tcgEndTurn" })
     end
 
     local damage = TCG_GetDamage()
@@ -510,9 +512,6 @@ function end_tcg_round()
                     joker:highlight(false)
                 end
                 
-                if MP and MP.LOBBY and MP.LOBBY.code then
-                    Client.send({action = "tcgEndTurn" })
-                end
                 
                 G.E_MANAGER:add_event(Event({
                     trigger = 'ease',

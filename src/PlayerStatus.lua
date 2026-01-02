@@ -125,7 +125,7 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.round = 1
     self.status.opponent_jokers = 0
     self.status.opponent_joker_cost = 0
-    self.status.opponent_health = 50
+    self.status.opponent_health = 0
     self.status.bankrupt_at = 0
     self.status.unused_discards = 0
     self.status.last_tarot_planet = nil
@@ -429,7 +429,7 @@ function TCG_PlayerStatus:take_attacks()
                         self:damage(damage)
                     else
                         
-                        self:add_play_stats('joker_damage', amount, self.status.round)
+                        self:add_play_stats('joker_damage', G.GAME.chips_damage, self.status.round)
 
                         joker:remove_tcg_health(G.GAME.chips_damage)
                         if self.is_player then

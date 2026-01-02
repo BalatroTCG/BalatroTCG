@@ -1701,7 +1701,7 @@ function Back:init(selected_back)
     if BalatroTCG.GameActive then
         if selected_back.name == 'Green Deck' then
             self.calculate_deck = function(context)
-                if context.end_of_round and not context.individual and not context.repetition and G.GAME.current_round.discards_left > 0 then
+                if not context.repetition and not context.individual and context.end_of_round and G.GAME.current_round.discards_left > 0 then
                     ease_dollars(G.GAME.current_round.discards_left * 2)
                 end
             end

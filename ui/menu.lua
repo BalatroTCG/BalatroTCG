@@ -417,6 +417,22 @@ function G.UIDEF.starting_betting(e)
 						button = "set_betting",
 						minw = 5,
 					})
+				}},
+				{n = G.UIT.R, config = { padding = 0, align = "cm" }, nodes = {
+					BalatroTCG.MP_Lobby and 
+					UIBox_button({
+						label = { localize("b_return_lobby") },
+						colour = G.C.ORANGE,
+						button = "mp_return_to_lobby",
+						minw = 5,
+					})
+					or 
+					UIBox_button({
+						label = { localize("b_main_menu") },
+						colour = G.C.ORANGE,
+						button = "go_to_menu",
+						minw = 5,
+					})
 				}}
 			},
 		})
@@ -498,7 +514,7 @@ function G.FUNCS.lobby_choose_tcg_deck()
 	G.SETTINGS.paused = true
 	G.FUNCS.overlay_menu{
 		definition = 
-		create_UIBox_generic_options({ padding = 0, bg_colour = G.C.CLEAR, contents = {
+		create_UIBox_generic_options({ padding = 0, contents = {
 			{ n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'cm', padding = 0.5, colour = G.C.CLEAR, }, nodes = {
 				select_tcg_deck('legal'),
 			}}

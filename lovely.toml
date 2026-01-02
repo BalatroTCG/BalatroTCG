@@ -306,7 +306,6 @@ target = '=[SMODS _ "src/utils.lua"]'
 pattern = "if SMODS.no_resolve then SMODS.no_resolve = nil end"
 position = "before"
 payload = '''
-flags[#flags+1] = SMODS.calculate_card_areas('tcg_deck', context, return_table)
 '''
 match_indent = true
 overwrite = true
@@ -317,7 +316,6 @@ target = '=[SMODS _ "src/utils.lua"]'
 pattern = "SMODS.calculate_card_areas('individual', context, effects, { main_scoring = true })"
 position = "after"
 payload = '''
-SMODS.calculate_card_areas('tcg_deck', context, effects, { main_scoring = true })
 '''
 match_indent = true
 overwrite = true
