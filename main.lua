@@ -68,12 +68,15 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 
 BalatroTCG = SMODS.current_mod
 
-local function init()
-    local maxVal = 0
+function splitlines(inputstr, sep)
+  local t = {}
+  for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+    table.insert(t, str)
+  end
+  return t
+end
 
-    for k, v in pairs(G.STATES) do
-        maxVal = math.max(maxVal, v + 1)
-    end
+local function init()
     
 end
 
@@ -294,7 +297,7 @@ function Game:start_tcg_game(args)
         opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
     end
 
-    G.GAME.player_back = Back(get_deck_from_name(playerDeck.back))
+    G.GAME.player_back = Back(G.P_CENTERS[playerDeck.backs[1]])
     
     BalatroTCG.Player = TCG_PlayerStatus(playerDeck, true)
     BalatroTCG.Opponent = TCG_PlayerStatus(opponentDeck, false)
@@ -314,7 +317,7 @@ function Game:start_tcg_game(args)
         BalatroTCG.AI = nil
     else
         BalatroTCG.AI = TCG_AI()
-        BalatroTCG.Player.opponent_back = Back(get_deck_from_name(opponentDeck.back))
+        BalatroTCG.Player.opponent_back = Back(G.P_CENTERS[opponentDeck.backs[1]])
     end
 
     G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]

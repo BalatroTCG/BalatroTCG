@@ -34,38 +34,41 @@ G.FUNCS.change_viewed_tcg_deck = function(args)
 	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[args.to_key]
 
 	if BalatroTCG.SelectedDeck == 'new' then
-		G.GAME.viewed_back:change_to(G.P_CENTERS.b_red)
+		BalatroTCG.SelectedBack:change_to(G.P_CENTERS.b_red)
 	else
-		G.GAME.viewed_back:change_to(get_deck_from_name(BalatroTCG.SelectedDeck.back))
+		BalatroTCG.SelectedBack:change_to(G.P_CENTERS[BalatroTCG.SelectedDeck.backs[1]])
 	end
 
 end
 
 G.FUNCS.RUN_SETUP_check_tcg_back = function(e)
-  if G.GAME.viewed_back.name ~= e.config.id then 
-    --removes the UI from the previously selected back and adds the new one
+	if BalatroTCG.DeckIndex ~= e.config.id then 
+		--removes the UI from the previously selected back and adds the new one
 
-    e.config.object:remove() 
-    e.config.object = UIBox{
-      definition = G.GAME.viewed_back:generate_tcg_UI(),
-      config = {offset = {x=0,y=0}, align = 'cm', parent = e}
-    }
-    e.config.id = G.GAME.viewed_back.name
-  end
+		for k, v in ipairs(BalatroTCG.DeckArea.cards) do
+			v:set_sprites({})
+		end
+		e.config.object:remove() 
+		e.config.object = UIBox{
+		definition = BalatroTCG.SelectedBack:generate_tcg_UI(),
+		config = {offset = {x=0,y=0}, align = 'cm', parent = e}
+		}
+		e.config.id = BalatroTCG.DeckIndex
+	end
 end
 
 G.FUNCS.RUN_SETUP_check_tcgdeck_name = function(e)
-  if e.config.object and G.GAME.viewed_back and BalatroTCG.DeckIndex ~= e.config.id then 
+  if e.config.object and BalatroTCG.SelectedBack and BalatroTCG.DeckIndex ~= e.config.id then 
     --removes the UI from the previously selected back and adds the new one
 
 	local deck = BalatroTCG.SelectedDeck
 
-	local deckname, backname = nil, nil
+	local deckname, backname, id
 
 	if BalatroTCG.SelectedDeck == 'new' then
-		deckname, backname = 'New Deck', '???'
+		deckname, backname, id = 'New Deck', '???', 'new'
 	else
-		deckname, backname = deck.name, G.GAME.viewed_back:get_name()
+		deckname, backname = deck.name, BalatroTCG.SelectedBack:get_name(), BalatroTCG.SelectedBack:get_name()
 	end
 	
     e.config.object:remove() 
@@ -92,19 +95,19 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
     min_dims = min_dims or 0.7
     ui_scale = ui_scale or 0.9
     local back_config = other or self.effect.center
-    local name_to_check = other and other.name or self.name
+    local name_to_check = other and other.key or back_config.key
     local effect_config = get_TCG_params(name_to_check)
 	local default = get_TCG_params(nil)
 
-    local loc_args, loc_nodes = nil, {}
+    local loc_args, loc_nodes = {}, {}
 
 	local key_override
 	if back_config.tcg_loc_vars and type(back_config.tcg_loc_vars) == 'function' then
 		local res = back_config:tcg_loc_vars() or {}
 		loc_args = res.vars or {}
 		key_override = res.key
-	elseif name_to_check == 'Blue Deck' then loc_args = {effect_config.hands - default.hands}
-	elseif name_to_check == 'Red Deck' then loc_args = {effect_config.discards - default.discards}
+	elseif name_to_check == 'b_blue' then loc_args = {effect_config.hands - default.hands}
+	elseif name_to_check == 'b_red' then loc_args = {effect_config.discards - default.discards}
 	elseif name_to_check == 'Yellow Deck' then loc_args = {effect_config.dollars - default.dollars}
 	elseif name_to_check == 'Green Deck' then loc_args = { 2 }
 	elseif name_to_check == 'Black Deck' then loc_args = { 1, 1}
@@ -119,6 +122,14 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'Plasma Deck' then loc_args = { 1, 4 }
 	elseif name_to_check == 'Erratic Deck' then loc_args = { 5 }
 	elseif name_to_check == 'Challenge Deck' then loc_args = { 30 }
+	
+	elseif name_to_check == 'b_mp_cocktail' then loc_args = { 2, 1 }
+	elseif name_to_check == 'b_mp_gradient' then loc_args = { }
+	elseif name_to_check == 'b_mp_heidelberg' then loc_args = { 2 }
+	elseif name_to_check == 'b_mp_indigo' then loc_args = {  }
+	elseif name_to_check == 'b_mp_oracle' then loc_args = { effect_config.discount, effect_config.dollars }
+	elseif name_to_check == 'b_mp_orange' then loc_args = { 2 }
+	elseif name_to_check == 'b_mp_violet' then loc_args = { 2, 50 }
 	end
 	if BalatroTCG.SelectedDeck == 'new' then
 		key_override = 'null'
@@ -132,11 +143,60 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
     }}
 end
 
+function Card:generate_UIBox_tcg_table(other, ui_scale, min_dims)
+
+
+    min_dims = min_dims or 0.7
+    ui_scale = ui_scale or 0.9
+    local back_config = copy_table(other or G.P_CENTERS[self.tcg_deck_type])
+    local name_to_check = back_config.key
+    local effect_config = get_TCG_params(back_config.name)
+	local default = get_TCG_params(nil)
+	
+
+	back_config.key = back_config.key .. '_tcg'
+	back_config.set = 'Back'
+
+    local loc_args, loc_nodes = {}, {}
+
+	local key_override
+	if back_config.tcg_loc_vars and type(back_config.tcg_loc_vars) == 'function' then
+		local res = back_config:tcg_loc_vars() or {}
+		loc_args = res.vars or {}
+		key_override = res.key
+	elseif name_to_check == 'b_blue' then loc_args = {effect_config.hands - default.hands}
+	elseif name_to_check == 'b_red' then loc_args = {effect_config.discards - default.discards}
+	elseif name_to_check == 'Yellow Deck' then loc_args = {effect_config.dollars - default.dollars}
+	elseif name_to_check == 'Green Deck' then loc_args = { 2 }
+	elseif name_to_check == 'Black Deck' then loc_args = { 1, 1}
+	elseif name_to_check == 'Magic Deck' then  loc_args = { 1 }
+	elseif name_to_check == 'Nebula Deck' then loc_args = { 1 }
+	elseif name_to_check == 'Ghost Deck' then loc_args = { }
+	elseif name_to_check == 'Abandoned Deck' then 
+	elseif name_to_check == 'Checkered Deck' then
+	elseif name_to_check == 'Zodiac Deck' then loc_args = { 1, effect_config.discount }
+	elseif name_to_check == 'Painted Deck' then loc_args = { 2, -1 }
+	elseif name_to_check == 'Anaglyph Deck' then loc_args = {1, 3}
+	elseif name_to_check == 'Plasma Deck' then loc_args = { 1, 4 }
+	elseif name_to_check == 'Erratic Deck' then loc_args = { 5 }
+	elseif name_to_check == 'Challenge Deck' then loc_args = { 30 }
+	
+	elseif name_to_check == 'b_mp_cocktail' then loc_args = { 2, 1 }
+	elseif name_to_check == 'b_mp_gradient' then loc_args = { }
+	elseif name_to_check == 'b_mp_heidelberg' then loc_args = { 2 }
+	elseif name_to_check == 'b_mp_indigo' then loc_args = {  }
+	elseif name_to_check == 'b_mp_oracle' then loc_args = { effect_config.discount, effect_config.dollars }
+	elseif name_to_check == 'b_mp_orange' then loc_args = { 2 }
+	elseif name_to_check == 'b_mp_violet' then loc_args = { 2, 50 }
+	end
+
+	return generate_card_ui(back_config, nil, loc_args, "Back", badges, hide_desc, main_start, main_end, self)
+end
 
 
 function select_tcg_deck(tab_type)
 
-	local area = CardArea(
+	BalatroTCG.DeckArea = CardArea(
 		G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h,
 		G.CARD_W,
 		G.CARD_H, 
@@ -146,20 +206,44 @@ function select_tcg_deck(tab_type)
 	local full_decks = tableMerge(BalatroTCG.DefaultDecks, BalatroTCG.CustomDecks)
 	BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
 
-	BalatroTCG.TabDecks = full_decks
+	BalatroTCG.TabDecks = {}
 	
 	if tab_type == 'build' then
 		callback = 'change_viewed_tcg_deck'
-		if _RELEASE_MODE then
-			BalatroTCG.TabDecks = tableMerge({}, BalatroTCG.CustomDecks)
+		if not _RELEASE_MODE then
+			for k, v in ipairs(BalatroTCG.DefaultDecks) do
+				if v:has_decks() then
+					table.insert(BalatroTCG.TabDecks, v)
+				end
+			end
+		end
+		for k, v in ipairs(BalatroTCG.CustomDecks) do
+			if v:has_decks() then
+				table.insert(BalatroTCG.TabDecks, v)
+			end
 		end
 		BalatroTCG.TabDecks[#BalatroTCG.TabDecks + 1] = 'new'
 	elseif tab_type == 'legal' then
-		BalatroTCG.TabDecks = tableMerge(BalatroTCG.DefaultDecks, {})
-
+		
+		for k, v in ipairs(BalatroTCG.DefaultDecks) do
+			if v:has_decks() and (v:is_legal() == 'Legal' or not _RELEASE_MODE) then
+				table.insert(BalatroTCG.TabDecks, v)
+			end
+		end
 		for k, v in ipairs(BalatroTCG.CustomDecks) do
-			if v:is_legal() == 'Legal' then
-				BalatroTCG.TabDecks[#BalatroTCG.TabDecks + 1] = v
+			if v:has_decks() and (v:is_legal() == 'Legal' or not _RELEASE_MODE)  then
+				table.insert(BalatroTCG.TabDecks, v)
+			end
+		end
+	else
+		for k, v in ipairs(BalatroTCG.DefaultDecks) do
+			if v:has_decks() then
+				table.insert(BalatroTCG.TabDecks, v)
+			end
+		end
+		for k, v in ipairs(BalatroTCG.CustomDecks) do
+			if v:has_decks() then
+				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 	end
@@ -183,16 +267,16 @@ function select_tcg_deck(tab_type)
 	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[index]
 	
 	if BalatroTCG.SelectedDeck == 'new' then
-		G.GAME.viewed_back = nil
+		BalatroTCG.SelectedBack = nil
 	else
-		G.GAME.viewed_back = Back(get_deck_from_name(BalatroTCG.SelectedDeck.back))
+		BalatroTCG.SelectedBack = Back(G.P_CENTERS[BalatroTCG.SelectedDeck.backs[1]])
 	end
 	
 	for i = 1, 10 do
-		local card = Card(G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h, G.CARD_W, G.CARD_H, pseudorandom_element(G.P_CARDS), G.P_CENTERS.c_base, {playing_card = i, viewed_back = true})
+		local card = Card(G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h, G.CARD_W, G.CARD_H, pseudorandom_element(G.P_CARDS), G.P_CENTERS.c_base, {playing_card = i, tcg_back = '#selection'})
 		card.sprite_facing = 'back'
 		card.facing = 'back'
-		area:emplace(card)
+		BalatroTCG.DeckArea:emplace(card)
 	end
 
 	return { n = G.UIT.R, config = { align = 'cm', minh = 1, minw = 1, colour = G.C.CLEAR, }, nodes = {
@@ -201,7 +285,7 @@ function select_tcg_deck(tab_type)
 				{n=G.UIT.C, config={align = "cm", colour = G.C.BLACK, emboss = 0.05, padding = 0.15, r = 0.1}, nodes={
 					{n=G.UIT.C, config={align = "cm"}, nodes={
 						{n=G.UIT.R, config={align = "cm", shadow = false}, nodes={
-							{n=G.UIT.O, config={object = area}}
+							{n=G.UIT.O, config={object = BalatroTCG.DeckArea }}
 						}},
 					}},
 					{n=G.UIT.C, config={align = "cm", minh = 1.7, r = 0.1, colour = G.C.L_BLACK, padding = 0.1}, nodes={
@@ -209,7 +293,7 @@ function select_tcg_deck(tab_type)
 							{n=G.UIT.O, config={id = nil, func = 'RUN_SETUP_check_tcgdeck_name', object = Moveable()}},
 						}},
 						{n=G.UIT.R, config={align = "cm", colour = G.C.WHITE, minh = 1.7, r = 0.1}, nodes={
-							{n=G.UIT.O, config={id = G.GAME.viewed_back.name, func = 'RUN_SETUP_check_tcg_back', object = UIBox{definition = G.GAME.viewed_back:generate_tcg_UI(), config = {offset = {x=0,y=0}}}}}
+							{n=G.UIT.O, config={id = BalatroTCG.DeckIndex, func = 'RUN_SETUP_check_tcg_back', object = UIBox{definition = (BalatroTCG.SelectedBack and BalatroTCG.SelectedBack:generate_tcg_UI() or nil), config = {offset = {x=0,y=0}}}}}
 						}}       
 					}},
 				}}
@@ -485,19 +569,21 @@ function create_tcg_builder(type, callback)
 	elseif type == 'Back' then
 		G.CARD_POOL = {}
 		for k, v in pairs(G.P_CENTER_POOLS[type]) do
-			if not v.omit and #G.CARD_POOL < 15 then -- todo: Figure out how to display modded backs
-				v.original_id = v.name
-				G.CARD_POOL[#G.CARD_POOL + 1] = v
+			v.original_id = v.key
+			G.CARD_POOL[#G.CARD_POOL + 1] = v
+			if #G.CARD_POOL == 15 then
+				G.CARD_POOL[#G.CARD_POOL + 1] = G.P_CENTERS.b_challenge
+				G.CARD_POOL[#G.CARD_POOL].original_id = 'b_challenge'
 			end
 		end
+
 		for i = 1, math.ceil(#G.CARD_POOL/(5*#G.your_collection)) do
 			table.insert(joker_options, localize('k_page')..' '..tostring(i)..'/'..tostring(math.ceil(#G.CARD_POOL/(5*#G.your_collection))))
 		end
-		
 	else
 		G.CARD_POOL = {}
 		for k, v in pairs(G.P_CENTER_POOLS[type]) do
-			if not v.omit and not (string.sub(v.key, 1, 4) == 'j_mp'
+			if not (string.sub(v.key, 1, 4) == 'j_mp'
 			-- and string.find(v.key, '_sandbox') -- TODO: add multiplayer joker functionality
 		) then
 				v.original_id = v.key
@@ -505,7 +591,7 @@ function create_tcg_builder(type, callback)
 			end
 		end
 		for i = 1, math.ceil(#G.CARD_POOL/(5*#G.your_collection)) do
-			table.insert(joker_options, localize('k_page')..' '..tostring(i)..'/'..tostring(math.ceil(#G.CARD_POOL/(5*#G.your_collection))))
+			table.insert(joker_options, localize('k_page')..' '..tostring(i)..'/'..tostring(math.ceil(#G.CARD_POOL/(4*#G.your_collection))))
 		end
 		
 	end
@@ -522,11 +608,14 @@ function create_tcg_builder(type, callback)
 			for j = 1, #G.your_collection do
 				local center = G.CARD_POOL[i+(j-1)*5 + (G.tcg_addition_page - 1) * 10]
 				if not center then break end
-				local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.S_A, G.P_CENTERS.c_base, { bypass_back = center.pos })
-				--card.children.back.atlas = get_deck_from_name(center.name).atlas
+				local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.S_A, G.P_CENTERS.c_base, { tcg_back = center.original_id })
+				for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do 
+					if v == center.original_id then card.tcgb_deck_selected = true end
+				end
 				card.sprite_facing = 'back'
 				card.facing = 'back'
 				card.original_id = center.original_id
+				card.tcg_deck_type = center.original_id
 				G.your_collection[j]:emplace(card, nil, true)
 			end
 		end
@@ -557,7 +646,7 @@ function create_tcg_builder(type, callback)
 			local control = BalatroTCG.BuildingDeck.cards[i+(j-1)*6 + (G.tcg_deck_page - 1) * 12]
 			if not control then break end
 			
-			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], nil, control)
+			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], 'b_red', control)
 			G.your_tcg_deck[j]:emplace(card)
 		end
 	end
@@ -617,6 +706,8 @@ end
 
 G.FUNCS.tcg_start_build = function(e)
 	G.SETTINGS.paused = true
+
+	save_decks()
 
 	BalatroTCG.BuildingDeck = BalatroTCG.SelectedDeck
 	
@@ -692,6 +783,98 @@ G.FUNCS.create_tcg_builder_menu = function(e)
 	})
 end
 
+G.FUNCS.create_tcg_builder_cocktail = function(e)
+	
+	-- boilerplate robbed from cryptid's decaying corpse
+	if G.cocktail_select then
+		for i = 1, #G.cocktail_select do
+			G.cocktail_select[i]:remove()
+			G.cocktail_select[i] = nil
+		end
+	end
+	G.cocktail_select = {}
+	for i = 1, 2 do
+		G.cocktail_select[i] = CardArea(
+			G.ROOM.T.x + 0.2 * G.ROOM.T.w / 1.5,
+			G.ROOM.T.h,
+			5.3 * G.CARD_W,
+			1.03 * G.CARD_H,
+			{ card_limit = 5, type = "title", highlight_limit = 999, collection = true }
+		)
+	end
+	local decks = MP.get_cocktail_decks()
+	local cfg = SMODS.Mods["Multiplayer"].config
+	for i, v in ipairs(decks) do
+		local row = math.floor((((i - 1) / #decks) * 2) + 1)
+		
+		local card = Card(
+			G.ROOM.T.x + 0.2 * G.ROOM.T.w / 2,
+			G.ROOM.T.h,
+			G.CARD_W,
+			G.CARD_H,
+			pseudorandom_element(G.P_CARDS),
+			G.P_CENTERS.c_base,
+			{ playing_card = i, tcg_back = v }
+		)
+		G.cocktail_select[row]:emplace(card)
+		card.sprite_facing = "back"
+		card.facing = "back"
+		card.mp_cocktail_select = v
+		card.tcg_deck_type = v
+		
+		for k, vv in ipairs(BalatroTCG.BuildingDeck.backs) do
+			if v == vv then
+				card.highlighted = true
+			end
+		end
+	end
+	G.GAME.viewed_back = G.P_CENTERS["b_mp_cocktail"]
+	MP.show_cocktail_decks = MP.cocktail_cfg_readpos("show") ~= "H" and true or false
+	deck_tables = {}
+	for i = 1, #G.cocktail_select do
+		deck_tables[i] = {
+			n = G.UIT.R,
+			config = { align = "cm", padding = 0, no_fill = true },
+			nodes = {
+				{ n = G.UIT.O, config = { object = G.cocktail_select[i] } },
+			},
+		}
+	end
+	local t = create_UIBox_generic_options({
+		back_func = "tcg_start_build",
+		snap_back = true,
+		contents = {
+			{
+				n = G.UIT.R,
+				config = { align = "cm", minw = 2.5, padding = 0.1, r = 0.1, colour = G.C.BLACK, emboss = 0.05 },
+				nodes = deck_tables,
+			},
+			{
+				n = G.UIT.R,
+				config = { align = "cl", padding = 0 },
+				nodes = {
+					{
+						n = G.UIT.T,
+						config = { text = localize("k_cocktail_select"), scale = 0.48, colour = G.C.WHITE },
+					},
+				},
+			},
+			{
+				n = G.UIT.R,
+				config = { align = "cl", padding = 0 },
+				nodes = {
+					{
+						n = G.UIT.T,
+						config = { text = localize("k_cocktail_rightclick"), scale = 0.32, colour = G.C.WHITE },
+					},
+				},
+			},
+		},
+	})
+	
+	return t
+end
+
 G.FUNCS.your_collection_tcg_consumeables_page = function(args)
 	G.tcg_addition_page = args.cycle_config.current_option
 
@@ -751,15 +934,27 @@ G.FUNCS.your_collection_tcg_backs_page = function(args)
 		for j = 1, #G.your_collection do
 			local center = G.CARD_POOL[i+(j-1)*5 + (G.tcg_addition_page - 1) * 10]
 			if not center then break end
-			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.S_A, G.P_CENTERS.c_base, { bypass_back = center.pos })
-			--card.children.back.atlas = get_deck_from_name(center.name).atlas
+			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.S_A, G.P_CENTERS.c_base, { tcg_back = center.original_id })
+			for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do 
+				if v == center.original_id then card.tcgb_deck_selected = true end
+			end
 			card.sprite_facing = 'back'
 			card.facing = 'back'
 			card.original_id = center.original_id
+			card.tcg_deck_type = center.original_id
 			G.your_collection[j]:emplace(card, nil, true)
 		end
 	end
 end
+
+SMODS.DrawStep({
+	key = "tcgb_deck_selected",
+	order = 5,
+	func = function(self)
+		if self.tcgb_deck_selected then self.children.back:draw_shader("foil", nil, self.ARGS.send_to_shader) end
+	end,
+	conditions = { vortex = false, facing = "back" },
+})
 
 G.FUNCS.your_collection_tcg_deck_page = function(args)
 	G.tcg_deck_page = args.cycle_config.current_option
@@ -777,7 +972,7 @@ G.FUNCS.your_collection_tcg_deck_page = function(args)
 		for j = 1, #G.your_tcg_deck do
 			local control = BalatroTCG.BuildingDeck.cards[i+(j-1)*6 + (6*#G.your_tcg_deck*(args.cycle_config.current_option - 1))]
 			if not control then break end
-			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], nil, control)
+			local card = BalatroTCG.BuildingDeck:card_from_control_ex(G.your_tcg_deck[j], 'Red Deck', control)
 			G.your_tcg_deck[j]:emplace(card)
 		end
 	end

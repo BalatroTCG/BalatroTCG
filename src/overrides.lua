@@ -16,9 +16,11 @@ end
 
 local Card_highlight_ref = Card.highlight
 function Card:highlight(is_higlighted)
-    self.highlighted = is_higlighted
+
     
     if self.area and (self.area.config.type == 'tcgdeck_buy' or self.area.config.type == 'tcgdeck_remove') then
+        self.highlighted = is_higlighted
+
         if is_higlighted then
             
             for j = 1, #G.your_collection do
@@ -51,6 +53,35 @@ function Card:highlight(is_higlighted)
     else
         Card_highlight_ref(self, is_higlighted)
     end
+    
+	if self.mp_cocktail_select and self.tcg_deck_type then
+        if self.highlighted then
+            for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do
+                if self.tcg_deck_type == v then goto skip end
+            end
+            print(self.tcg_deck_type)
+            table.insert(BalatroTCG.BuildingDeck.backs, self.tcg_deck_type)
+            ::skip::
+        else
+            for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do
+                if self.tcg_deck_type == v then 
+                    table.remove(BalatroTCG.BuildingDeck.backs, k)
+                    break
+                end
+            end
+        end
+	end
+end
+
+local hover_ref = Card.hover
+function Card:hover()
+	hover_ref(self)
+	-- if self.tcg_deck_type then
+	-- 	self.ability_UIBox_table = self:generate_UIBox_ability_table()
+	-- 	self.config.h_popup = G.UIDEF.card_h_popup(self)
+	-- 	self.config.h_popup_config = self:align_h_popup()
+	-- 	Node.hover(self)
+	-- end
 end
 
 local Card_add_to_deck_ref = Card.add_to_deck
@@ -92,7 +123,7 @@ function G.UIDEF.tcg_add_to_deck(e)
     use = {n=G.UIT.C, config={align = "cr"}, nodes={
       {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.GOLD, button = 'add_tcg_card'}, nodes={
         
-        {n=G.UIT.T, config={text = G.tcg_tab == 'Backs' and localize('b_tcg_apply') or (localize('$') .. tostring(e.cost)),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
+        {n=G.UIT.T, config={text = (localize('$') .. tostring(G.tcg_tab == 'Backs' and (deck_back_cost(e.original_id) + 15) or e.cost)),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
       }}
     }}
 
@@ -134,7 +165,31 @@ G.FUNCS.add_tcg_card = function(e)
             local c = G.your_collection[j].cards[i]
             if c == card then
                 if G.tcg_tab == 'Backs' then
-                    BalatroTCG.BuildingDeck.back = c.original_id
+                    if c.original_id == 'b_mp_cocktail' then
+                        
+                        BalatroTCG.BuildingDeck.backs = { c.original_id }
+
+                        BalatroTCG.BuildingDeck:sort()
+                        BalatroTCG.BuildingDeck:set_cost()
+                        save_decks()
+
+                        if G.OVERLAY_MENU then G.OVERLAY_MENU:remove() end
+                        args = {}
+                        args.config = {
+                            align = "cm",
+                            offset = {x=0,y=0},
+                            major = G.ROOM_ATTACH,
+                            bond = 'Weak',
+                            no_esc = false
+                        }
+                        G.OVERLAY_MENU = UIBox {
+                            definition = G.FUNCS.create_tcg_builder_cocktail(),
+                            config = args.config
+                        }
+                        return
+                    else
+                        BalatroTCG.BuildingDeck.backs = { c.original_id }
+                    end
                 else
                     if c.ability.set == 'Joker' then
                         table.insert(BalatroTCG.BuildingDeck.cards, { type = 'j', c = c.original_id })
@@ -259,6 +314,7 @@ end
 
 function get_TCG_params(back)
     local ret = {
+        max_budget = 1e308,
         dollars = 75,
         hand_size = 8,
         discards = 2,
@@ -272,50 +328,87 @@ function get_TCG_params(back)
         destroy_spectrals = true,
     }
 
+    if not back then return ret end
+
+    if type(back) == 'table' then
+        local default = get_TCG_params(nil)
+        
+        for k, v in ipairs(back) do
+            local values = get_TCG_params(v)
+
+            ret.max_budget = math.min(values.max_budget, ret.max_budget) + (values.dollars - default.dollars)
+            ret.discount = math.max(values.discount, ret.discount)
+
+            ret.dollars = math.max(ret.dollars + (values.dollars - default.dollars), 1)
+            ret.hand_size = math.max(ret.hand_size + (values.hand_size - default.hand_size), 1)
+            ret.discards = math.max(ret.discards + (values.discards - default.discards), 0)
+            ret.hands = math.max(ret.hands + (values.hands - default.hands), 1)
+            ret.consumable_slots = math.max(ret.consumable_slots + (values.consumable_slots - default.consumable_slots), 0)
+            ret.joker_health = math.max(ret.joker_health + (values.joker_health - default.joker_health), 1)
+
+            ret.destroy_planets = ret.destroy_planets or values.destroy_planets
+            ret.destroy_tarots = ret.destroy_tarots and values.destroy_tarots
+            ret.destroy_spectrals = ret.destroy_spectrals and values.destroy_spectrals
+            
+            if values.joker_slots == 0 or ret.joker_slots == 0 then
+                ret.joker_slots = 0
+            else
+                ret.joker_slots = math.max(ret.joker_slots + (values.joker_slots - default.joker_slots), 1)
+            end
+        end
+
+        ret.dollars = math.min(ret.dollars, ret.max_budget)
+        
+        return ret
+    end
+
     local deck
 
     if back then
-        deck = Back(get_deck_from_name(back))
+        deck = Back(G.P_CENTERS[back])
     end
     
     if deck and deck.tcg_apply then
-        deck:tcg_apply(params)
+        deck:tcg_apply(ret)
     else
-        if back == 'Red Deck' then
+        if back == 'b_red' then
             ret.discards = ret.discards + 1
-        elseif back == 'Blue Deck' then
+        elseif back == 'b_blue' then
             ret.hands = ret.hands + 1
-        elseif back == 'Yellow Deck' then
+        elseif back == 'b_yellow' then
             ret.dollars = ret.dollars + 25
         elseif back == 'Green Deck' then
-            -- Green
-        elseif back == 'Black Deck' then
+        elseif back == 'b_black' then
             ret.joker_slots = ret.joker_slots + 1
             ret.hand_size = ret.hand_size - 1
-        elseif back == 'Magic Deck' then
-            --ret.consumable_slots = ret.consumable_slots + 1
-            
-        elseif back == 'Nebula Deck' then
-        elseif back == 'Ghost Deck' then
-            
-        elseif back == 'Abandonded Deck' then
-
-        elseif back == 'Checkered Deck' then
-            
-        elseif back == 'Zodiac Deck' then
-            ret.discount = 20
-        elseif back == 'Painted Deck' then
+        elseif back == 'b_magic' then
+        elseif back == 'b_nebula' then
+        elseif back == 'b_ghost' then
+        elseif back == 'b_abandoned' then
+        elseif back == 'b_checkered' then
+        elseif back == 'b_zodiac' then
+            ret.discount = 25
+        elseif back == 'b_painted' then
             ret.hand_size = ret.hand_size + 2
             ret.joker_slots = ret.joker_slots - 1
         elseif back == 'Anaglyph Deck' then
-            
         elseif back == 'Plasma Deck' then
-            
         elseif back == 'Erratic Deck' then
-        elseif back == 'Challenge Deck' then
+        elseif back == 'b_challenge' then
             ret.destroy_tarots = false
             ret.destroy_spectrals = false
             ret.joker_slots = 0
+        elseif back == 'b_mp_cocktail' then
+            ret.discards = ret.discards - 1
+        elseif back == 'b_mp_gradient' then
+        elseif back == 'b_mp_heidelberg' then
+        elseif back == 'b_mp_indigo' then
+        elseif back == 'b_mp_oracle' then
+            ret.discount = 50
+            ret.dollars = ret.dollars - 25
+            ret.max_budget = ret.dollars
+        elseif back == 'b_mp_orange' then
+        elseif back == 'b_mp_violet' then
         end
     end
 
@@ -372,6 +465,73 @@ function play_button_type(h)
     
 
     return 'SAFE'
+end
+
+
+local calculate_card_areas_ref = SMODS.calculate_card_areas
+function SMODS.calculate_card_areas(_type, context, return_table, args)
+    local flags = {}
+
+    if BalatroTCG.Status_Current and _type == 'tcg_deck' then
+        for k, object in ipairs(BalatroTCG.Status_Current.backs) do
+            if not object.calculate_deck then goto continue end
+
+            if return_table then
+                SMODS.current_evaluated_object = object
+                return_table[#return_table+1] = object.calculate_deck(context)
+            else
+                SMODS.current_evaluated_object = object
+                local effects = { object.calculate_deck(context) }
+                local f = SMODS.trigger_effects(effects, card)
+                for k,v in pairs(f) do flags[k] = v end
+                SMODS.update_context_flags(context, flags)
+            end
+
+            ::continue::
+        end
+
+        SMODS.current_evaluated_object = nil
+        return flags
+    end
+    
+    return calculate_card_areas_ref(_type, context, return_table, args)
+    
+end
+
+local Back_trigger_effect_ref = Back.trigger_effect
+function Back:trigger_effect(args)
+    
+
+    if BalatroTCG.GameActive then
+        if not args then return end
+
+        for k, object in ipairs(BalatroTCG.Status_Current.backs) do
+            if not object.calculate_deck then goto continue end
+
+            local flags = {}
+
+            SMODS.current_evaluated_object = object
+            local effects = object.calculate_deck(args)
+            if effects then
+                for k, v in pairs(effects) do
+                    args[k] = v
+                end
+            end
+
+            ::continue::
+
+        end
+
+        SMODS.current_evaluated_object = nil
+
+        if args.context == 'final_scoring_step' then
+            return args.chips, args.mult
+        end
+        
+        return
+    else
+        return Back_trigger_effect_ref(self, args)
+    end
 end
 
 G.FUNCS.can_buy_tcg = function(e)
@@ -687,6 +847,8 @@ local ease_dollars_ref = ease_dollars
 function ease_dollars(mod, instant)
     
     if not BalatroTCG.GameActive then return ease_dollars_ref(mod, instant) end
+
+    mod = math.min(BalatroTCG.Status_Current.status.max_budget, BalatroTCG.Status_Current.status.dollars + mod) - BalatroTCG.Status_Current.status.dollars
     
     if BalatroTCG.PlayerActive then
         if mod > 0 then

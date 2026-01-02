@@ -355,7 +355,7 @@ target = 'card.lua'
 pattern = '''if self.params.viewed_back then self.back = 'viewed_back' '''
 position = "at"
 payload = '''
-if self.params.tcg_back then self.back = self.params.tcg_back.is_player and 'player_back' or 'opponent_back'
+if self.params.tcg_back then self.tcg_back = self.params.tcg_back == "#selection" and self.params.tcg_back or G.P_CENTERS[self.params.tcg_back]
 elseif self.params.viewed_back then self.back = 'viewed_back'
 '''
 match_indent = true
@@ -501,6 +501,35 @@ if BalatroTCG.GameActive and card.area == G.hand then
     }}
 end
 '''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/UI_definitions.lua'
+pattern = '''
+{
+    label = localize('b_full_deck'),
+    tab_definition_function = G.UIDEF.view_deck
+},
+'''
+position = "after"
+payload = '''
+BalatroTCG.GameActive and {
+    label = localize('b_tcg_graveyard'),
+    tab_definition_function = G.UIDEF.view_deck,
+    tab_definition_function_args = 'graveyard'
+},
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''definition = G.GAME.selected_back:generate_UI(nil, 0.7, 0.5, G.GAME.challenge), config = {offset = { x = 0, y = 0 } }'''
+position = "at"
+payload = '''definition = BalatroTCG.GameActive and BalatroTCG.Player.backs[1]:generate_tcg_UI(nil, 0.7, 0.5) or G.GAME.selected_back:generate_UI(nil, 0.7, 0.5, G.GAME.challenge), config = {offset = { x = 0, y = 0 } }'''
 match_indent = true
 overwrite = true
 
@@ -682,11 +711,12 @@ target = '=[SMODS _ "src/overrides.lua"]'
 pattern = '''if self.children.back then self.children.back:remove() end'''
 position = "after"
 payload = '''
-if self.back == 'opponent_back' or self.back == 'player_back' then
-    local center = G.GAME[self.back] or G.P_CENTERS['b_red']
-    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, 
-        G.ASSET_ATLAS[center.atlas or 'centers'],
-        (self.playing_card and center.pos))
+if self.tcg_back then
+    local center = self.tcg_back == '#selection' and 
+        (BalatroTCG.SelectedDeck == 'new' and {atlas = 'centers', pos = {x = 4, y = 0}} or G.P_CENTERS[BalatroTCG.SelectedDeck.backs[1]])
+        or self.tcg_back
+
+    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ASSET_ATLAS[center.atlas or 'centers'], (center.pos))
     self.children.back.states.hover = self.states.hover
     self.children.back.states.click = self.states.click
     self.children.back.states.drag = self.states.drag

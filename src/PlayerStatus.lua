@@ -6,37 +6,20 @@ function TCG_PlayerStatus:init(deck, player)
 
     self.is_player = player
 
-    local back = Back(get_deck_from_name(deck.back))
-    G.GAME.selected_back_key = deck.back
-
-    if deck.back == 'Green Deck' then
-        back.calculate_deck = function(context)
-            if context.end_of_round and G.GAME.current_round.discards_left > 0 then
-                ease_dollars(G.GAME.current_round.discards_left * 2)
-            end
-        end
-    elseif deck.back == 'Plasma Deck' then
-        back.calculate_deck = function(context)
-            if context.damaging then
-                local hurt = math.floor(context.damage / 4) * 1
-                if hurt > 0 then context.status:damage(hurt) end
-            end
-        end
-    elseif deck.back == 'Anaglyph Deck' then
-        back.calculate_deck = function(context)
-            if context.start_of_round and math.fmod(context.status.status.round, 3) == 0 then
-                ease_hands_played(1)
-                ease_discard(1)
-            end
-        end
-    end
-
-    local params = get_TCG_params(deck.back)
+    local backs = {}
     
-    self.back = back
-    self.back_key = deck.back
-    self.params = params
+    for k, v in ipairs(deck.backs) do
+       backs[#backs + 1] = Back(G.P_CENTERS[v]) 
+    end
+    G.GAME.selected_back_key = deck.backs[1]
 
+    local params = get_TCG_params(deck.backs)
+    
+    
+    self.backs = backs
+    self.back_key = deck.backs[1]
+    self.params = params
+    
     local CAI = {
         discard_W = G.CARD_W,
         discard_H = G.CARD_H,
@@ -89,7 +72,11 @@ function TCG_PlayerStatus:init(deck, player)
         CAI.joker_W,
         CAI.joker_H,
         {card_limit = 2, type = 'opponent', highlight_limit = 1})
-
+    self.vouchers = CardArea(
+        0, 0,
+        CAI.discard_W,CAI.discard_H,
+        { type = "discard", card_limit = 1e308 }
+    )
     
     self.seed = {}
     self.seed.hashed_seed = pseudohash(G.GAME.pseudorandom.seed)
@@ -101,7 +88,7 @@ function TCG_PlayerStatus:init(deck, player)
     for k, v in ipairs(deck.cards) do
         G.playing_card = (G.playing_card and G.playing_card + 1) or 1
 
-        local _card = deck:card_from_control_ex(self.deck, { is_player = self.is_player }, v)
+        local _card = deck:card_from_control_ex(self.deck, self.back_key, v)
         self.deck:emplace(_card)
         table.insert(self.playing_cards, _card)
         if _card.ability.set == 'Joker' then
@@ -132,6 +119,7 @@ function TCG_PlayerStatus:init(deck, player)
 
     self.status = {}
 
+    self.status.max_budget = params.max_budget
     self.status.dollars = params.dollars
     self.status.round = 1
     self.status.opponent_jokers = 0
@@ -148,6 +136,9 @@ function TCG_PlayerStatus:init(deck, player)
 end
 
 function TCG_PlayerStatus:pass_over()
+    self.params.hands = G.GAME.round_resets.hands
+    self.params.discards = G.GAME.round_resets.discards
+    
     self.status.bankrupt_at = G.GAME.bankrupt_at
     self.status.unused_discards = G.GAME.unused_discards
     self.status.last_tarot_planet = G.GAME.last_tarot_planet
@@ -179,11 +170,11 @@ function TCG_PlayerStatus:apply()
     G.GAME.current_round.any_hand_drawn = nil
     
     G.GAME.selected_back_key = self.back_key
-    G.GAME.selected_back:change_to(get_deck_from_name(self.back_key))
+    G.GAME.selected_back:change_to(G.P_CENTERS[self.back_key])
     if G.GAME.viewed_back then
-        G.GAME.viewed_back:change_to(get_deck_from_name(self.back_key))
+        G.GAME.viewed_back:change_to(G.P_CENTERS[self.back_key])
     else
-        G.GAME.viewed_back = Back(get_deck_from_name(self.back_key))
+        G.GAME.viewed_back = Back(G.P_CENTERS[self.back_key])
     end
 
     G.GAME.discount_percent = self.params.discount
@@ -209,11 +200,7 @@ function TCG_PlayerStatus:apply()
     G.opponentJokers = self.opponentJokers
     
     G.deck:shuffle('nr' .. self.status.round)
-    SMODS.calculate_context({setting_blind = true, blind = G.GAME.round_resets.blind})
-
-    if self.back.calculate_deck then
-        self.back.calculate_deck({ start_of_round = true, status = self, full_deck = self.deck})
-    end
+    SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind})
     
     for k, joker in ipairs(self.jokers.cards) do
         if joker.ability.d_size > 0 then
@@ -249,7 +236,7 @@ end
 function TCG_PlayerStatus:receive_message(message)
     
     if message.type == 'back' then
-        self.Other.back = Back(get_deck_from_name(message.back))
+        self.Other.back_key = message.back
         
     elseif message.type == 'ready' then
 		G.SETTINGS.paused = false
@@ -285,11 +272,10 @@ function TCG_PlayerStatus:receive_message(message)
                 self.opponentJokers.cards[1]:start_dissolve()
                 self.opponentJokers:remove_card(self.opponentJokers.cards[1])
             end
-            local bypass_back = Back(get_deck_from_name(self.Other.back_key)).pos
 
             while #self.opponentJokers.cards < self.status.opponent_jokers do
                 
-                local card = Card(self.opponentJokers.T.x, self.opponentJokers.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, bypass_back = self.Other.back.pos})
+                local card = Card(self.opponentJokers.T.x, self.opponentJokers.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
                 card:flip()
                 card.states.drag.can = false
 
@@ -555,8 +541,6 @@ function TCG_PlayerStatus:set_screen_positions()
         self.discard.T.x = self.jokers.T.x + self.jokers.T.w/2 + 0.3 + 15
         self.discard.T.y = 4.2
 
-        self.graveyard.T.x = self.discard.T.x
-        self.graveyard.T.y = self.discard.T.y - 3.5
     else
         self.hand.T.x = 0
         self.hand.T.y = -50
@@ -585,11 +569,11 @@ function TCG_PlayerStatus:set_screen_positions()
         self.discard.T.x = self.hand.T.x - 10
         self.discard.T.y = self.hand.T.y
 
-        self.graveyard.T.x = self.hand.T.x - 10
-        self.graveyard.T.y = self.hand.T.y
-
     end
 
+    self.graveyard.T.x = self.discard.T.x
+    self.graveyard.T.y = self.discard.T.y - 3.5
+    
     self.hand:hard_set_VT()
     self.play:hard_set_VT()
     self.jokers:hard_set_VT()

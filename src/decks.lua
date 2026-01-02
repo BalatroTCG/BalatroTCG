@@ -2,9 +2,19 @@
 BalatroTCG.Deck = Object:extend()
 
 function BalatroTCG.Deck:init(back, name, cards)
-    self.back = back
+    self.backs = splitlines(back, ';')
+    for i = 1, #self.backs do
+        if not G.P_CENTERS[self.backs[i]] then
+            
+            for k, v in pairs(G.P_CENTERS) do
+                if v.name == self.backs[i] then
+                    self.backs[i] = k
+                end
+            end
+        end
+    end
     self.cards = cards
-    self.name = name or back
+    self.name = name or self.backs[1]
 end
 
 BalatroTCG.DefaultDecks = {
@@ -1192,12 +1202,13 @@ function BalatroTCG.Deck:card_from_control_ex(deck, back, control)
     return _card
 end
 
-function splitlines(inputstr, sep)
-  local t = {}
-  for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-    table.insert(t, str)
-  end
-  return t
+function BalatroTCG.Deck:has_decks()
+
+    for k, v in ipairs(self.backs) do
+        if not G.P_CENTERS[v] then return false end
+    end
+
+    return true
 end
 
 function load_custom_decks()
@@ -1213,12 +1224,7 @@ function load_custom_decks()
             local decks = read_decks(file_string)
 
             for _, data in pairs(decks) do
-                
-                local deck = BalatroTCG.Deck(data.back, data.name, data.cards)
-
-                local legal = deck:is_legal()
-                BalatroTCG.CustomDecks[#BalatroTCG.CustomDecks + 1] = deck
-                
+                BalatroTCG.CustomDecks[#BalatroTCG.CustomDecks + 1] = BalatroTCG.Deck(data.back, data.name, data.cards)
             end
         end
     end
@@ -1274,7 +1280,11 @@ function save_decks(decks)
         for k, v in ipairs(extra) do
             v:sanitize()
             toWrite = toWrite .. v.name .. '\n'
-            toWrite = toWrite .. '\t' .. v.back .. '\n'
+            toWrite = toWrite .. '\t'
+            for k, back in ipairs(v.backs) do
+                toWrite = toWrite .. back .. ';'
+            end
+            toWrite = string.sub(toWrite, 1, #toWrite - 1)  .. '\n'
 
             for k, card in ipairs(v.cards) do
                 toWrite = toWrite .. '\t' .. card.type .. ':'
@@ -1327,29 +1337,49 @@ function tcg_card_nominal(card)
     return factor
 end
 
+function deck_back_cost(name)
 
-function BalatroTCG.Deck:set_cost()
-    self.cost = 0
 
-    local back = Back(get_deck_from_name(self.back))
+    if type(name) == 'table' then
+        local cost = 0
+
+        for k, v in ipairs(name) do
+            cost = cost + deck_back_cost(v)
+        end
+        return cost
+    end
+
+    if not G.P_CENTERS[name] then return 0 end
+    
+    local back = Back(G.P_CENTERS[name])
+
 
     if back.tcg_cost then
-        self.cost = back.tcg_cost
-    else
-        if self.back == 'Abandoned Deck' then
-            self.cost = 25
-        elseif self.back == 'Checkered Deck' then
-            self.cost = 25
-        elseif self.back == 'Yellow Deck' then
-            self.cost = 25
-        elseif self.back == 'Plasma Deck' then
-            self.cost = 30
-        elseif self.back == 'Challenge Deck' then
-            self.cost = 40
+        if type(back.tcg_cost) == 'function' then
+            return back.tcg_cost()
         else
-            self.cost = 20
+            return back.tcg_cost
+        end
+    else
+        if name == 'b_abandoned' then
+            return 5
+        elseif name == 'b_checkered' then
+            return 5
+        elseif name == 'b_yellow' then
+            return 5
+        elseif name == 'b_plasma' then
+            return 10
+        elseif name == 'b_challenge' then
+            return 20
+        else
+            return 0
         end
     end
+
+end
+
+function BalatroTCG.Deck:set_cost()
+    self.cost = deck_back_cost(self.backs) + 15
 
     for i, card in ipairs(self.cards) do
         if card.type ~= 'p' then
@@ -1360,226 +1390,430 @@ function BalatroTCG.Deck:set_cost()
     end
 end
 
+function tcg_get_limitations(backname)
+
+    local limits = {
+        deck_size = 60,
+        max_jokers = 15,
+        max_tarots = 15,
+        max_planets = 15,
+        max_spectrals = 15,
+        max_vouchers = 2,
+        max_consumables = 20,
+        max_uncommons = 3,
+        max_rares = 1,
+        no_faces = false,
+        checkered_suits = false,
+        total_copies = 0,
+        suit_copies = 0,
+        playing_card_copies = 0,
+        consumeable_copies = 0,
+        planet_copies = 0,
+        tarot_copies = 0,
+        spectral_copies = 0,
+        deck_count = 1,
+    }
+
+    if not backname then return limits end
+
+    if type(backname) == 'table' then
+        local default = tcg_get_limitations(nil)
+
+        for k, v in ipairs(backname) do
+            local values = tcg_get_limitations(v)
+            
+            limits.deck_size = math.max(limits.deck_size + (values.deck_size - default.deck_size), 1)
+            limits.total_copies = math.max(limits.total_copies + (values.total_copies - default.total_copies), 0)
+            limits.suit_copies = math.max(limits.suit_copies + (values.suit_copies - default.suit_copies), 0)
+            limits.playing_card_copies = math.max(limits.playing_card_copies + (values.playing_card_copies - default.playing_card_copies), 0)
+            limits.consumeable_copies = math.max(limits.consumeable_copies + (values.consumeable_copies - default.consumeable_copies), 0)
+            limits.planet_copies = math.max(limits.planet_copies + (values.planet_copies - default.planet_copies), 0)
+            limits.tarot_copies = math.max(limits.tarot_copies + (values.tarot_copies - default.tarot_copies), 0)
+            limits.spectral_copies = math.max(limits.spectral_copies + (values.spectral_copies - default.spectral_copies), 0)
+
+            limits.deck_count = math.max(limits.deck_count + (values.deck_count - default.deck_count), 1)
+
+            limits.no_faces = limits.no_faces or values.no_faces
+            limits.checkered_suits = limits.checkered_suits or values.checkered_suits
+            
+            if values.max_jokers == 0 or limits.max_jokers == 0 then
+                limits.max_jokers = 0
+            else
+                limits.max_jokers = math.max(limits.max_jokers + (values.max_jokers - default.max_jokers), 1)
+            end
+            if values.max_tarots == 0 or limits.max_tarots == 0 then
+                limits.max_tarots = 0
+            else
+                limits.max_tarots = math.max(limits.max_tarots + (values.max_tarots - default.max_tarots), 1)
+            end
+            if values.max_planets == 0 or limits.max_planets == 0 then
+                limits.max_planets = 0
+            else
+                limits.max_planets = math.max(limits.max_planets + (values.max_planets - default.max_planets), 1)
+            end
+            if values.max_spectrals == 0 or limits.max_spectrals == 0 then
+                limits.max_spectrals = 0
+            else
+                limits.max_spectrals = math.max(limits.max_spectrals + (values.max_spectrals - default.max_spectrals), 1)
+            end
+            if values.max_vouchers == 0 or limits.max_vouchers == 0 then
+                limits.max_vouchers = 0
+            else
+                limits.max_vouchers = math.max(limits.max_vouchers + (values.max_vouchers - default.max_vouchers), 1)
+            end
+            if values.max_consumables == 0 or limits.max_consumables == 0 then
+                limits.max_consumables = 0
+            else
+                limits.max_consumables = math.max(limits.max_consumables + (values.max_consumables - default.max_consumables), 1)
+            end
+            if values.max_uncommons == 0 or limits.max_uncommons == 0 then
+                limits.max_uncommons = 0
+            else
+                limits.max_uncommons = math.max(limits.max_uncommons + (values.max_uncommons - default.max_uncommons), 1)
+            end
+            if values.max_rares == 0 or limits.max_rares == 0 then
+                limits.max_rares = 0
+            else
+                limits.max_rares = math.max(limits.max_rares + (values.max_rares - default.max_rares), 1)
+            end
+        end
+
+        return limits
+    end
+    
+    local back = Back(G.P_CENTERS[backname])
+    
+    if back.tcg_limitations then
+        back:tcg_limitations(limits)
+    elseif backname == 'b_magic' then
+        limits.tarot_copies = 1
+    elseif backname == 'b_nebula' then
+        limits.planet_copies = 1
+    elseif backname == 'b_ghost' then
+        limits.spectral_copies = 1
+    elseif backname == 'b_abandoned' then
+        limits.no_faces = true
+        limits.deck_size = 50
+    elseif backname == 'b_checkered' then
+        limits.checkered_suits = true
+        limits.suit_copies = 1
+    elseif backname == 'b_zodiac' then
+    elseif backname == 'b_erratic' then
+        limits.playing_card_copies = 4
+    elseif backname == 'b_challenge' then
+        limits.max_jokers = 0
+        limits.max_uncommons = 0
+        limits.max_rares = 0
+        limits.max_consumables = 30
+        limits.max_tarots = 30
+        limits.max_planets = 30
+        limits.max_spectrals = 30
+        limits.max_vouchers = 30
+        limits.consumeable_copies = 1
+    elseif backname == 'b_mp_cocktail' then
+        limits.deck_count = 3
+    elseif backname == 'b_mp_gradient' then
+    elseif backname == 'b_mp_heidelberg' then
+        limits.max_rares = 2
+        limits.max_uncommons = 0
+    elseif backname == 'b_mp_indigo' then
+    elseif backname == 'b_mp_oracle' then
+    elseif backname == 'b_mp_orange' then
+    elseif backname == 'b_mp_violet' then
+    end
+
+    return limits
+end
+
 function BalatroTCG.Deck:is_legal()
 
-    local back = Back(get_deck_from_name(self.back))
-
     local errors = {}
+
+    self.backs = self.backs or {}
+
+    local limits = tcg_get_limitations(self.backs)
+
+    local stats = {
+        uncommons = 0,
+        rares = 0,
+        jokers = 0,
+        total_copies = 0,
+        tarots = 0,
+        planets = 0,
+        spectrals = 0,
+        consumables = 0,
+        wrong_suits = false,
+        playing_card_copies = 0,
+        vouchers = 0,
+    }
     
-    if back.tcg_verify then
-        errors = back:tcg_verify(params)
-    else
+    if #self.cards > limits.deck_size then
+        errors['tcg_err_deck_big'] = {#self.cards, limits.deck_size}
+    elseif #self.cards < limits.deck_size then
+        errors['tcg_err_deck_small'] = {#self.cards, limits.deck_size}
+    end
 
-        local limits = {
-            deck_size = 60,
-            max_jokers = 15,
-            max_tarots = 15,
-            max_planets = 15,
-            max_spectrals = 15,
-            max_consumables = 20,
-            max_uncommons = 3,
-            max_rares = 1,
-            no_faces = false,
-            checkered_suits = false,
-            total_copies = 0,
-            suit_copies = 0,
-            playing_card_copies = 0,
-            consumeable_copies = 0,
-            planet_copies = 0,
-            tarot_copies = 0,
-            spectral_copies = 0,
-        }
-        local stats = {
-            uncommons = 0,
-            rares = 0,
-            jokers = 0,
-            total_copies = 0,
-            tarots = 0,
-            planets = 0,
-            spectrals = 0,
-            consumables = 0,
-            wrong_suits = false,
-            playing_card_copies = 0,
-        }
-        
-        if self.back == 'Magic Deck' then
-            limits.tarot_copies = 1
-        elseif self.back == 'Nebula Deck' then
-            limits.planet_copies = 1
-        elseif self.back == 'Ghost Deck' then
-            limits.spectral_copies = 1
-        elseif self.back == 'Abandoned Deck' then
-            limits.no_faces = true
-            limits.deck_size = 50
-        elseif self.back == 'Checkered Deck' then
-            limits.checkered_suits = true
-            limits.suit_copies = 1
-        elseif self.back == 'Zodiac Deck' then
-        elseif self.back == 'Erratic Deck' then
-            limits.playing_card_copies = 4
-        elseif self.back == 'Challenge Deck' then
-            limits.max_jokers = 0
-            limits.max_uncommons = 0
-            limits.max_rares = 0
-            limits.max_consumables = 30
-            limits.max_tarots = 30
-            limits.max_planets = 30
-            limits.max_spectrals = 30
-            limits.consumeable_copies = 1
-        end
-        
-        if #self.cards > limits.deck_size then
-            errors['tcg_err_deck_big'] = {#self.cards, limits.deck_size}
-        elseif #self.cards < limits.deck_size then
-            errors['tcg_err_deck_small'] = {#self.cards, limits.deck_size}
-        end
+    local cards = { }
+    local suits = { }
+    local consumables = { }
+    local jokers = { }
 
-        local cards = { }
-        local suits = { }
-        local consumables = { }
-        local jokers = { }
+    for i, card in ipairs(self.cards) do
 
-        for i, card in ipairs(self.cards) do
+        if card.type == 'p' then
+            suits[card.s] = (suits[card.s] or 0) + 1
+            if card.s == 'S' or card.s == 'C' then
+                if not stats.black_suit then stats.black_suit = card.s
+                elseif stats.black_suit ~= card.s then stats.wrong_suits = true end
+            end
+            if card.s == 'H' or card.s == 'D' then
+                if not stats.red_suit then stats.red_suit = card.s
+                elseif stats.red_suit ~= card.s then stats.wrong_suits = true end
+            end
 
-            if card.type == 'p' then
-                suits[card.s] = (suits[card.s] or 0) + 1
-                if card.s == 'S' or card.s == 'C' then
-                    if not stats.black_suit then stats.black_suit = card.s
-                    elseif stats.black_suit ~= card.s then stats.wrong_suits = true end
-                end
-                if card.s == 'H' or card.s == 'D' then
-                    if not stats.red_suit then stats.red_suit = card.s
-                    elseif stats.red_suit ~= card.s then stats.wrong_suits = true end
-                end
+            cards[card.s .. card.r] = (cards[card.s .. card.r] or 0) + 1
+            if limits.no_faces and (card.r == 'J' or card.r == 'Q' or card.r == 'K') then
+                errors['tcg_err_face_cards'] = {}
+            end
+        elseif card.type == 'c' then
+            local consumable = G.P_CENTERS[card.c]
 
-                cards[card.s .. card.r] = (cards[card.s .. card.r] or 0) + 1
-                if limits.no_faces and (card.r == 'J' or card.r == 'Q' or card.r == 'K') then
-                    errors['tcg_err_face_cards'] = {}
-                end
-            elseif card.type == 'c' then
-                local consumable = G.P_CENTERS[card.c]
+            stats.consumables = stats.consumables + 1
 
-                stats.consumables = stats.consumables + 1
-
-                consumables[card.c] = (consumables[card.c] or 0) + 1
-                
-                if consumable.set == 'Tarot' then
-                    stats.tarots = stats.tarots + 1
-                elseif consumable.set == 'Planet' then
-                    stats.planets = stats.planets + 1
-                elseif consumable.set == 'Spectral' then
-                    stats.spectrals = stats.spectrals + 1
-                else
-                    errors['tcg_err_consumeable_banned'] = {}
-                end
-                
-            elseif card.type == 'j' then
-                local joker = G.P_CENTERS[card.c]
-
-
-                stats.jokers = stats.jokers + 1
-
-                if joker.rarity == 2 then
-                    stats.uncommons = stats.uncommons + 1
-                elseif joker.rarity >= 3 then
-                    stats.rares = stats.rares + 1
-                end
-
-                if joker.name == 'Showman' then
-                    limits.total_copies = limits.total_copies + 1
-                    jokers[card.c] = 1
-                else
-                    jokers[card.c] = (jokers[card.c] or 0) + 1
-                end
-                
+            consumables[card.c] = (consumables[card.c] or 0) + 1
+            
+            if consumable.set == 'Tarot' then
+                stats.tarots = stats.tarots + 1
+            elseif consumable.set == 'Planet' then
+                stats.planets = stats.planets + 1
+            elseif consumable.set == 'Spectral' then
+                stats.spectrals = stats.spectrals + 1
+            elseif consumable.set == 'Voucher' then
+                stats.vouchers = stats.vouchers + 1
             else
-                errors['tcg_err_unknown_type'] = {}
+                errors['tcg_err_consumeable_banned'] = {}
             end
-        end
+            
+        elseif card.type == 'j' then
+            local joker = G.P_CENTERS[card.c]
 
 
-        for i, count in pairs(cards) do
-            count = count - limits.suit_copies
-            if count > 1 then
-                local sub = math.min(count - 1, limits.playing_card_copies - stats.playing_card_copies)
-                count = count - sub
-                stats.playing_card_copies = stats.playing_card_copies + sub
-                if count > 1 then
-                    stats.total_copies = stats.total_copies + (count - 1)
-                end
+            stats.jokers = stats.jokers + 1
+
+            if joker.rarity == 2 then
+                stats.uncommons = stats.uncommons + 1
+            elseif joker.rarity >= 3 then
+                stats.rares = stats.rares + 1
             end
-        end
 
-        for i, count in pairs(jokers) do
+            if joker.name == 'Showman' then
+                limits.total_copies = limits.total_copies + 1
+                jokers[card.c] = 1
+            else
+                jokers[card.c] = (jokers[card.c] or 0) + 1
+            end
+            
+        else
+            errors['tcg_err_unknown_type'] = {}
+        end
+    end
+
+
+    for i, count in pairs(cards) do
+        count = count - limits.suit_copies
+        if count > 1 then
+            local sub = math.min(count - 1, limits.playing_card_copies - stats.playing_card_copies)
+            count = count - sub
+            stats.playing_card_copies = stats.playing_card_copies + sub
             if count > 1 then
                 stats.total_copies = stats.total_copies + (count - 1)
             end
         end
+    end
+
+    for i, count in pairs(jokers) do
+        if count > 1 then
+            stats.total_copies = stats.total_copies + (count - 1)
+        end
+    end
 
 
-        for i, count in pairs(consumables) do
-            count = count - limits.consumeable_copies
-            
-            local ctype = G.P_CENTERS[i].set
+    for i, count in pairs(consumables) do
+        count = count - limits.consumeable_copies
+        
+        local ctype = G.P_CENTERS[i].set
 
+        if count > 1 then
+            if ctype == 'Planet' and limits.planet_copies > 0 then
+                count = count - limits.planet_copies
+            elseif ctype == 'Spectral' and limits.spectral_copies > 0 then
+                count = count - limits.spectral_copies
+            elseif ctype == 'Tarot' and limits.tarot_copies > 0 then
+                count = count - limits.tarot_copies
+            end
             if count > 1 then
-                if ctype == 'Planet' and limits.planet_copies > 0 then
-                    count = count - limits.planet_copies
-                elseif ctype == 'Spectral' and limits.spectral_copies > 0 then
-                    count = count - limits.spectral_copies
-                elseif ctype == 'Tarot' and limits.tarot_copies > 0 then
-                    count = count - limits.tarot_copies
-                end
-                if count > 1 then
-                    stats.total_copies = stats.total_copies + (count - 1)
-                end
+                stats.total_copies = stats.total_copies + (count - 1)
             end
         end
-        
-        self:set_cost()
-        if self.cost > 125 then
-            errors['tcg_err_cost'] = { 125 }
-        end
-        if stats.jokers > limits.max_jokers then
-            errors['tcg_err_joker_count'] = {stats.jokers, limits.max_jokers}
-        end
-        if stats.uncommons > limits.max_uncommons then
-            errors['tcg_err_uncommons'] = {stats.uncommons, limits.max_uncommons}
-        end
-        if stats.rares > limits.max_rares then
-            errors['tcg_err_rares'] = {stats.rares, limits.max_rares}
-        end
-        if stats.consumables > limits.max_consumables then
-            errors['tcg_err_consumables'] = {stats.consumables, limits.max_consumables}
-        end
-        if stats.planets > limits.max_planets then
-            errors['tcg_err_planets'] = {stats.planets, limits.max_planets}
-        end
-        if stats.tarots > limits.max_tarots then
-            errors['tcg_err_tarots'] = {stats.tarots, limits.max_tarots}
-        end
-        if stats.spectrals > limits.max_spectrals then
-            errors['tcg_err_spectrals'] = {stats.spectrals, limits.max_spectrals }
-        end
-        if stats.total_copies > limits.total_copies then
-            errors['tcg_err_copies'] = {stats.total_copies - limits.total_copies}
-        end
-        if limits.checkered_suits and stats.wrong_suits then
-            errors['tcg_err_checkered_suits'] = {}
-        end
-
     end
+    
+    self:set_cost()
+    if self.cost > 125 then
+        errors['tcg_err_cost'] = { 125 }
+    end
+    if #self.backs > (limits.deck_count or 1) then
+        errors['tcg_err_deck_count'] = { (#self.backs - 1), ((limits.deck_count or 1) - 1) }
+    end
+    if stats.jokers > limits.max_jokers then
+        errors['tcg_err_joker_count'] = {stats.jokers, limits.max_jokers}
+    end
+    if stats.uncommons > limits.max_uncommons then
+        errors['tcg_err_uncommons'] = {stats.uncommons, limits.max_uncommons}
+    end
+    if stats.rares > limits.max_rares then
+        errors['tcg_err_rares'] = {stats.rares, limits.max_rares}
+    end
+    if stats.consumables > limits.max_consumables then
+        errors['tcg_err_consumables'] = {stats.consumables, limits.max_consumables}
+    end
+    if stats.planets > limits.max_planets then
+        errors['tcg_err_planets'] = {stats.planets, limits.max_planets}
+    end
+    if stats.tarots > limits.max_tarots then
+        errors['tcg_err_tarots'] = {stats.tarots, limits.max_tarots}
+    end
+    if stats.spectrals > limits.max_spectrals then
+        errors['tcg_err_spectrals'] = {stats.spectrals, limits.max_spectrals }
+    end
+    if stats.vouchers > limits.max_vouchers then
+        errors['tcg_err_vouchers'] = {stats.vouchers, limits.max_vouchers }
+    end
+    if stats.total_copies > limits.total_copies then
+        errors['tcg_err_copies'] = {stats.total_copies - limits.total_copies}
+    end
+    if limits.checkered_suits and stats.wrong_suits then
+        errors['tcg_err_checkered_suits'] = {}
+    end
+
     if next(errors) then
         return errors
     end
     return 'Legal'
 end
 
+local back_init = Back.init
+function Back:init(selected_back)
+    back_init(self, selected_back)
+
+    if BalatroTCG.GameActive then
+        if selected_back.name == 'Green Deck' then
+            self.calculate_deck = function(context)
+                if context.end_of_round and not context.individual and not context.repetition and G.GAME.current_round.discards_left > 0 then
+                    ease_dollars(G.GAME.current_round.discards_left * 2)
+                end
+            end
+        elseif selected_back.name == 'Plasma Deck' then
+            self.calculate_deck = function(context)
+                
+                if context.context == 'final_scoring_step' then
+                    local tot = context.chips + context.mult
+                    context.chips = math.floor(tot/2)
+                    context.mult = math.floor(tot/2)
+                    update_hand_text({delay = 0}, {mult = context.mult, chips = context.chips})
+
+                    G.E_MANAGER:add_event(Event({
+                        func = (function()
+                            local text = localize('k_balanced')
+                            play_sound('gong', 0.94, 0.3)
+                            play_sound('gong', 0.94*1.5, 0.2)
+                            play_sound('tarot1', 1.5)
+                            ease_colour(G.C.UI_CHIPS, {0.8, 0.45, 0.85, 1})
+                            ease_colour(G.C.UI_MULT, {0.8, 0.45, 0.85, 1})
+                            attention_text({
+                                scale = 1.4, text = text, hold = 2, align = 'cm', offset = {x = 0,y = -2.7},major = G.play
+                            })
+                            G.E_MANAGER:add_event(Event({
+                                trigger = 'after',
+                                blockable = false,
+                                blocking = false,
+                                delay =  4.3,
+                                func = (function() 
+                                        ease_colour(G.C.UI_CHIPS, G.C.BLUE, 2)
+                                        ease_colour(G.C.UI_MULT, G.C.RED, 2)
+                                    return true
+                                end)
+                            }))
+                            G.E_MANAGER:add_event(Event({
+                                trigger = 'after',
+                                blockable = false,
+                                blocking = false,
+                                no_delete = true,
+                                delay =  6.3,
+                                func = (function() 
+                                    G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
+                                    G.C.UI_MULT[1], G.C.UI_MULT[2], G.C.UI_MULT[3], G.C.UI_MULT[4] = G.C.RED[1], G.C.RED[2], G.C.RED[3], G.C.RED[4]
+                                    return true
+                                end)
+                            }))
+                            return true
+                        end)
+                    }))
+
+                    delay(0.6)
+                    return {
+                        chips = context.chips,
+                        mult = context.mult
+                    }
+                elseif context.damaging then
+                    local hurt = math.floor(context.damage / 4) * 1
+                    if hurt > 0 then context.status:damage(hurt) end
+                end
+            end
+        elseif selected_back.name == 'Anaglyph Deck' then
+            self.calculate_deck = function(context)
+                if context.setting_blind and math.fmod(context.status.status.round, 3) == 0 then
+                    ease_hands_played(1)
+                    ease_discard(1)
+                end
+            end
+        elseif selected_back.name == 'b_mp_indigo' then
+            self.calculate_deck = function(context)
+                if context.discard and not context.other_card:is_playing_card() then
+                    if context.other_card.use_button then
+                        context.other_card.use_button:remove()
+                        context.other_card.use_button = nil
+                    end
+                    return {
+                        delay = 0.45, 
+                        remove = true,
+                        card = self
+                    }
+                end
+            end
+        elseif selected_back.name == 'b_mp_orange' then
+            self.calculate_deck = function(context)
+                if context.setting_blind and context.status.status.round == 1 then
+                    for i = 1, 2 do
+                        pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables)
+                    end
+                end
+            end
+        elseif selected_back.name == 'b_mp_cocktail' then
+            G.GAME.modifiers.mp_cocktail = {}
+
+            self.calculate_deck = function(context)
+
+            end
+        end
+    end
+
+end
+
 function get_new_deck()
 
     local index = #BalatroTCG.CustomDecks + 1
 
-    BalatroTCG.CustomDecks[index] = BalatroTCG.Deck('Red Deck', 'New Deck', {
+    BalatroTCG.CustomDecks[index] = BalatroTCG.Deck('b_red', 'New Deck', {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
         { type = 'p', r = 'Q', s = 'S' },

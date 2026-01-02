@@ -33,8 +33,8 @@ return {
             b_challenge_tcg={
                 name="Challenge Deck",
                 text={
-                    "No Jokers, {C:attention}#1#{} Consumeables",
-					"Consumeables can have",
+                    "No Jokers, {C:attention}#1#{} Items",
+					"Items can have",
                     "{C:attention}1{} duplicate",
                 },
             },
@@ -117,9 +117,62 @@ return {
                 text={
                     "{C:attention}+#1#{} hand size,",
                     "Items are {C:attention}#2#%{} off",
-					"rounded up",
                 },
             },
+
+            
+			b_mp_cocktail_tcg = {
+				name = "Cocktail Deck",
+				text = {
+					"Copies all effects",
+					"of {C:attention}#1#{} other decks,",
+                    "{C:red}-#2#{} discard",
+				},
+			},
+			b_mp_gradient_tcg = {
+				name = "Gradient Deck",
+				text = {
+					"Cards are also considered",
+					"one rank {C:attention}higher{} or {C:attention}lower",
+					"for all {C:attention}Joker{} effects",
+				},
+			},
+			b_mp_heidelberg_tcg = {
+				name = "Heidelberg Deck",
+				text = {
+					"Up to {C:attention}#1#{} Rares/Legendaries",
+					"{C:attention}0{} Uncommons",
+				},
+			},
+			b_mp_indigo_tcg = {
+				name = "Indigo Deck",
+				text = {
+					"Discarding {C:attention}Items{}",
+					"destroys them",
+				},
+			},
+			b_mp_oracle_tcg = {
+				name = "Oracle Deck",
+				text = {
+                    "Items are {C:attention}#1#%{} off",
+					"Balance is capped",
+					"at {C:money}$#2#{}",
+				},
+			},
+			b_mp_orange_tcg = {
+				name = "Orange Deck",
+				text = {
+					"Start run with",
+					"{C:attention}#1#{} random Tarots",
+					"in your consumables",
+				},
+			},
+			b_mp_violet_tcg = {
+				name = "Violet Deck",
+				text = {
+					"{C:attention}+#1#{} Vouchers",
+				},
+			},
         },
         Enhanced={
             m_gold_tcg={
@@ -503,6 +556,9 @@ return {
             tcg_err_joker_count={
                 "Joker count too high (#1#), max count of #2#",
             },
+            tcg_err_deck_count={
+                "Back count too high (#1#), max count of #2#",
+            },
             tcg_err_cost={
                 "Deck too expensive, must be $#1# or less",
             },
@@ -517,6 +573,9 @@ return {
             },
             tcg_err_rares={
                 "Too many rares/legendaries (#1#), max count of #2#",
+            },
+            tcg_err_vouchers={
+                "Too many vouchers (#1#), max count of #2#",
             },
             tcg_err_consumables={
                 "Too many Consumeables (#1#), max count of #2#",
