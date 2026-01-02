@@ -705,6 +705,7 @@ return {
 			b_tcg_healthopponent = "Health",
 
 			b_tcg_attack = "Attack",
+			b_tcg_graveyard = "Graveyard",
 			b_tcg_buy = "Buy $",
 			b_tcg_bet = "Bet",
 

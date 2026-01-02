@@ -746,19 +746,102 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'card.lua'
-pattern = '''if G.STAGE == G.STAGES.RUN then'''
-position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN and BalatroTCG.GameStarted and (not BalatroTCG.GameActive or not (self.area and self.area.config.type == 'joker' and self.area ~= G.jokers)) then'''
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''G.VIEWING_DECK = true'''
+position = "after"
+payload = '''
+local temp_playing = G.playing_cards
+if BalatroTCG.GraveyardView then
+    G.playing_cards = G.graveyard.cards
+end
+'''
 match_indent = true
 overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'functions/utils.lua'
-pattern = '''cards[i]:start_dissolve()'''
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''
+local suit_options = {}
+for i = 1, math.ceil(#visible_suit / 4) do
+    table.insert(suit_options,
+        localize('k_page') .. ' ' .. tostring(i) .. '/' .. tostring(math.ceil(#visible_suit / 4)))
+end
+'''
 position = "after"
-payload = '''print('destroying')'''
+payload = '''
+
+if BalatroTCG.GameActive then
+    suit_options = {}
+    local amount = math.max((math.ceil(#visible_suit / 4) + 1), 2)
+
+	for i = 1, amount do
+		table.insert(suit_options,
+			localize('k_page') .. ' ' .. tostring(i) .. '/' .. tostring(amount))
+	end
+
+
+    if args and args.cycle_config.current_option == amount then
+        local items = {}
+        for k, v in ipairs(G.playing_cards) do
+            if not v:is_playing_card() then
+                items[#items + 1] = v
+            end
+        end
+        local rows = math.max(math.min(math.ceil(#items / 13), 1), 4)
+        local parts = rows
+
+        deck_tables = {}
+        for j = 1, parts do
+            local columns = math.ceil(#items / rows)
+
+            local view_deck = CardArea(
+                G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h,
+                6.5*G.CARD_W,
+                0.6*G.CARD_H,
+                {card_limit = columns, type = 'title', view_deck = true, highlight_limit = 0, card_w = G.CARD_W*0.7, draw_layers = {'card'}})
+                table.insert(deck_tables, 
+                {n=G.UIT.R, config={align = "cm", padding = 0}, nodes={
+                {n=G.UIT.O, config={object = view_deck}}
+            }})
+
+            for i = 1, columns do
+                local greyed, _scale = nil, 0.7
+                if unplayed_only and false then
+                    greyed = true
+                end
+                local copy = copy_card(items[1], nil, _scale)
+                copy.greyed = greyed
+                copy.T.x = view_deck.T.x + view_deck.T.w/2
+                copy.T.y = view_deck.T.y
+
+                copy:hard_set_T()
+                view_deck:emplace(copy)
+
+                table.remove(items, 1)
+            end
+            
+            rows = rows - 1
+        end
+
+    end
+
+    visible_suit = {'a', 'b', 'c', 'd', 'e'}
+
+end
+
+G.playing_cards = temp_playing
+
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''if G.STAGE == G.STAGES.RUN then'''
+position = "at"
+payload = '''if G.STAGE == G.STAGES.RUN and BalatroTCG.GameStarted and (not BalatroTCG.GameActive or not (self.area and self.area.config.type == 'joker' and self.area ~= G.jokers)) then'''
 match_indent = true
 overwrite = true
 
