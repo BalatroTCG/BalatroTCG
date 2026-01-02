@@ -1,6 +1,36 @@
 
 local calculate_joker_ref = Card.calculate_joker
 
+function Card:override_rank(rank)
+    if self.ability.tcg_extra then
+        self.ability.tcg_extra.rank = G.P_CARDS['H_' .. rank].value
+    end
+end
+
+function Card:override_suit(suit)
+    if card:is_playing_card() then
+        local suit_prefix = _suit..'_'
+        local rank_suffix = card.base.id < 10 and tostring(card.base.id) or
+                            card.base.id == 10 and 'T' or card.base.id == 11 and 'J' or
+                            card.base.id == 12 and 'Q' or card.base.id == 13 and 'K' or
+                            card.base.id == 14 and 'A'
+        card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+    elseif self.ability.set == 'Tarot' then
+        if _suit == 'S' then
+            card:set_ability(G.P_CENTERS.c_world)
+        elseif _suit == 'H' then
+            card:set_ability(G.P_CENTERS.c_sun)
+        elseif _suit == 'D' then
+            card:set_ability(G.P_CENTERS.c_star)
+        elseif _suit == 'C' then
+            card:set_ability(G.P_CENTERS.c_moon)
+            --TARGET: Sigil changing tarot suits
+        end
+    elseif self.ability.tcg_extra then
+        self.ability.tcg_extra.suit = G.P_CARDS[suit .. '_2'].suit
+    end
+end
+
 function Card:is_rank_joker(ranks)
 	if self.ability.effect == "Stone Card" or SMODS.has_no_rank(self) then return false end
 
@@ -65,31 +95,86 @@ function Card:use_consumeable(area, copier)
                 use_consumeable_ref(self, area, copier)
             elseif self.ability.name == 'Judgement' then
                 
-                if pick_from_areas(function (c) return 
+                local card = pick_from_areas(function (c) return 
                     (c.ability.set == 'Joker' and not (
                         c.config.center.no_pool_flag and G.GAME.pool_flags[c.config.center.no_pool_flag] or
                         c.config.center.yes_pool_flag and not G.GAME.pool_flags[c.config.center.yes_pool_flag]
-                    )) end, {G.deck, G.discard, G.graveyard}, G.jokers) then
+                    )) end, {G.deck, G.discard, G.graveyard})
+                
+                if card then
+                    G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
 
-                    play_sound('timpani')
-                    used_tarot:juice_up(0.3, 0.5)
+                        card.area:remove_card(card)
+                        card:start_materialize()
+                        G.jokers:emplace(card)
+                        
+                        for _, c in ipairs(G.playing_cards) do
+                            if c == card then
+                                goto skip
+                            end
+                        end
+                        table.insert(G.playing_cards, card)
+                        ::skip::
+                        play_sound('timpani')
+                        self:juice_up(0.3, 0.5)
+                        return true
+                    end
+                    }))
+                    delay(0.6)
                 end
             elseif self.ability.name == 'The Fool' then
                 if G.GAME.last_tarot_planet == 'c_fool' then return end
 
                 local center = G.P_CENTERS[G.GAME.last_tarot_planet]
 
-                if pick_from_areas(function (c) return c.ability.name == center.name end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                    play_sound('timpani')
-                    used_tarot:juice_up(0.3, 0.5)
-                end
+                local card = pick_from_areas(function (c) return c.ability.name == center.name end, {G.deck, G.discard, G.graveyard})
                 
-                delay(0.6)
+                if card then
+                    G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                        card.area:remove_card(card)
+                        card:start_materialize()
+                        G.consumeables:emplace(card)
+
+                        for _, c in ipairs(G.playing_cards) do
+                            if c == card then
+                                goto skip
+                            end
+                        end
+                        table.insert(G.playing_cards, card)
+                        ::skip::
+                        play_sound('timpani')
+                        self:juice_up(0.3, 0.5)
+                        return true
+                    end
+                    }))
+                    delay(0.6)
+                end
             elseif self.ability.name == 'The Emperor' then
                 
-                pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables)
-                play_sound('timpani')
-                used_tarot:juice_up(0.3, 0.5)
+                for i = 1, math.min(self.ability.consumeable.tarots, G.consumeables.config.card_limit - #G.consumeables.cards) do
+                    local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+
+                    if card then
+                        card.area:remove_card(card)
+                        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                            card:start_materialize()
+                            G.consumeables:emplace(card)
+
+                            for _, c in ipairs(G.playing_cards) do
+                                if c == card then
+                                    goto skip
+                                end
+                            end
+                            table.insert(G.playing_cards, card)
+                            ::skip::
+                            play_sound('timpani')
+                            self:juice_up(0.3, 0.5)
+                            return true
+                        end
+                        }))
+                    end
+                end
+                delay(0.6)
                 
             elseif self.ability.name == 'Death' then
                 
@@ -114,14 +199,62 @@ function Card:use_consumeable(area, copier)
                 leftmost.ability.max_health = nil
                 
             elseif self.ability.name == 'The High Priestess' then
-                if pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                    play_sound('timpani')
-                    used_tarot:juice_up(0.3, 0.5)
+
+                for i = 1, math.min(self.ability.consumeable.planets, G.consumeables.config.card_limit - #G.consumeables.cards) do
+                    local card = pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard})
+
+                    if card then
+                        card.area:remove_card(card)
+                        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                            card:start_materialize()
+                            G.consumeables:emplace(card)
+
+                            for _, c in ipairs(G.playing_cards) do
+                                if c == card then
+                                    goto skip
+                                end
+                            end
+                            table.insert(G.playing_cards, card)
+                            ::skip::
+                            play_sound('timpani')
+                            self:juice_up(0.3, 0.5)
+                            return true
+                        end
+                        }))
+                    end
                 end
+                delay(0.6)
 
             elseif self.ability.name == 'Immolate' then
                 self.ability.extra.dollars = 0
                 use_consumeable_ref(self, area, copier)
+
+            elseif self.ability.effect == 'Suit Conversion' and BalatroTCG.Unbalance then
+
+                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                    play_sound('tarot1')
+                    used_tarot:juice_up(0.3, 0.5)
+                    return true end }))
+
+                for i=1, #G.hand.cards do
+                    local percent = 1.15 - (i-0.999)/(#G.hand.cards-0.998)*0.3
+                    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.15,func = function() G.hand.cards[i]:flip();play_sound('card1', percent);G.hand.cards[i]:juice_up(0.3, 0.3);return true end }))
+                end
+
+                local _suit = SMODS.SUITS[self.ability.suit_conv].card_key
+                for i=1, #G.hand.cards do
+                    G.E_MANAGER:add_event(Event({func = function()
+                        local card = G.hand.cards[i]
+                        
+                        card:override_suit(_suit)
+                    return true end }))
+                end
+                
+                for i=1, #G.hand.cards do
+                    local percent = 0.85 + (i-0.999)/(#G.hand.cards-0.998)*0.3
+                    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.15,func = function() G.hand.cards[i]:flip();play_sound('tarot2', percent, 0.6);G.hand.cards[i]:juice_up(0.3, 0.3);return true end }))
+                end
+                delay(0.5)
 
             elseif self.ability.name == 'Sigil' or self.ability.name == 'Ouija' then
                 G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
@@ -135,35 +268,14 @@ function Card:use_consumeable(area, copier)
                 end
                 delay(0.2)
                 if self.ability.name == 'Sigil' then
-                    local suits = {}
                     --use_consumeable_ref(self, area, copier)
 
-                    local _suit = pseudorandom_element(suits, pseudoseed('sigil')).card_key
+                    local _suit = pseudorandom_element(SMODS.SUITS, pseudoseed('sigil')).card_key
                     for i=1, #G.hand.cards do
                         G.E_MANAGER:add_event(Event({func = function()
                             local card = G.hand.cards[i]
                             local set = card.ability.set
-                            if card:is_playing_card() then
-                                local suit_prefix = _suit..'_'
-                                local rank_suffix = card.base.id < 10 and tostring(card.base.id) or
-                                                    card.base.id == 10 and 'T' or card.base.id == 11 and 'J' or
-                                                    card.base.id == 12 and 'Q' or card.base.id == 13 and 'K' or
-                                                    card.base.id == 14 and 'A'
-                                card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-                            elseif set == 'Tarot' then
-                                if _suit == 'S' then
-                                    card:set_ability(G.P_CENTERS.c_world)
-                                elseif _suit == 'H' then
-                                    card:set_ability(G.P_CENTERS.c_sun)
-                                elseif _suit == 'D' then
-                                    card:set_ability(G.P_CENTERS.c_star)
-                                elseif _suit == 'C' then
-                                    card:set_ability(G.P_CENTERS.c_moon)
-                                    --TARGET: Sigil changing tarot suits
-                                end
-                            else
-                                card:override_suit(_suit)
-                            end
+                            card:override_suit(_suit)
                         return true end }))
                     end  
                 end
@@ -194,14 +306,31 @@ function Card:use_consumeable(area, copier)
                 
             elseif self.ability.name == 'Wraith' then
                 
-                if pick_from_areas(function (c) return 
+                local card = pick_from_areas(function (c) return 
                     (c.ability.set == 'Joker' and c.config.center.rarity >= 3 and not (
                         c.config.center.no_pool_flag and G.GAME.pool_flags[c.config.center.no_pool_flag] or
                         c.config.center.yes_pool_flag and not G.GAME.pool_flags[c.config.center.yes_pool_flag]
-                    )) end, {G.deck, G.discard, G.graveyard}, G.hand) then
+                    )) end, {G.deck, G.discard, G.graveyard})
+                    
+                if card then
+                    G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                        card.area:remove_card(card)
+                        card:start_materialize()
+                        G.hand:emplace(card)
 
-                    play_sound('timpani')
-                    used_tarot:juice_up(0.3, 0.5)
+                        for _, c in ipairs(G.playing_cards) do
+                            if c == card then
+                                goto skip
+                            end
+                        end
+                        table.insert(G.playing_cards, card)
+                        ::skip::
+                        play_sound('timpani')
+                        self:juice_up(0.3, 0.5)
+                        return true
+                    end
+                    }))
+                    delay(0.6)
                 end
             elseif self.ability.name == 'The Soul' then
                 
@@ -232,6 +361,8 @@ end
 
 function Card:calculate_joker(context)
     
+
+
     if self.ability.set ~= "Joker" or not BalatroTCG.GameActive then
         return calculate_joker_ref(self, context)
     end
@@ -316,11 +447,28 @@ function Card:calculate_joker(context)
                 local jokers_to_create = math.min(1, G.jokers.config.card_limit - (#G.jokers.cards + G.GAME.joker_buffer))
                 
                 
-                if pick_from_areas(function (c) return c.ability.set == 'Joker' and c.config.center.rarity == 1 end, {G.deck, G.discard}, G.jokers) then
-                    G.GAME.joker_buffer = G.GAME.joker_buffer + jokers_to_create
+                local card = pick_from_areas(function (c) return c.ability.set == 'Joker' and c.config.center.rarity == 1 end, {G.deck, G.discard})
+                
+                if card then
+                    G.GAME.joker_buffer = G.GAME.joker_buffer + 1
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                        card.area:remove_card(card)
+                        card:start_materialize()
+                        G.jokers:emplace(card)
+
+                        for _, c in ipairs(G.playing_cards) do
+                            if c == card then
+                                goto skip
+                            end
+                        end
+                        table.insert(G.playing_cards, card)
+                        ::skip::
                         G.GAME.joker_buffer = 0
-                        return true end }))
+                        play_sound('timpani')
+                        self:juice_up(0.3, 0.5)
+                        return true
+                    end
+                    }))
                     delay(0.6)
                 end
 
@@ -328,12 +476,29 @@ function Card:calculate_joker(context)
             end
             if self.ability.name == 'Cartomancer' and not (context.blueprint_card or self).getting_sliced and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                 
-                if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                    play_sound('timpani')
+                local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+                
+                if card then
                     G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                        card.area:remove_card(card)
+                        card:start_materialize()
+                        G.consumeables:emplace(card)
+
+                        for _, c in ipairs(G.playing_cards) do
+                            if c == card then
+                                goto skip
+                            end
+                        end
+                        table.insert(G.playing_cards, card)
+                        ::skip::
                         G.GAME.consumeable_buffer = 0
-                        return true end }))
+                        play_sound('timpani')
+                        self:juice_up(0.3, 0.5)
+                        return true
+                    end
+                    }))
+                    delay(0.6)
                 end
                 
                 return nil
@@ -343,17 +508,34 @@ function Card:calculate_joker(context)
                 
                 if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                         
-                    if pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                        play_sound('timpani')
+                    local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})
+                    
+                    if card then
                         G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                         G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                            card.area:remove_card(card)
+                            card:start_materialize()
+                            G.consumeables:emplace(card)
+                            
+                            for _, c in ipairs(G.playing_cards) do
+                                if c == card then
+                                    goto skip
+                                end
+                            end
+                            table.insert(G.playing_cards, card)
+                            ::skip::
+
                             G.GAME.consumeable_buffer = 0
-                            return true end }))
-                        delay(0.6)
+                            play_sound('timpani')
+                            self:juice_up(0.3, 0.5)
+                            return true
+                        end
+                        }))
                         card_eval_status_text(context.blueprint_card or self, 'extra', nil, nil, nil, {message = localize('k_plus_spectral'), colour = G.C.SECONDARY_SET.Spectral})
+                        delay(0.6)
                     end
                 end
-               return true
+                return true
             end
         elseif context.cards_destroyed then
         elseif context.remove_playing_cards then
@@ -393,8 +575,9 @@ function Card:calculate_joker(context)
                     return nil
                 end
             end
-            if self.ability.name == 'Mail-In Rebate' and self.ability.tcg_extra.rank then
-                if not context.other_card.debuff and context.other_card:is_rank_joker(self.ability.tcg_extra.rank) then
+            if self.ability.name == 'Mail-In Rebate' then
+                local rank = self.ability.tcg_extra.rank or G.GAME.current_round.mail_card.id
+                if not context.other_card.debuff and context.other_card:is_rank_joker(rank) then
                     ease_dollars(self.ability.extra)
                     return {
                         message = localize('$')..self.ability.extra,
@@ -405,8 +588,9 @@ function Card:calculate_joker(context)
                     return nil
                 end
             end
-            if self.ability.name == 'Hit the Road' and self.ability.tcg_extra.rank then
-                if not context.other_card.debuff and context.other_card:is_rank_joker(self.ability.tcg_extra.rank) and not context.blueprint then
+            if self.ability.name == 'Hit the Road' then
+                local rank = self.ability.tcg_extra.rank or 11
+                if not context.other_card.debuff and context.other_card:is_rank_joker(rank) and not context.blueprint then
                     self.ability.x_mult = self.ability.x_mult + self.ability.extra
                     return {
                         message = localize{type='variable',key='a_xmult',vars={self.ability.x_mult}},
@@ -678,18 +862,38 @@ function Card:calculate_joker(context)
                     if self.ability.name == 'Vagabond' then
 
                         if G.GAME.dollars <= self.ability.extra and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-                            if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                                
-                            end
-                            play_sound('timpani')
-                            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                                G.GAME.consumeable_buffer = 0
-                                return true end }))
+                            
+                            local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+                            
+                            if card then
+                                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
 
-                            return {
-                                message = localize('k_plus_tarot'),
-                                card = self
-                            }
+                                    card.area:remove_card(card)
+                                    card:start_materialize()
+                                    G.consumeables:emplace(card)
+                                    
+                                    for _, c in ipairs(G.playing_cards) do
+                                        if c == card then
+                                            goto skip
+                                        end
+                                    end
+                                    table.insert(G.playing_cards, card)
+                                    ::skip::
+
+                                    G.GAME.consumeable_buffer = 0
+                                    play_sound('timpani')
+                                    self:juice_up(0.3, 0.5)
+                                    return true
+                                end
+                                }))
+                                delay(0.6)
+                                return {
+                                    message = localize('k_plus_tarot'),
+                                    card = self
+                                }
+                            end
+
                         end
                         
 
@@ -702,12 +906,31 @@ function Card:calculate_joker(context)
                         end
                         if aces >= 1 and next(context.poker_hands["Straight"]) then
                             
-                            if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                                play_sound('timpani')
+                            local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+                            
+                            if card then
                                 G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                                 G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                                    
+                                    card.area:remove_card(card)
+                                    card:start_materialize()
+                                    G.consumeables:emplace(card)
+                                    
+                                    for _, c in ipairs(G.playing_cards) do
+                                        if c == card then
+                                            goto skip
+                                        end
+                                    end
+                                    table.insert(G.playing_cards, card)
+                                    ::skip::
+
                                     G.GAME.consumeable_buffer = 0
-                                    return true end }))
+                                    play_sound('timpani')
+                                    self:juice_up(0.3, 0.5)
+                                    return true
+                                end
+                                }))
+                                delay(0.6)
                                 return {
                                     message = localize('k_plus_tarot'),
                                     card = self
@@ -718,12 +941,30 @@ function Card:calculate_joker(context)
                     end
                     if self.ability.name == 'Seance' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                         if next(context.poker_hands[self.ability.extra.poker_hand]) then
-                            if pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                                play_sound('timpani')
+                            local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})
+                            if card then
                                 G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                                 G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                                    
+                                    card.area:remove_card(card)
+                                    card:start_materialize()
+                                    G.consumeables:emplace(card)
+                                    
+                                    for _, c in ipairs(G.playing_cards) do
+                                        if c == card then
+                                            goto skip
+                                        end
+                                    end
+                                    table.insert(G.playing_cards, card)
+                                    ::skip::
+
                                     G.GAME.consumeable_buffer = 0
-                                    return true end }))
+                                    play_sound('timpani')
+                                    self:juice_up(0.3, 0.5)
+                                    return true
+                                end
+                                }))
+                                delay(0.6)
                                 return {
                                     message = localize('k_plus_spectral'),
                                     colour = G.C.SECONDARY_SET.Spectral,
@@ -781,6 +1022,15 @@ function modified_desc_spec(self, info_queue, card, desc_nodes, specific_vars, f
         table.remove(desc_nodes, i)
     end
     localize { type = 'descriptions', set = "Spectral", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
+end
+function modified_desc_vch(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
+    SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
+    if not BalatroTCG.UseTCG_UI then return end
+
+    for i = #desc_nodes, 1, -1 do
+        table.remove(desc_nodes, i)
+    end
+    localize { type = 'descriptions', set = "Voucher", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
 end
 function modified_desc_enh(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
     
@@ -856,16 +1106,109 @@ function Card:set_ability(center, initial, delay_sprites)
                 --self.ability.h_x_mult = 1.25
             end
         end
+    elseif self.ability.set == 'Voucher' then
+        if name == 'Reroll Surplus' then
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+                G.GAME.modifiers.extra_discard = 2
+            end
+        elseif name == 'Reroll Glut' then
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+                G.GAME.modifiers.extra_discard = 1
+            end
+        elseif name == 'Seed Money' then
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Money Tree' then
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Hone' then
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+                for k, v in ipairs(G.GAME.playing_cards) do
+                    if v.ability.name == 'The Wheel of Fortune' then
+                        v.ability.extra = 2
+                    end
+                end
+            end
+        elseif name == 'Glow Up' then
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+
+            end
+        elseif name == 'Overstock' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Overstock Plus' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Omen Globe' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Telescope' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Tarot Merchant' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Tarot Tycoon' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Planet Merchant' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Planet Tycoon' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Magic Trick' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+                G.GAME.modifiers.buy_cards = true
+            end
+        elseif name == 'Illusion' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Hieroglyph' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Petroglyph' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == "Director's Cut" then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        elseif name == 'Retcon' then 
+            self.config.center.generate_ui = modified_desc_vch
+            self.config.center.redeem = function(self, card)
+            end
+        end
     elseif self.ability.set == 'Tarot' then
         if not BalatroTCG.Unbalance then
             if name == 'The Hermit' then
                 self.ability.extra = 15
-            -- elseif name == 'The Emperor' then
-            --     self.ability.consumeable.tarots = 1
-            -- elseif name == 'The High Priestess' then
-            --     self.ability.consumeable.planets = 1
+            elseif name == 'The Emperor' then
+                self.config.center.generate_ui = modified_desc_tarot
+            elseif name == 'The High Priestess' then
+                self.config.center.generate_ui = modified_desc_tarot
             elseif name == 'Temperance' then
                 self.ability.extra = 30
+            elseif name == 'The Wheel of Fortune' then
+                if G.GAME.used_vouchers['v_hone'] then v.ability.extra = 2 end
             end
         end
     elseif self.ability.set == 'Spectral' then
@@ -1005,7 +1348,8 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.ability.extra = 1.5
                 self.config.center.generate_ui = modified_desc
             elseif name == 'Ramen' then
-                self.ability.extra = 0.1
+                self.ability.x_mult = 4
+                self.ability.extra = 0.25
             elseif name == 'Photograph' then
                 self.config.center.generate_ui = modified_desc
             elseif name == 'Lucky Cat' then
@@ -1269,6 +1613,17 @@ function Card:set_ability(center, initial, delay_sprites)
                     end
                 end
             end
+        elseif name == 'Fibonacci' then
+            self.tcg_calculate = function(self, context)
+                if context.individual and context.cardarea == G.play then
+                    if context.other_card:is_rank_joker({2, 3, 5, 8, 14}) then
+                        return {
+                            mult = self.ability.extra,
+                            card = self
+                        }
+                    end
+                end
+            end
         elseif name == 'Perkeo' then
 
             self.tcg_calculate = function(self, context)
@@ -1292,12 +1647,31 @@ function Card:set_ability(center, initial, delay_sprites)
                     for k, card in pairs(context.full_hand) do
                         if not card:is_playing_card() then
                             if pseudorandom('halu') < G.GAME.probabilities.normal/self.ability.extra then
-                                if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                                    play_sound('timpani')
+                                local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+                                
+                                if card then
                                     G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+
+                                        card.area:remove_card(card)
+                                        card:start_materialize()
+                                        G.consumeables:emplace(card)
+                                        
+                                        for _, c in ipairs(G.playing_cards) do
+                                            if c == card then
+                                                goto skip
+                                            end
+                                        end
+                                        table.insert(G.playing_cards, card)
+                                        ::skip::
+
                                         G.GAME.consumeable_buffer = 0
-                                        return true end }))
+                                        play_sound('timpani')
+                                        self:juice_up(0.3, 0.5)
+                                        return true
+                                    end
+                                    }))
+                                    delay(0.6)
                                 end
                             end
                             break
@@ -1442,18 +1816,34 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == '8 Ball' then
-            self.ability.money = 2
-            self.config.center.generate_ui = modified_desc
             self.tcg_calculate = function(self, context)
-                if context.individual and context.cardarea == G.play then
+                if context.individual and context.cardarea == G.play and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                     if context.other_card:is_rank_joker(8) and (SMODS.pseudorandom_probability(self, '8ball', 1, self.ability.extra)) then
 
-                        if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-                            play_sound('timpani')
+                        local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+                        
+                        if card then
                             G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                             G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                                card.area:remove_card(card)
+                                card:start_materialize()
+                                G.consumeables:emplace(card)
+                                
+                                for _, c in ipairs(G.playing_cards) do
+                                    if c == card then
+                                        goto skip
+                                    end
+                                end
+                                table.insert(G.playing_cards, card)
+                                ::skip::
+
                                 G.GAME.consumeable_buffer = 0
-                                return true end }))
+                                play_sound('timpani')
+                                self:juice_up(0.3, 0.5)
+                                return true
+                            end
+                            }))
+                            delay(0.6)
                         end
 
                     end
@@ -1634,6 +2024,9 @@ function TCG_Override_Desc(self, loc_vars)
     elseif self.ability.name == 'Abstract Joker' then loc_vars = {self.ability.extra, ((G.jokers and G.jokers.cards and #G.jokers.cards or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_jokers or 0))*self.ability.extra}
     elseif self.ability.name == 'Supernova' then loc_vars = {self.ability.extra}
     elseif self.ability.name == 'Luchador' then loc_vars = {math.floor(self.ability.extra * 100)}
+    elseif self.ability.name == 'Reroll Surplus' then loc_vars = { 2 }
+    elseif self.ability.name == 'Reroll Glut' then loc_vars = { 1 }
+    elseif self.ability.name == 'Hone' then loc_vars = { localize{type = 'name_text', key = 'c_wheel_of_fortune', set = 'Tarot'}, 2 }
 
     end
 

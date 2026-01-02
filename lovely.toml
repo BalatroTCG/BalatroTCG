@@ -181,6 +181,25 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
+target = 'functions/state_events.lua'
+pattern = "ease_discard(-1)"
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    if G.GAME.current_round.discards_left > 0 then
+        ease_discard(-1)
+    else
+        ease_dollars(-G.GAME.modifiers.extra_discard)
+    end
+else
+    ease_discard(-1)
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
 target = 'card.lua'
 pattern = "function Card:get_chip_mult()"
 position = "at"
@@ -408,41 +427,17 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
-pattern = '''
-local card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, '8ba')
-card:add_to_deck()
-G.consumeables:emplace(card)
-G.GAME.consumeable_buffer = 0'''
-position = "at"
-payload = '''
-local card = nil
-if BalatroTCG.GameActive then
-    if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-        G.GAME.consumeable_buffer = 0
-    end
-else
-    card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, '8ba')
-    card:add_to_deck()
-    G.consumeables:emplace(card)
-    G.GAME.consumeable_buffer = 0
-end
-G.GAME.consumeable_buffer = 0
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = 'card.lua'
 pattern = '''if G.GAME.last_hand_played then'''
 position = "at"
 payload = '''
 local card
 if G.GAME.last_hand_played and BalatroTCG.GameActive then
     
-    if pick_from_areas(function (c) return c.ability.set == 'Planet' and c.ability.consumeable.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-        G.GAME.consumeable_buffer = 0
-    end
+    local card = pick_from_areas(function (c) return c.ability.set == 'Planet' and c.ability.consumeable.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard}, G.consumeables)
+    
+    card:add_to_deck()
+    G.consumeables:emplace(card)
+    G.GAME.consumeable_buffer = 0
 elseif G.GAME.last_hand_played then
 '''
 match_indent = true

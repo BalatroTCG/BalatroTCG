@@ -77,6 +77,7 @@ function TCG_PlayerStatus:init(deck, player)
         CAI.discard_W,CAI.discard_H,
         { type = "discard", card_limit = 1e308 }
     )
+
     
     self.seed = {}
     self.seed.hashed_seed = pseudohash(G.GAME.pseudorandom.seed)
@@ -132,6 +133,7 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.hand_upgrades = copy_table(G.GAME.hands)
     self.status.probabilities = copy_table(G.GAME.probabilities)
     self.status.consumeable_usage = copy_table(G.GAME.consumeable_usage)
+    self.status.modifiers = {}
 
     self.attacks = {}
 end
@@ -139,6 +141,7 @@ end
 function TCG_PlayerStatus:pass_over()
     self.params.hands = G.GAME.round_resets.hands
     self.params.discards = G.GAME.round_resets.discards
+    self.status.modifiers = G.GAME.modifiers
     
     self.status.bankrupt_at = G.GAME.bankrupt_at
     self.status.unused_discards = G.GAME.unused_discards
@@ -165,6 +168,7 @@ function TCG_PlayerStatus:apply()
     G.GAME.dollars = self.status.dollars
     G.GAME.bankrupt_at = self.status.bankrupt_at
     G.GAME.used_vouchers = self.status.used_vouchers
+    G.GAME.modifiers = self.status.modifiers
     
     G.GAME.current_round.hands_left = (math.max(1, G.GAME.round_resets.hands))
     G.GAME.current_round.discards_left = math.max(0, G.GAME.round_resets.discards)

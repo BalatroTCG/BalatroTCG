@@ -212,13 +212,17 @@ function Game:start_tcg_game(args)
     print(self.GAME.pseudorandom.seed)
     BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
+    BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
     local playerDeck = BalatroTCG.SelectedDeck
+    if playerDeck == 'random' then playerDeck = BalatroTCG.TabDecks[pseudorandom('asdf', 1, #BalatroTCG.TabDecks)] end
+    
     --local opponentDeck = get_tcg_deck(1)
     local opponentDeck = get_tcg_deck(pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks))
 
     if args.online then
         opponentDeck = BalatroTCG.Deck('b_red', 'empty', {})
     end
+
 
     G.GAME.player_back = Back(G.P_CENTERS[playerDeck.backs[1]])
     

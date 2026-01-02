@@ -257,17 +257,6 @@ function Card:is_playing_card()
     return self.ability.set == 'Default' or self.ability.set == 'Enhanced'
 end
 
-function Card:override_rank(rank)
-    if self.ability.tcg_extra then
-        self.ability.tcg_extra.rank = G.P_CARDS['H_' .. rank].value
-    end
-end
-
-function Card:override_suit(suit)
-    if self.ability.tcg_extra then
-        self.ability.tcg_extra.suit = G.P_CARDS[suit .. '_2'].suit
-    end
-end
 
 local can_use_consumeable_ref = Card.can_use_consumeable
 function Card:can_use_consumeable(any_state, skip_check)
@@ -280,7 +269,13 @@ function Card:can_use_consumeable(any_state, skip_check)
     if self.ability.name == 'Wraith' then return true end
     
     if value then
-        if self.ability.name == 'Death' then
+        if self.ability.name == 'Cryptid' then
+            if BalatroTCG.Unbalance then return true end
+            
+            if not G.hand.highlighted[1]:is_playing_card() then return false end
+        elseif self.ability.name == 'Death' then
+            if BalatroTCG.Unbalance then return true end
+
             local left = G.hand.highlighted[1]
             local right = G.hand.highlighted[2]
             if left.T.x > right.T.x then
@@ -292,8 +287,14 @@ function Card:can_use_consumeable(any_state, skip_check)
                 return false
             end
             
+        elseif self.ability.effect == 'Suit Conversion' then
+            if BalatroTCG.Unbalance then return true end
+            
+            for k, v in ipairs(G.hand.highlighted) do
+                if not v:is_playing_card() then return false end
+            end
+        
         elseif self.ability.effect == 'Enhance' or
-            self.ability.effect == 'Suit Conversion' or
             self.ability.name == 'Talisman' or
             self.ability.name == 'Deja Vu' or
             self.ability.name == 'Trance' or
@@ -927,7 +928,19 @@ G.FUNCS.start_setup_run = function(e)
 end
 
 
-function pick_from_areas(check, areas, toplace, seed)
+local G_FUNCS_can_discard_ref = G.FUNCS.can_discard
+G.FUNCS.can_discard = function(e)
+    G_FUNCS_can_discard_ref(e)
+
+    if BalatroTCG.GameActive then
+        if G.GAME.used_vouchers['v_reroll_surplus'] then
+            e.config.colour = G.C.RED
+            e.config.button = 'discard_cards_from_highlighted'
+        end
+    end
+end
+
+function pick_from_areas(check, areas, seed)
     seed = seed or ''
     for i = 1, #areas do
         local cards = {}
@@ -941,18 +954,7 @@ function pick_from_areas(check, areas, toplace, seed)
         if #cards > 0 then
             local card = pseudorandom_element(cards, pseudoseed(seed..G.GAME.round_resets.ante))
             
-            card.area:remove_card(card)
-            card:start_materialize()
-            toplace:emplace(card)
-            
-            for _, c in ipairs(G.playing_cards) do
-                if c == card then
-                    return true
-                end
-            end
-            table.insert(G.playing_cards, card)
-
-            return true
+            return card
         end
     end
     return false
