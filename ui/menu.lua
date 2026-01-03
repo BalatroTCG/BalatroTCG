@@ -23,7 +23,7 @@ function G.FUNCS.start_campaign(e)
 	G.SETTINGS.paused = true
 
 	G.FUNCS.overlay_menu({
-		definition = G.UIDEF.create_tcg_deck_selection((e.config.id == 'from_game_over' or e.config.id == 'from_game_won') and e.config.id),
+		definition = G.UIDEF.create_tcg_deck_selection((e.config.id == 'from_game_over' or e.config.id == 'from_game_won' or e.config.id == 'restart_button') and e.config.id),
 	})
 	if (e.config.id == 'from_game_over' or e.config.id == 'from_game_won') then G.OVERLAY_MENU.config.no_esc = true end
 end
@@ -321,6 +321,7 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 					}}
 				end},
 				-- Build Deck Tab
+				(not from_game_over) and
 				{ label = localize("b_tcgtab_deck"), chosen = false, tab_definition_function = function()
 					
 					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
@@ -348,35 +349,14 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 							}}
 						}}
 					}}
-				end},
+				end} or nil,
 			}
-	if MP then
-		tabs[#tabs + 1] = 
-			{ label = localize("b_tcgtab_online"), chosen = false, tab_definition_function = function()
-				
-				if BalatroTCG.MultiCompat then
-					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
-						UIBox_button({
-							label = { localize("b_tcgtab_online_start") },
-							colour = G.C.BLUE,
-							button = "start_tcg_lobby",
-							minw = 5,
-						})
-					}}
-				else
-					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
-						UIBox_button({
-							label = { localize("b_tcgtab_online_cant") },
-							colour = G.C.RED,
-							minw = 5,
-						})
-					}}
-				end
-			end}
-	end
+
+	local from_restart = (not from_game_over) or from_game_over == 'restart_button'
+	
 	return (
 		create_UIBox_generic_options({
-			no_back = from_game_over, no_esc = from_game_over,
+			no_back = not from_restart, no_esc = not from_restart,
 			back_func = from_game_over and nil or "play_options",
 			contents = 
 				{{n = G.UIT.R, config = { padding = 0, align = "cm" }, nodes = {
@@ -482,7 +462,17 @@ function G.UIDEF.waiting_for_opponent(e)
 		create_UIBox_generic_options({
 			no_back = true,
 			contents = {
-				{n=G.UIT.T, config={text = localize('k_tcg_waiting'), scale = 0.85, colour = G.C.UI.TEXT_LIGHT, shadow = true}},
+				{n=G.UIT.R, config={align = "cm", padding = 1}, nodes={
+					{n=G.UIT.T, config={text = localize('k_tcg_waiting'), scale = 0.85, colour = G.C.UI.TEXT_LIGHT, shadow = true}},
+				}},
+				{n=G.UIT.R, config={align = "cm", padding = 1}, nodes={
+					UIBox_button({
+						label = { localize("b_return_lobby") },
+						colour = G.C.ORANGE,
+						button = "mp_return_to_lobby",
+						minw = 5,
+					})
+				}}
 			},
 		})
 	
@@ -599,7 +589,9 @@ function create_tcg_builder(type, callback)
 	else
 		G.CARD_POOL = {}
 		for k, v in pairs(G.P_CENTER_POOLS[type]) do
-			if not (string.sub(v.key, 1, 4) == 'j_mp'
+			if not v.omit and not (string.sub(v.key, 1, 4) == 'j_mp'
+			if not (string.sub(v.key, 1, 4) == 'j_mp' or 
+			string.sub(v.key, 1, 4) == 'c_mp'
 			-- and string.find(v.key, '_sandbox') -- TODO: add multiplayer joker functionality
 		) then
 				v.original_id = v.key
@@ -1060,6 +1052,20 @@ function G.UIDEF.override_main_menu_play_button()
 			set = temp
 		end
 		content[#content + 1] = set
+		
+		if BalatroTCG.MultiCompat then
+			content[3].nodes[1].config.button = 'start_tcg_lobby'
+		elseif MP.LOBBY.connected then
+			for i = 3, #content do
+				content[i] = nil
+			end
+			
+			content[3] = UIBox_button({
+				label = { localize("b_tcgtab_online_incompat") },
+				colour = G.C.RED,
+				minw = 5,
+			})
+		end
 		
 		return value
     else
