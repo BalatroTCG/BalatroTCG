@@ -691,10 +691,16 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'game.lua'
-pattern = '''function Game:update_selecting_hand(dt)'''
-position = "after"
+pattern = '''if #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 then'''
+position = "at"
 payload = '''
-    if BalatroTCG.GameActive and (not G.deck.cards[1]) then return end
+if #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 and BalatroTCG.GameActive then
+    if not G.STATE_COMPLETE then
+        end_tcg_round()
+    end
+    G.STATE_COMPLETE = true
+    return
+elseif #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 then
 '''
 match_indent = true
 overwrite = true
