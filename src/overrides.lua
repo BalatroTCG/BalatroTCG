@@ -736,6 +736,7 @@ end
 local start_setup_run_ref = G.FUNCS.start_setup_run
 G.FUNCS.start_setup_run = function(e)
     BalatroTCG.UseTCG_UI = false
+    BalatroTCG.GameActive = false
     
     return start_setup_run_ref(e)
 end
