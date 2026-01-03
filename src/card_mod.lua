@@ -349,6 +349,11 @@ function Card:use_consumeable(area, copier)
                     play_sound('gold_seal', 1.2, 0.4)
                     card:set_eternal(true)
                 end
+
+                local _first_dissolve = false
+                for _, joker in ipairs(G.jokers.cards) do
+                    if (not SMODS.is_eternal(v, self)) then v.getting_sliced = true; v:start_dissolve(nil, _first_dissolve);_first_dissolve = true end
+                end
             else
                 use_consumeable_ref(self, area, copier)
             end
@@ -1128,7 +1133,7 @@ function Card:set_ability(center, initial, delay_sprites)
         elseif name == 'Hone' then
             self.config.center.generate_ui = modified_desc_vch
             self.config.center.redeem = function(self, card)
-                for k, v in ipairs(G.GAME.playing_cards) do
+                for k, v in pairs(G.playing_cards) do
                     if v.ability.name == 'The Wheel of Fortune' then
                         v.ability.extra = 2
                     end
@@ -1293,6 +1298,9 @@ function Card:set_ability(center, initial, delay_sprites)
             elseif name == 'Green Joker' then
                 self.ability.extra.hand_add = 4
                 self.ability.extra.discard_sub = 4
+            elseif name == 'Misprint' then
+                self.ability.extra.min = 00
+                self.ability.extra.max = 40
             elseif name == 'Ride the Bus' then
                 self.ability.extra = 4
             elseif name == 'Half Joker' then
@@ -1356,7 +1364,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.ability.extra = 0.5
             elseif name == "Driver's License" then
                 self.ability.extra = 10
-            elseif name == 'Hit The Road' then
+            elseif name == 'Hit the Road' then
                 self.ability.extra = 2
             elseif name == 'Flower Pot' then
                 self.ability.extra = 10
@@ -1375,7 +1383,7 @@ function Card:set_ability(center, initial, delay_sprites)
             elseif name == 'Baseball Card' then
                 self.ability.extra = 2
             elseif name == 'Glass Joker' then
-                self.ability.x_mult = 1.5
+                self.ability.extra = 1.5
             elseif name == 'Yorick' then
                 self.ability.extra.xmult = 2.5
             elseif name == 'Seeing Double' then
@@ -1409,7 +1417,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 self.ability.extra = 2
             elseif name == 'Trading Card' then
                 self.config.center.generate_ui = modified_desc
-            elseif name == 'Riff-Raff' then
+            elseif name == 'Riff-raff' then
                 self.ability.extra = 1
             end
         else
@@ -1463,7 +1471,25 @@ function Card:set_ability(center, initial, delay_sprites)
                     }
                 end
             end
+        elseif name == 'Riff-raff' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Fortune Teller' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Hallucination' then
+            self.config.center.generate_ui = modified_desc
         elseif name == 'Supernova' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Abstract' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Astronomer' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Card Sharp' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Madness' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Seance' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Sixth Sense' then
             self.config.center.generate_ui = modified_desc
         elseif name == "Driver's License" then 
             self.tcg_calculate = function(self, context)
@@ -1849,9 +1875,7 @@ function Card:set_ability(center, initial, delay_sprites)
                     end
                 end
             end
-        end
-
-        if name == 'Red Card' then
+        elseif name == 'Red Card' then
             self.ability.extra = 6
             self.ability.cards = 3
             self.config.center.generate_ui = modified_desc
@@ -1909,7 +1933,7 @@ function Card:set_ability(center, initial, delay_sprites)
             self.ability.extra = 1
             self.config.center.generate_ui = modified_desc
         elseif name == 'Acrobat' then
-            self.ability.scaling = 0.5
+            self.ability.scaling = 0.25
             self.ability.initial = 1
             self.config.center.generate_ui = modified_desc
         elseif name == 'Campfire' then
@@ -1982,8 +2006,6 @@ function Card:set_ability(center, initial, delay_sprites)
             self.config.center.generate_ui = modified_desc
         elseif name == 'Chaos the Clown' then
             self.config.center.generate_ui = modified_desc
-        elseif name == 'Riff-Raff' then
-            self.config.center.generate_ui = modified_desc
             
         elseif name == 'Matador' then
             self.config.center.eternal_compat = false
@@ -2027,6 +2049,28 @@ function TCG_Override_Desc(self, loc_vars)
     elseif self.ability.name == 'Reroll Surplus' then loc_vars = { 2 }
     elseif self.ability.name == 'Reroll Glut' then loc_vars = { 1 }
     elseif self.ability.name == 'Hone' then loc_vars = { localize{type = 'name_text', key = 'c_wheel_of_fortune', set = 'Tarot'}, 2 }
+    elseif self.ability.name == 'Misprint' then
+        local r_mults = {}
+        for i = self.ability.extra.min, self.ability.extra.max do
+            r_mults[#r_mults+1] = tostring(i)
+        end
+        local loc_mult = ' '..(localize('k_mult'))..' '
+        main_start = {
+            {n=G.UIT.T, config={text = '  +',colour = G.C.MULT, scale = 0.32}},
+            {n=G.UIT.O, config={object = DynaText({string = r_mults, colours = {G.C.RED},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.5, scale = 0.32, min_cycle_time = 0})}},
+            {n=G.UIT.O, config={object = DynaText({string = {
+                {string = 'rand()', colour = G.C.JOKER_GREY},
+                self.area == G.jokers and
+                {string = "#@"..
+                (G.deck and G.deck.cards[1] and 
+                    (G.deck.cards[#G.deck.cards]:is_playing_card() and G.deck.cards[#G.deck.cards].base.id or G.deck.cards[#G.deck.cards].ability.name:sub(1, 1)) or 11)..
+                (G.deck and G.deck.cards[1] and
+                    (G.deck.cards[#G.deck.cards]:is_playing_card() and G.deck.cards[#G.deck.cards].base.id or G.deck.cards[#G.deck.cards].ability.set:sub(1, 1)) or 'D'), colour = G.C.RED}
+                or
+                {string = "#@"..'NOPE', colour = G.C.RED},
+                loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult},
+            colours = {G.C.UI.TEXT_DARK},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.2011, scale = 0.32, min_cycle_time = 0})}},
+        }
 
     end
 

@@ -206,8 +206,7 @@ return {
             j_vagabond_tcg={
                 name="Vagabond",
                 text={
-                    "Fills consumeables with",
-                    "random {C:purple}Tarots{}",
+                    "Draw a random {C:purple}Tarot{}",
                     "if hand is played",
                     "with {C:money}$#1#{} or less",
                 },
@@ -225,7 +224,7 @@ return {
                 name="Red Card",
                 text={
                     "Gain {C:red}+#1#{} Mult when",
-                    "discarding #2# or more",
+                    "discarding {C:attention}#2#{} or more",
                     "non playing cards",
                     "{C:inactive}(Currently {C:red}+#3#{C:inactive} Mult)",
                 },
@@ -249,7 +248,7 @@ return {
                 name="Square Joker",
                 text={
                     "This Joker gains {C:chips}+#2#{} Chips",
-                    "if played hand or discard",
+                    "if played {C:blue}hand{} or {C:red}discard",
                     "has exactly {C:attention}4{} cards",
                     "{C:inactive}(Currently {C:chips}#1#{C:inactive} Chips)",
                 },
@@ -296,6 +295,14 @@ return {
                     "when scored",
                 },
             },
+            j_riff_raff_tcg={
+                name="Riff-Raff",
+                text={
+                    "At start of {C:attention}Round{},",
+                    "draw a random {C:attention}#1# {C:blue}Common{C:attention} Joker",
+                    "{C:inactive}(Must have room)",
+                },
+            },
             j_bull_tcg={
                 name="Bull",
                 text={
@@ -316,7 +323,7 @@ return {
                 name="Cloud 9",
                 text={
                     "Reduce damage taken by",
-                    "1 every {C:attention}#1# nines{}",
+                    "{C:attention}1{} every {C:attention}#1#{} nines",
                     "in your {C:attention}full deck",
                     "{C:inactive}(Currently {C:money}$#2#{}{C:inactive})",
                 },
@@ -360,7 +367,7 @@ return {
                 name="Abstract Joker",
                 text={
                     "{C:mult}+#1#{} Mult for",
-                    "each {C:attention}Joker{} card in play",
+                    "each {C:attention}Joker{} card in game",
                     "{C:inactive}(Currently {C:red}+#2#{C:inactive} Mult)",
                 },
             },
@@ -369,7 +376,7 @@ return {
                 text={
                     "{C:red}+#1#{} Mult for number of",
                     "times {C:attention}poker hand{}",
-                    "has been played this run",
+                    "has been played this game",
                 },
             },
             j_to_the_moon_tcg={
@@ -431,8 +438,9 @@ return {
             j_luchador_tcg={
                 name="Luchador",
                 text={
-                    "Sell this card to reduce",
-                    "damage taken by {C:attention}#1#%",
+                    "Sell this card to",
+                    "reduce damage taken",
+                    "by {C:attention}#1#% this round",
                 },
             },
             j_chaos_tcg={
@@ -454,11 +462,101 @@ return {
             j_ceremonial_tcg={
                 name="Ceremonial Dagger",
                 text={
-                    "At start of round,",
-                    "destroy Joker to the right",
+                    "At start of {C:attention}Round{},",
+                    "destroy {C:attention}Joker{} to the right",
                     "and permanently add {C:attention}#1#x",
                     "its sell value to this {C:red}Mult",
                     "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)",
+                },
+            },
+            j_marble_tcg={
+                name="Marble Joker",
+                text={
+                    "Adds one {C:attention}Stone{} card",
+                    "to deck at start of {C:attention}Round{}",
+                },
+            },
+            j_sixth_sense_tcg={
+                name="Sixth Sense",
+                text={
+                    "If {C:attention}first hand{} of round is",
+                    "a single {C:attention}6{}, destroy it and",
+                    "draw a {C:spectral}Spectral{} card",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            j_card_sharp_tcg={
+                name="Card Sharp",
+                text={
+                    "{X:mult,C:white} X#1# {} Mult if played {C:attention}poker hand{}",
+                    "is the same as the",
+                    "previous {C:attention}hand{} this game",
+                },
+            },
+            j_madness_tcg={
+                name="Madness",
+                text={
+                    "At start of {C:attention}Round{},",
+                    "gain {X:mult,C:white} X#1# {} Mult",
+                    "and {C:attention}destroy{} a random Joker",
+                    "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
+                },
+            },
+            j_seance_tcg={
+                name="Séance",
+                text={
+                    "If {C:attention}poker hand{} is a",
+                    "{C:attention}#1#{}, draw a",
+                    "random {C:spectral}Spectral{} card",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            j_fortune_teller_tcg={
+                name="Fortune Teller",
+                text={
+                    "{C:red}+#1#{} Mult per {C:purple}Tarot{}",
+                    "card used this game",
+                    "{C:inactive}(Currently {C:red}+#2#{C:inactive})",
+                },
+            },
+            j_hallucination_tcg={
+                name="Hallucination",
+                text={
+                    "{C:green}#1# in #2#{} chance to draw",
+                    "a {C:tarot}Tarot{} card when played hand",
+                    "contains a non playing card",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            j_astronomer_tcg={
+                name="Astronomer",
+                text={
+                    "All {C:planet}Planet{} cards",
+                    "are {C:attention}free",
+                },
+            },
+            j_perkeo_tcg={
+                name="Perkeo",
+                text={
+                    "Creates a {C:dark_edition}Negative{} copy of",
+                    "{C:attention}1{} random {C:attention}consumable{}",
+                    "card in your possession",
+                    "at start of {C:attention}Round{},",
+                },
+                unlock={
+                    "{E:1,s:1.3}?????",
+                },
+            },
+            j_cartomancer_tcg={
+                name="Cartomancer",
+                text={
+                    "Draw a {C:tarot}Tarot{} card",
+                    "at start of {C:attention}Round{},",
+                    "{C:inactive}(Must have room)",
+                },
+                unlock={
+                    "Discover every",
+                    "{E:1,C:tarot}Tarot{} card",
                 },
             },
         },
@@ -478,8 +576,7 @@ return {
                 text={
                     "One random {C:attention}Joker",
                     "becomes {C:attention}Eternal,",
-                    "removes {C:attention}Eternal{} from",
-                    "the rest"
+                    "destroy all other Jokers",
                 },
             },
             c_wraith_tcg={
@@ -508,10 +605,19 @@ return {
                     "{C:inactive}(Must have room)",
                 },
             },
+            c_fool_tcg={
+                name="The Fool",
+                text={
+                    "Draws the last",
+                    "{C:tarot}Tarot{} or {C:planet}Planet{} card",
+                    "used during this run",
+                    "{s:0.8,C:tarot}The Fool{s:0.8} excluded",
+                },
+            },
             c_high_priestess_tcg={
                 name="The High Priestess",
                 text={
-                    "Pulls up to {C:attention}2",
+                    "Draws up to {C:attention}2",
                     "random {C:planet}Planet{} cards",
                     "from your full deck",
                     "{C:inactive}(Must have room)",
@@ -520,7 +626,7 @@ return {
             c_judgement={
                 name="Judgement",
                 text={
-                    "Pulls a random",
+                    "Draws a random",
                     "{C:attention}Joker{} card",
                     "from your full deck",
                     "{C:inactive}(Must have room)",
@@ -704,11 +810,13 @@ return {
 			b_tcgtab_deck = "Build Deck",
 			b_tcgtab_online = "Online Match",
 			b_tcgtab_online_start = "Online Match",
-			b_tcgtab_online_cant = "Incompatible Server",
+			b_tcgtab_online_incompat = "Incompatible Server",
+			b_tcgtab_online_no_mp = "No Multiplayer Mod",
 			b_tcgtab_select = "Select Deck",
             
 			b_tcg_opponent = "Opponent",
 			b_tcg_healthopponent = "Health",
+			b_tcg_return = "Return",
 
 			b_tcg_attack = "Attack",
 			b_tcg_graveyard = "Graveyard",

@@ -491,13 +491,22 @@ target = 'functions/UI_definitions.lua'
 pattern = "local use = nil"
 position = "after"
 payload = '''
-if BalatroTCG.GameActive and card.area == G.hand then
-    return {
-    n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
-        {n=G.UIT.R, config={ref_table = card, r = 0.08, padding = 0.1, align = "bmi", minw = 0.5*card.T.w - 0.15, minh = 0.8*card.T.h, maxw = 0.7*card.T.w - 0.15, hover = true, shadow = true, colour = G.C.UI.BACKGROUND_INACTIVE, one_press = true, button = 'buy_from_shop', func = 'can_buy_tcg'}, nodes={
-        {n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = card, ref_value = 'cost'}}, colours = {G.C.UI.TEXT_LIGHT},shadow = true, silent = true, bump = true, pop_in = 0, scale = 0.5})}},
-        }},
-    }}
+if BalatroTCG.GameActive then
+    if card.area == G.hand then
+        return {
+        n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
+            {n=G.UIT.R, config={ref_table = card, r = 0.08, padding = 0.1, align = "bmi", minw = 0.5*card.T.w - 0.15, minh = 0.8*card.T.h, maxw = 0.7*card.T.w - 0.15, hover = true, shadow = true, colour = G.C.UI.BACKGROUND_INACTIVE, one_press = true, button = 'buy_from_shop', func = 'can_buy_tcg'}, nodes={
+            {n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = card, ref_value = 'cost'}}, colours = {G.C.UI.TEXT_LIGHT},shadow = true, silent = true, bump = true, pop_in = 0, scale = 0.5})}},
+            }},
+        }}
+    elseif card:is_playing_card() and card.area == G.consumeables then
+        return {
+        n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
+            {n=G.UIT.R, config={ref_table = card,  align = "cr",padding = 0.1, r=0.08, minw = 1.25, minh = 1, hover = true, shadow = true, colour = G.C.ORANGE, one_press = true, button = 'playing_card_to_hand'}, nodes={
+                {n=G.UIT.T, config={text = localize('b_tcg_return'),colour = G.C.UI.TEXT_LIGHT, scale = 0.4, shadow = true}}
+            }},
+        }}
+    end
 end
 '''
 match_indent = true
@@ -551,9 +560,46 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
+pattern = "elseif self.ability.name == 'Misprint' then"
+position = "before"
+payload = '''
+elseif self.ability.name == 'Misprint' and BalatroTCG.UseTCG_UI then
+    local r_mults = {}
+    for i = self.ability.extra.min, self.ability.extra.max do
+        r_mults[#r_mults+1] = tostring(i)
+    end
+    local loc_mult = ' '..(localize('k_mult'))..' '
+    main_start = {
+        {n=G.UIT.T, config={text = '  +',colour = G.C.MULT, scale = 0.32}},
+
+        {n=G.UIT.O, config={object = DynaText({string = r_mults, colours = {G.C.RED},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.5, scale = 0.32, min_cycle_time = 0})}},
+        self.area == G.jokers and
+        {n=G.UIT.O, config={object = DynaText({string = {
+            {string = 'rand()', colour = G.C.JOKER_GREY},
+            {string = "#@".. 
+            (G.deck and G.deck.cards[1] and (G.deck.cards[#G.deck.cards]:is_playing_card() and 
+                (G.deck.cards[#G.deck.cards].base.id .. G.deck.cards[#G.deck.cards].base.suit:sub(1,1)) or 
+                (G.deck.cards[#G.deck.cards].ability.set:sub(1, 1))) or '11D'), colour = G.C.RED},
+            loc_mult, loc_mult, loc_mult, loc_mult },
+            colours = {G.C.UI.TEXT_DARK},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.2011, scale = 0.32, min_cycle_time = 0})}}
+        or
+        {n=G.UIT.O, config={object = DynaText({string = {
+            {string = 'rand()', colour = G.C.JOKER_GREY},
+            {string = "#@"..'NOPE', colour = G.C.RED},
+            loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult},
+        colours = {G.C.UI.TEXT_DARK},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.2011, scale = 0.32, min_cycle_time = 0})}},
+            
+    }
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
 pattern = "if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) then"
 position = "at"
-payload = '''if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) or (BalatroTCG.GameActive and self.ability.set == 'Voucher') then
+payload = '''if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) or (BalatroTCG.GameActive and self.ability.set == 'Voucher') or (G.GAME.modifiers.buy_cards and self:is_playing_card()) then
 '''
 match_indent = true
 overwrite = true
@@ -800,7 +846,7 @@ if BalatroTCG.GameActive then
 
             for i = 1, columns do
                 local greyed, _scale = nil, 0.7
-                if unplayed_only and false then
+                if unplayed_only and not (items[1].area and items[1].area == G.deck) then
                     greyed = true
                 end
                 local copy = copy_card(items[1], nil, _scale)

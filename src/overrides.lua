@@ -532,6 +532,88 @@ function Back:trigger_effect(args)
     end
 end
 
+G.FUNCS.playing_card_to_consumables = function(e)
+    local c1 = e.config.ref_table
+    if c1 and c1:is(Card) then
+        if not G.FUNCS.check_for_buy_space(c1) then
+            e.disable_button = nil
+            return false
+        end
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.1,
+            func = function()
+                c1.from_area = c1.area
+                c1.area:remove_card(c1)
+                c1:add_to_deck()
+                if c1.children.price then c1.children.price:remove() end
+                c1.children.price = nil
+                if c1.children.buy_button then c1.children.buy_button:remove() end
+                c1.children.buy_button = nil
+                remove_nils(c1.children)
+
+                G.consumeables:emplace(c1)
+                --Tallies for unlocks
+                G.GAME.round_scores.cards_purchased.amt = G.GAME.round_scores.cards_purchased.amt + 1
+                
+                SMODS.calculate_context({buying_card = true, card = c1})
+
+                if G.GAME.modifiers.inflation then 
+                    G.GAME.inflation = G.GAME.inflation + 1
+                    G.E_MANAGER:add_event(Event({func = function()
+                        for k, v in pairs(G.I.CARD) do
+                            if v.set_cost then v:set_cost() end
+                        end
+                    return true end }))
+                end
+
+                play_sound('card1')
+                inc_career_stat('c_shop_dollars_spent', c1.cost)
+
+                if c1.cost ~= 0 then
+                    ease_dollars(-c1.cost)
+                    if BalatroTCG.GameActive then
+                        BalatroTCG.Status_Current:add_play_stats('purchase', c1.cost, BalatroTCG.Status_Current.status.round)
+                    end
+                end
+                G.CONTROLLER:save_cardarea_focus('jokers')
+                G.CONTROLLER:recall_cardarea_focus('jokers')
+
+                return true
+            end
+        }))
+    end
+end
+G.FUNCS.playing_card_to_hand = function(e)
+    local c1 = e.config.ref_table
+    if c1 and c1:is(Card) then
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.1,
+            func = function()
+                c1.from_area = c1.area
+                c1.area:remove_card(c1)
+                c1:add_to_deck()
+                if c1.children.price then c1.children.price:remove() end
+                c1.children.price = nil
+                if c1.children.buy_button then c1.children.buy_button:remove() end
+                c1.children.buy_button = nil
+                remove_nils(c1.children)
+
+                G.hand:emplace(c1)
+                
+                play_sound('card1')
+
+                G.CONTROLLER:save_cardarea_focus('jokers')
+                G.CONTROLLER:recall_cardarea_focus('jokers')
+
+                return true
+            end
+        }))
+    end
+end
+
 G.FUNCS.can_buy_tcg = function(e)
     local v = e.config.ref_table
 
@@ -554,7 +636,13 @@ G.FUNCS.can_buy_tcg = function(e)
         e.config.button = nil
     else
         e.config.colour = G.C.ORANGE
-        e.config.button = v.ability.set == 'Voucher' and 'use_card' or 'buy_from_shop'
+        if v.ability.set == 'Voucher' then
+            e.config.button = 'use_card'
+        elseif v:is_playing_card() then
+            e.config.button = 'playing_card_to_consumables'
+        else
+            e.config.button = 'buy_from_shop'
+        end
     end
     if e.config.ref_parent and e.config.ref_parent.children.buy_and_use then
       if e.config.ref_parent.children.buy_and_use.states.visible then
@@ -932,12 +1020,11 @@ local G_FUNCS_can_discard_ref = G.FUNCS.can_discard
 G.FUNCS.can_discard = function(e)
     G_FUNCS_can_discard_ref(e)
 
-    if BalatroTCG.GameActive then
-        if G.GAME.used_vouchers['v_reroll_surplus'] then
-            e.config.colour = G.C.RED
-            e.config.button = 'discard_cards_from_highlighted'
-        end
+    if G.deck and G.deck.cards[1] and G.GAME.modifiers.extra_discard and (G.GAME.modifiers.extra_discard < G.GAME.dollars - G.GAME.bankrupt_at) then
+        e.config.colour = G.C.RED
+        e.config.button = 'discard_cards_from_highlighted'
     end
+    
 end
 
 function pick_from_areas(check, areas, seed)
