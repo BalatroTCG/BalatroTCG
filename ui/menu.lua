@@ -589,7 +589,6 @@ function create_tcg_builder(type, callback)
 	else
 		G.CARD_POOL = {}
 		for k, v in pairs(G.P_CENTER_POOLS[type]) do
-			if not v.omit and not (string.sub(v.key, 1, 4) == 'j_mp'
 			if not (string.sub(v.key, 1, 4) == 'j_mp' or 
 			string.sub(v.key, 1, 4) == 'c_mp'
 			-- and string.find(v.key, '_sandbox') -- TODO: add multiplayer joker functionality
