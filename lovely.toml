@@ -721,7 +721,7 @@ target = 'functions/common_events.lua'
 pattern = '''if v == 'eternal' then info_queue[#info_queue+1] = {key = 'eternal', set = 'Other'} end'''
 position = "after"
 payload = '''
-if v == 'tcg_health' then info_queue[#info_queue+1] = {key = 'tcg_joker_health', set = 'Other', vars = {25, specific_vars.health_amount or 0}} end
+if v == 'tcg_health' then info_queue[#info_queue+1] = {key = 'tcg_joker_health', set = 'Other', vars = {25, specific_vars.health_amount or -20}} end
 '''
 match_indent = true
 overwrite = true

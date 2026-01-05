@@ -210,11 +210,11 @@ function TCG_PlayerStatus:apply()
     G.deck:shuffle('nr' .. self.status.round)
     SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind})
     
-    for k, joker in ipairs(self.jokers.cards) do
-        if joker.ability.d_size > 0 then
-            ease_discard(joker.ability.d_size)
-        end
-    end
+    -- for k, joker in ipairs(self.jokers.cards) do
+    --     if joker.ability.d_size > 0 then
+    --         ease_discard(joker.ability.d_size)
+    --     end
+    -- end
     
 
     for k, v in ipairs(self.playing_cards) do 
@@ -307,7 +307,6 @@ function TCG_PlayerStatus:receive_message(message)
                 local card = Card(self.opponentJokers.T.x, self.opponentJokers.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
                 card:flip()
                 card.states.drag.can = false
-
                 self.opponentJokers:emplace(card, nil, true)
             end
 

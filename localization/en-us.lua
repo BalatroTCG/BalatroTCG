@@ -572,8 +572,8 @@ return {
             tcg_joker_health={
                 name="Health",
                 text={
-                    "Destroyed after taking",
-                    "{C:attention}#1#{} damage",
+                    "Destroyed when losing",
+                    "all it's health",
                     "{C:inactive}({C:attention}#2#{C:inactive} remaining)",
                 },
             },

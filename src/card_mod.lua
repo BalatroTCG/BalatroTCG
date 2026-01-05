@@ -2130,7 +2130,32 @@ function Card:set_tcg_health(_amount)
 end
 function Card:remove_tcg_health(_amount) 
     if not self.ability.eternal then
-        self:set_tcg_health((self.ability.health_amount or 0) - _amount)
+        self.ability.health_amount = (self.ability.health_amount or 0)
+        if self.ability.health_amount - _amount <= 0 then
+            self.skip_destroy_animation = true
+        end
+        self:set_tcg_health(self.ability.health_amount - _amount)
 
+        local dissolve_time = 0.7
+        self.dissolve_colours = {{1,1,1,0.8}}
+        local childParts = Particles(0, 0, 0,0, {
+            timer_type = 'TOTAL',
+            timer = 0.007*dissolve_time,
+            scale = 0.3,
+            speed = 4,
+            lifespan = 1.5*dissolve_time,
+            attach = self,
+            colours = self.dissolve_colours,
+            fill = true
+        })
+
+        card_eval_status_text(self, 'extra', nil, nil, nil, {message = tostring(self.ability.health_amount), colour = G.C.RED})
+
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            blockable = false,
+            delay =  0.5*dissolve_time,
+            func = (function() childParts:fade(0.15*dissolve_time) return true end)
+        }))
     end
 end

@@ -443,7 +443,8 @@ function end_tcg_round()
 
         Client.send({action = "tcgEndTurn", damage = damage, index = index })
     else
-        BalatroTCG.Status_Current:send_message({type = 'attack', damage = message.damage, key = BalatroTCG.Status_Current.status.round })
+
+        BalatroTCG.Status_Current:send_message({type = 'attack', damage = damage, index = index, key = BalatroTCG.Status_Current.status.round })
     end
 
 
@@ -565,7 +566,7 @@ function switch_player(playerActive)
     
     BalatroTCG.PlayerActive = playerActive
     if BalatroTCG.PlayerActive then
-        ease_background_colour_blind(G.STATE, 'Small Blind')
+        --ease_background_colour_blind(G.STATE, 'Small Blind')
         --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
 
         if BalatroTCG.Status_Current then BalatroTCG.Opponent:pass_over() end
@@ -575,7 +576,7 @@ function switch_player(playerActive)
         
         BalatroTCG.Player:apply()
     else
-        ease_background_colour_blind(G.STATE, 'Crimson Heart')
+        --ease_background_colour_blind(G.STATE, 'Crimson Heart')
         -- BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
         -- if _RELEASE_MODE and not (MP and MP.LOBBY and MP.LOBBY.code) then
         --     G.SETTINGS.GAMESPEED = 1000
