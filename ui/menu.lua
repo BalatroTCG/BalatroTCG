@@ -43,6 +43,7 @@ end
 
 G.FUNCS.RUN_SETUP_check_tcg_back = function(e)
 	if BalatroTCG.DeckIndex ~= e.config.id then 
+		--print('Stuff')
 		--removes the UI from the previously selected back and adds the new one
 
 		for k, v in ipairs(BalatroTCG.DeckArea.cards) do
@@ -222,6 +223,9 @@ function select_tcg_deck(tab_type)
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
+		if #BalatroTCG.TabDecks < 1 then
+			BalatroTCG.TabDecks[1] = get_new_tcg_deck()
+		end
 		BalatroTCG.TabDecks[#BalatroTCG.TabDecks + 1] = 'new'
 	elseif tab_type == 'legal' then
 		
@@ -262,6 +266,7 @@ function select_tcg_deck(tab_type)
 		end
 	end
 
+	
 	BalatroTCG.DeckIndex = index
 	
 	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[index]
@@ -278,6 +283,13 @@ function select_tcg_deck(tab_type)
 		card.facing = 'back'
 		BalatroTCG.DeckArea:emplace(card)
 	end
+	
+	-- print('-----')
+	-- print('asdf')
+	-- print('-----')
+	-- print(BalatroTCG.DeckIndex)
+	-- print(#BalatroTCG.TabDecks)
+
 
 	return { n = G.UIT.R, config = { align = 'cm', minh = 1, minw = 1, colour = G.C.CLEAR, }, nodes = {
 		create_option_cycle({options = BalatroTCG.TabDecks, opt_callback = callback, current_option = index, colour = G.C.RED, w = 3.5, mid = 
@@ -446,7 +458,7 @@ function G.FUNCS.set_betting(e)
 		if player_goes then
 			if (BalatroTCG.BetAmount > 0) then ease_dollars(-BalatroTCG.BetAmount) end
 		else
-			BalatroTCG.Player:send_message({ type = 'attack', damage = ai_bet, index = 0 })
+			BalatroTCG.Player:send_message({ type = 'attack', damage = ai_bet, index = 0, key = 'start' })
 		end
 		
 		G.SETTINGS.paused = false
@@ -729,7 +741,7 @@ G.FUNCS.tcg_start_build = function(e)
 	BalatroTCG.BuildingDeck = BalatroTCG.SelectedDeck
 	
 	if BalatroTCG.BuildingDeck == 'new' then
-		BalatroTCG.BuildingDeck = get_new_deck()
+		BalatroTCG.BuildingDeck = get_new_tcg_deck()
 	end
 
 	G.FUNCS.overlay_menu{

@@ -48,15 +48,15 @@ function TCG_AI:run()
             func = function()
 
                 if #G.play.cards > 0 then
-                    print('Skipping')
+                    --print('Skipping')
                     self.run_event = nil
                     return true
                 end
 
-                print('')
-                print('')
-                print('')
-                print('Analyzing')
+                --print('')
+                --print('')
+                --print('')
+                --print('Analyzing')
                 
                 local hand_strength = {}
 
@@ -106,7 +106,7 @@ function TCG_AI:run()
                         SMODS.calculate_context({using_consumeable = true, consumeable = card, area = card.from_area})
                         card:start_dissolve()
                         
-                        print('Using ' .. card.ability.name)
+                        --print('Using ' .. card.ability.name)
 
                         delay(1.2)
 
@@ -197,7 +197,7 @@ function TCG_AI:run()
                         end
                         stats.play_stat = play_stat
 
-                        --print('Stats for ' .. tostring(v.base.id) .. ' ' .. tostring(v.base.suit) .. ': ' .. tostring(play_stat))
+                        ----print('Stats for ' .. tostring(v.base.id) .. ' ' .. tostring(v.base.suit) .. ': ' .. tostring(play_stat))
                         
                     else
                         stats = {
@@ -223,7 +223,7 @@ function TCG_AI:run()
                         
                         stats.buy_stat = (stats.chips * self.chip_power + stats.mult * self.mult_power + math.log(math.max(stats.x_mult, 1)) * self.x_mult_power) - (stats.cost / budget) * self.purchase_fear
                         
-                        print(v.ability.name .. ', ' .. tostring(stats.buy_stat))
+                        --print(v.ability.name .. ', ' .. tostring(stats.buy_stat))
                     end
                     stats.discard_weight = {
                         any = 0,
@@ -239,7 +239,7 @@ function TCG_AI:run()
                             chips = G.GAME.hands[k].chips,
                             mult = G.GAME.hands[k].mult,
                         }
-                        --print('Can play ' .. k)
+                        ----print('Can play ' .. k)
 
                         local best, weight = {}, 0
                         
@@ -247,7 +247,7 @@ function TCG_AI:run()
                             local cards = SMODS.shallow_copy(v[ind])
                             local can_remove = true
 
-                            --print(k .. tostring(ind) .. ', ' .. #cards)
+                            ----print(k .. tostring(ind) .. ', ' .. #cards)
 
                             while #cards > 1 and can_remove do
                                 can_remove = false
@@ -283,7 +283,7 @@ function TCG_AI:run()
 
 
                         if #best > 0 and #best <= 5 then
-                            --print(k .. ' size is ' .. tostring(#best))
+                            ----print(k .. ' size is ' .. tostring(#best))
                             strength[k].cards = best
 
                             for __, card in ipairs(strength[k].cards) do
@@ -496,7 +496,7 @@ function TCG_AI:run()
                 if best_hand.hand == 'purchase' then
                     self.button = 'purchase'
 
-                    print('Buying ' .. best_hand.card.ability.name)
+                    --print('Buying ' .. best_hand.card.ability.name)
 
                     G.hand:add_to_highlighted(best_hand.card, true)
 
@@ -510,17 +510,17 @@ function TCG_AI:run()
                         end
                     end
                     
-                    print('Discarding ' .. tostring(#G.hand.highlighted) .. ' for ' .. best_hand.hand)
+                    --print('Discarding ' .. tostring(#G.hand.highlighted) .. ' for ' .. best_hand.hand)
                 elseif strength[best_hand.hand].canplay == 1 and strength[best_hand.hand].cards then
                     self.button = 'play_button'
 
-                    print('Playing ' .. best_hand.hand .. ' at ' .. tostring(#strength[best_hand.hand].cards) .. ' card length')
+                    --print('Playing ' .. best_hand.hand .. ' at ' .. tostring(#strength[best_hand.hand].cards) .. ' card length')
 
                     for k, v in ipairs(strength[best_hand.hand].cards) do
                         G.hand:add_to_highlighted(v, true)
                     end
                 else
-                    print('Gave up')
+                    --print('Gave up')
                     self.button = 'play_button'
                     for i = 1, #G.hand.cards do
                         if #G.hand.highlighted >= 5 then break end
@@ -537,8 +537,8 @@ function TCG_AI:run()
 
                 --delay(2.0)
 
-                --print('')
-                --print('')
+                ----print('')
+                ----print('')
 
                 self.run_event = nil
                 return true
@@ -594,7 +594,7 @@ function Card:estimate_score(context)
     local round_stats = context.round_stats
 
     if obj.tcg_estimate and type(obj.tcg_estimate) == 'function' then
-        print('Custom Function for ' .. self.ability.name)
+        --print('Custom Function for ' .. self.ability.name)
         return obj.tcg_estimate(self, context)
     elseif self.ability.set == 'Joker' then
 
@@ -619,7 +619,7 @@ function Card:estimate_score(context)
                         for suit, _ in pairs(SMODS.Suits) do
                             local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_playing_card() and e.base.suit == suit end)
     
-                            print(amount)
+                            --print(amount)
                             total = total + amount * card_vision / #context.full_deck
                         end
 

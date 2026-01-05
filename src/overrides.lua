@@ -59,7 +59,7 @@ function Card:highlight(is_higlighted)
             for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do
                 if self.tcg_deck_type == v then goto skip end
             end
-            print(self.tcg_deck_type)
+            --print(self.tcg_deck_type)
             table.insert(BalatroTCG.BuildingDeck.backs, self.tcg_deck_type)
             ::skip::
         else
@@ -110,12 +110,47 @@ end
 local Game_save_settings_ref = Game.save_settings
 function Game:save_settings()
     
-    local temp = G.SETTINGS.GAMESPEED
-    G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed
+    --local temp = G.SETTINGS.GAMESPEED
+    --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed
 
     Game_save_settings_ref(self)
 
-    G.SETTINGS.GAMESPEED = temp
+    --G.SETTINGS.GAMESPEED = temp
+end
+
+local Card_calculate_seal = Card.calculate_seal
+function Card:calculate_seal(context)
+
+    if BalatroTCG.GameActive and context.discard and context.other_card == self then
+        local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+        local status = BalatroTCG.Status_Current
+        
+        
+        if card and self.seal == 'Purple' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+            card.area:remove_card(card)
+
+            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+            G.E_MANAGER:add_event(Event({
+                trigger = 'before',
+                delay = 0.0,
+                func = (function()
+                    card:start_materialize()
+                    status.consumeables:emplace(card)
+
+                    for _, c in ipairs(G.playing_cards) do
+                        if c == card then
+                            goto skip
+                        end
+                    end
+                    table.insert(status.playing_cards, card)
+                    ::skip::
+                    return true
+                end)}))
+            card_eval_status_text(self, 'extra', nil, nil, nil, {message = localize('k_plus_tarot'), colour = G.C.PURPLE})
+            return nil, true
+        end
+    end
+    return Card_calculate_seal(self, context)
 end
 
 function G.UIDEF.tcg_add_to_deck(e)
@@ -287,6 +322,11 @@ function Card:can_use_consumeable(any_state, skip_check)
                 return false
             end
             
+        elseif self.ability.name == 'Strength' then
+            for k, v in ipairs(G.hand.highlighted) do
+                if not v:is_playing_card() then return false end
+            end
+
         elseif self.ability.effect == 'Suit Conversion' then
             if BalatroTCG.Unbalance then return true end
             
@@ -971,7 +1011,7 @@ end
 
 local create_UIBox_options_ref = create_UIBox_options
 function create_UIBox_options()
-    G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
+    --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
     return create_UIBox_options_ref()
 end
 

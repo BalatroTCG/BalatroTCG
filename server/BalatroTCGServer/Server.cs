@@ -54,6 +54,9 @@ namespace BalatroTCGServer {
 								removeLobbies.Add(lobby.Key);
 							}
 						}
+						else {
+							lobby.Value.Update();
+						}
 					}
 					foreach (var key in removeLobbies) {
 						lobbies.Remove(key);
@@ -132,6 +135,8 @@ namespace BalatroTCGServer {
 			SendPacket(("action", "version"));
 		}
 
+		int bracketCount = 0;
+
 		async Task ReadTask() {
 			while (Connected) {
 				await socket.ReceiveAsync(receiveBuffer);
@@ -143,37 +148,59 @@ namespace BalatroTCGServer {
 					for (int i = 0; i < receiveBuffer.Length; i++) {
 						if (receiveBuffer[i] == 10) {
 
-							if (inputData.ToString() == "\"ce_cache\"") {
-								inputData.Clear();
+							Console.WriteLine();
+							Console.WriteLine();
+
+							string value = inputData.ToString();
+							inputData.Clear();
+							bracketCount = 0;
+
+
+							if (value == "\"ce_cache\"") {
 								break;
 							}
 
+							//Console.WriteLine(value);
+							//Console.WriteLine();
 
-							//if (!inputData.ToString().Contains("keepAlive"))
-							//	Console.WriteLine(inputData.ToString());
 
-							JObject obj = JsonConvert.DeserializeObject<JObject>(inputData.ToString());
 
-							if (obj["action"] != null) {
-								string action = (string)obj["action"];
+							while (value != null && value.Contains('{')) {
 
-								switch (action) {
-									default:
-										OnReceive?.Invoke(obj);
-										//Console.WriteLine($"Received {obj["action"]!}");
-										break;
-									case "keepAlive":
-										SendPacket(("action", "keepAliveAck"));
-										break;
-									case "keepAliveAck":
-										break;
+
+								JObject obj = JsonConvert.DeserializeObject<JObject>(value);
+
+								if (obj["action"] != null) {
+									string action = (string)obj["action"];
+
+										//if (action == "tcgEndTurn")
+										//	Console.WriteLine();
+
+										switch (action) {
+										default:
+											OnReceive?.Invoke(obj);
+											//Console.WriteLine($"Received {obj["action"]!}");
+											break;
+										case "keepAlive":
+											SendPacket(("action", "keepAliveAck"));
+											break;
+										case "keepAliveAck":
+											break;
+									}
 								}
+
+								value = null;
 							}
 
-							inputData.Clear();
 							break;
 						}
 						else {
+							if ((char)receiveBuffer[i] == 10) {
+								Console.WriteLine();
+							}
+							else {
+								Console.Write((char)receiveBuffer[i]);
+							}
 							inputData.Append((char)receiveBuffer[i]);
 						}
 					}
@@ -182,6 +209,7 @@ namespace BalatroTCGServer {
 					Console.WriteLine($"Error reading input {e}");
 					Console.WriteLine($"{inputData}");
 					inputData.Clear();
+					bracketCount = 0;
 				}
 			}
 		}
@@ -219,8 +247,8 @@ namespace BalatroTCGServer {
 					
 					if (!j["action"].ToString().Contains("keepAlive")) {
 
-						Console.WriteLine($"");
-						Console.WriteLine($"Sending {data} at {fullData.Length + 1}");
+						//Console.WriteLine($"");
+						//Console.WriteLine($"Sending {data} at {fullData.Length + 1}");
 					}
 
 					List<ArraySegment<byte>> segments = new List<ArraySegment<byte>>();
@@ -349,6 +377,11 @@ namespace BalatroTCGServer {
 			Socket.SendPacket(data);
 		}
 	}
+	class Attack {
+		public int Damage, Joker;
+		public Client Client;
+		public int Delay;
+	}
 	internal class Lobby {
 
 		public int EmptyTime;
@@ -462,12 +495,25 @@ namespace BalatroTCGServer {
 		Dictionary<string, string> Options;
 		Dictionary<Client, int> Bets;
 
+		Dictionary<string, Attack> Attacks = new Dictionary<string, Attack>();
+		Random rng = new Random();
+
+		Client activePlayer;
+		Client ActivePlayer {
+			get { return activePlayer; }
+			set {
+				activePlayer = value;
+				pokeWaitTimer = 0;
+			}
+		}
+		int pokeWaitTimer;
+		int roundAmount = 0;
+
 		public Lobby(string gamemode) {
 			ConnectedPlayers = new List<Client>();
 			Options = new Dictionary<string, string>();
 			Bets = new Dictionary<Client, int>();
 			GameMode = gamemode;
-			Random rng = new Random();
 			LobbyCode = "";
 			for (int i = 0; i < 5; i++) {
 				LobbyCode += ValidCodeChars[rng.Next(ValidCodeChars.Length)];
@@ -560,9 +606,50 @@ namespace BalatroTCGServer {
 		}
 
 		void StopGame() {
+
+			Attacks.Clear();
+			activePlayer = null;
 			for (int i = 0; i < ConnectedPlayers.Count; i++) {
 				ConnectedPlayers[i].Send(("action", "stopGame"));
 				ConnectedPlayers[i].Ready = false;
+			}
+		}
+
+		public void Update() {
+			lock (Attacks) {
+				foreach (var key in Attacks.Keys) {
+					var attack = Attacks[key];
+					attack.Delay++;
+
+					if (attack.Delay > 10) {
+						attack.Delay = 0;
+
+						for (int i = 0; i < ConnectedPlayers.Count; i++) {
+							if (ConnectedPlayers[i] != attack.Client)
+								ConnectedPlayers[i].Send(("action", "tcgPlayerStatus"), ("damage", attack.Damage), ("index", attack.Joker), ("type", "attack"), ("key", key));
+						}
+
+					}
+				}
+			}
+			
+			for (int i = ConnectedPlayers.Count - 1; i >= 0; i--) {
+				if (!ConnectedPlayers[i].Connected) {
+					RemoveClient(ConnectedPlayers[i]);
+					if (InGame) {
+						StopGame();
+					}
+				}
+			}
+
+			if (activePlayer != null) {
+				pokeWaitTimer++;
+
+				if (pokeWaitTimer > 500) {
+					pokeWaitTimer = 0;
+
+					activePlayer.Send(("action", "tcgIsWaiting"));
+				}
 			}
 		}
 
@@ -607,6 +694,8 @@ namespace BalatroTCGServer {
 
 						var first = best[Random.Shared.Next(0, best.Count)];
 
+						ActivePlayer = first;
+
 						for (int i = 0; i < ConnectedPlayers.Count; i++) {
 							ConnectedPlayers[i].Send(("action", "tcgPlayerStatus"), ("type", "ready"), ("damage", (first == ConnectedPlayers[i] ? bestBet : 0)), ("starting", first == ConnectedPlayers[i]));
 						}
@@ -619,21 +708,47 @@ namespace BalatroTCGServer {
 							continue;
 						ConnectedPlayers[i].Send(data);
 					}
+
 					break;
 				case "startGame":
 					string seed = GenerateSeed();
+					roundAmount = 0;
 					for (int i = 0; i < ConnectedPlayers.Count; i++) {
 						ConnectedPlayers[i].Send(("action", "startGame"), ("seed", seed), ("starting", false));
 					}
 					break;
 				case "startPlaying":
 					break;
-				case "tcgEndTurn":
-					for (int i = 0; i < ConnectedPlayers.Count; i++) {
-						if (ConnectedPlayers[i] != client)
-							ConnectedPlayers[i].Send(("action", "tcgStartTurn"));
+				case "tcgReceiveAttack": {
+					lock (Attacks) {
+						Attacks.Remove(data["key"].ToString());
 					}
+
 					break;
+				}
+				case "tcgEndTurn": {
+
+					string Key = LobbyCode + '_';
+
+					//var attack = new Attack() {
+					//	Damage = ,
+					//	Joker = int.Parse(data["index"].ToString()),
+					//	Client = client,
+					//	Delay = 10000,
+					//};
+
+					roundAmount++;
+
+					for (int i = 0; i < ConnectedPlayers.Count; i++) {
+						if (ConnectedPlayers[i] != client) {
+
+							ActivePlayer = ConnectedPlayers[i];
+							ConnectedPlayers[i].Send(("action", "tcgStartTurn"), ("damage", int.Parse(data["damage"].ToString())), ("index", int.Parse(data["index"].ToString())), ("key", roundAmount) );
+						}
+					}
+
+					break;
+				}
 				case "stopGame":
 					StopGame();
 					Bets.Clear();

@@ -181,6 +181,8 @@ end
 function Game:start_tcg_game(args)
     args = args or {}
 
+    BalatroTCG.GameStarted = false
+
     G.SAVED_GAME = nil
     G.hand = nil
     G.jokers = nil
@@ -195,7 +197,7 @@ function Game:start_tcg_game(args)
     G.STATE_COMPLETE = false
     G.RESET_BLIND_STATES = true
 
-    ease_background_colour_blind(G.STATE, 'Small Blind')
+    ease_background_colour_blind(G.STATES.SHOP)
     
     self.GAME = self:init_game_object()
     self.GAME.modifiers = {}
@@ -209,8 +211,8 @@ function Game:start_tcg_game(args)
     self.GAME.subhash = ''
     self.GAME.pseudorandom.hashed_seed = pseudohash(self.GAME.pseudorandom.seed)
 
-    print(self.GAME.pseudorandom.seed)
-    BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
+    --print(self.GAME.pseudorandom.seed)
+    --BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
     BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
     local playerDeck = BalatroTCG.SelectedDeck
@@ -394,7 +396,15 @@ function TCG_GetDamage()
     if value > 0 then
         value = math.log10(value)
         value = value * value
-        return math.floor(value)
+        local value = math.floor(value)
+
+        for k, v in ipairs(BalatroTCG.Status_Current.backs) do
+            if v.name == 'Plasma Deck' then value = value / 2 end
+        end
+        
+        value = math.floor(value)
+        
+        return value
     else
         return 0
     end
@@ -414,12 +424,29 @@ function end_tcg_round()
     
     BalatroTCG.Switching = true
     
+    local damage = TCG_GetDamage()
+    local index = 0
+    
+    if damage > 0 then
+        table.sort(BalatroTCG.Status_Current.opponentJokers.cards, function(a,b) return a.T.x < b.T.x end)
+        for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+            if joker.highlighted then
+                index = i
+            end
+        end
+    end
+    BalatroTCG.Status_Current.last_attack = damage
+    BalatroTCG.Status_Current.last_target = index
+
     if BalatroTCG.MP_Lobby then
-        BalatroTCG.Player:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
-        Client.send({action = "tcgEndTurn" })
+        BalatroTCG.Status_Current:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
+
+        Client.send({action = "tcgEndTurn", damage = damage, index = index })
+    else
+        BalatroTCG.Status_Current:send_message({type = 'attack', damage = message.damage, key = BalatroTCG.Status_Current.status.round })
     end
 
-    local damage = TCG_GetDamage()
+
 
 
     if BalatroTCG.PlayerActive then
@@ -482,16 +509,6 @@ function end_tcg_round()
             v.ability.forced_selection = nil
         end
 
-        if damage > 0 then
-            local index = 0
-            table.sort(BalatroTCG.Status_Current.opponentJokers.cards, function(a,b) return a.T.x < b.T.x end)
-            for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
-                if joker.highlighted then
-                    index = i
-                end
-            end
-            BalatroTCG.Status_Current:send_message({ type = 'attack', damage = damage, index = index })
-        end
         
         
         G.E_MANAGER:add_event(Event({
@@ -548,7 +565,8 @@ function switch_player(playerActive)
     
     BalatroTCG.PlayerActive = playerActive
     if BalatroTCG.PlayerActive then
-        G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
+        ease_background_colour_blind(G.STATE, 'Small Blind')
+        --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
 
         if BalatroTCG.Status_Current then BalatroTCG.Opponent:pass_over() end
         
@@ -557,11 +575,11 @@ function switch_player(playerActive)
         
         BalatroTCG.Player:apply()
     else
-        
-        BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
-        if _RELEASE_MODE and not (MP and MP.LOBBY and MP.LOBBY.code) then
-            G.SETTINGS.GAMESPEED = 1000
-        end
+        ease_background_colour_blind(G.STATE, 'Crimson Heart')
+        -- BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
+        -- if _RELEASE_MODE and not (MP and MP.LOBBY and MP.LOBBY.code) then
+        --     G.SETTINGS.GAMESPEED = 1000
+        -- end
         
         if BalatroTCG.Status_Current then BalatroTCG.Player:pass_over() end
 

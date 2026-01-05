@@ -95,7 +95,7 @@ return {
                     "Balance {C:blue}Chips{} and",
                     "{C:red}Mult{} when calculating",
                     "score for played hand",
-                    "Take {C:red}#1#{} damage per {C:attention}#2#{} dealt",
+                    "Deal {C:red}half{} damage",
                 },
             },
             b_red_tcg={
@@ -258,7 +258,7 @@ return {
                 text={
                     "Played {C:attention}face{} cards have",
                     "a {C:green}#1# in #2#{} chance to",
-                    "give {C:money}$1{} when scored",
+                    "give {C:money}$2{} when scored",
                 },
             },
             j_rocket_tcg={
@@ -285,6 +285,14 @@ return {
                     "Gain {X:mult,C:white} X#1# {} Mult at end of round",
                     "and {C:attention}destroy{} a random Joker",
                     "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
+                },
+            },
+            j_burglar_tcg={
+                name="Burglar",
+                text={
+                    "At start of {C:attention}Round{},",
+                    "gain {C:blue}+#1#{} Hands and",
+                    "{C:attention}lose all discards",
                 },
             },
             j_photograph_tcg={

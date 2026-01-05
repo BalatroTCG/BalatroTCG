@@ -264,14 +264,22 @@ function TCG_PlayerStatus:receive_message(message)
 		G.FUNCS.exit_overlay_menu()
 
         message.damage = tonumber(message.damage)
-        self:receive_message({type = 'attack', damage = message.damage})
+        self:receive_message({type = 'attack', damage = message.damage, key = 'start'})
         switch_player(message.starting == 'true')
         
-    elseif message.type == 'attack' then
-        self.attacks[#self.attacks + 1] = {
-            damage = tonumber(message.damage),
-            index = tonumber(message.index),
-        }
+    elseif message.type == 'startTurn' or message.type == 'attack' then
+        print(message.key)
+
+        if not self.attacks[message.key] then
+            self.attacks[message.key] = {
+                damage = tonumber(message.damage),
+                index = tonumber(message.index),
+            }
+        end
+        Client.send({
+            action = "tcgReceiveAttack",
+            key = message.key
+        })
         
     elseif message.type == 'win_game' then
         end_tcg_game(true)
@@ -314,10 +322,14 @@ end
 
 function TCG_PlayerStatus:take_attacks()
     
-    for k, att in ipairs(self.attacks) do
+    for k, att in pairs(self.attacks) do
+        
+        if att.triggering then goto continue end
+
+        att.triggering = true
         
         G.E_MANAGER:add_event(Event({
-            no_delete = true,
+            
             trigger = 'immediate',
             func = function()
             
@@ -339,7 +351,6 @@ function TCG_PlayerStatus:take_attacks()
             end
 
             G.E_MANAGER:add_event(Event({
-                no_delete = true,
                 trigger = 'immediate',
                 func = function()
                 local return_table = {}
@@ -364,7 +375,7 @@ function TCG_PlayerStatus:take_attacks()
                         if att.damage > 0 then
                             att.damage = math.floor(att.damage * (1 - v.percent))
                             G.E_MANAGER:add_event(Event({
-                                no_delete = true,
+                                
                                 trigger = 'after',
                                 func = function()
                                 play_sound('tarot1')
@@ -380,7 +391,6 @@ function TCG_PlayerStatus:take_attacks()
                         if att.damage > 0 then
                             att.damage = math.max(att.damage - v.reduce, 0)
                             G.E_MANAGER:add_event(Event({
-                                no_delete = true,
                                 trigger = 'after',
                                 func = function()
                                 play_sound('tarot1')
@@ -397,7 +407,7 @@ function TCG_PlayerStatus:take_attacks()
                         att.index = 0
         
                         G.E_MANAGER:add_event(Event({
-                            no_delete = true,
+                            
                             trigger = 'after',
                             func = function()
                             play_sound('tarot1')
@@ -411,7 +421,7 @@ function TCG_PlayerStatus:take_attacks()
                 delay(0.5)
                 
                 G.E_MANAGER:add_event(Event({
-                    no_delete = true,
+                    
                     trigger = 'after',
                     func = function()
                     if self.jokers then
@@ -453,15 +463,17 @@ function TCG_PlayerStatus:take_attacks()
             return true
         end
         }))
+
+        ::continue::
     end
 
-    self.attacks = {}
 end
 
 function TCG_PlayerStatus:send_message(message)
     if MP and MP.LOBBY and MP.LOBBY.code then
         message.action = "tcgPlayerStatus"
         Client.send(message)
+        print(message.type)
     else
         self.Other:receive_message(message)
     end

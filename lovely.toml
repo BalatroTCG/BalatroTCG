@@ -433,11 +433,28 @@ payload = '''
 local card
 if G.GAME.last_hand_played and BalatroTCG.GameActive then
     
-    local card = pick_from_areas(function (c) return c.ability.set == 'Planet' and c.ability.consumeable.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard}, G.consumeables)
+    local card = pick_from_areas(function (c) return c.ability.set == 'Planet' and c.ability.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard})
     
-    card:add_to_deck()
-    G.consumeables:emplace(card)
-    G.GAME.consumeable_buffer = 0
+    if card then
+
+        local status = BalatroTCG.Status_Current
+        
+        card.area:remove_card(card)
+        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+            card:start_materialize()
+            status.consumeables:emplace(card)
+
+            for _, c in ipairs(G.playing_cards) do
+                if c == card then
+                    goto skip
+                end
+            end
+            table.insert(status.playing_cards, card)
+            ::skip::
+            return true
+        end
+        }))
+    end
 elseif G.GAME.last_hand_played then
 '''
 match_indent = true
@@ -453,10 +470,16 @@ elseif parsedAction.action == "tcgPlayerStatus" then
     BalatroTCG.Player:receive_message(parsedAction)
 elseif parsedAction.action == "tcgStartTurn" then
     switch_player(true)
+    parsedAction.type = 'startTurn'
+    BalatroTCG.Player:receive_message(parsedAction)
 elseif parsedAction.action == "startGame" and BalatroTCG.MP_Lobby then
     G.FUNCS.tcg_start_multi({ starting = parsedAction.starting })
 elseif parsedAction.action == "tcg_compatible" then
     BalatroTCG.MultiCompat = true
+elseif parsedAction.action == "tcgIsWaiting" then
+    if BalatroTCG.Player and not BalatroTCG.PlayerActive then
+        Client.send({action = "tcgEndTurn", damage = BalatroTCG.Player.last_attack, index = BalatroTCG.Player.last_target })
+    end
 '''
 match_indent = true
 overwrite = true
@@ -521,13 +544,17 @@ pattern = '''
     tab_definition_function = G.UIDEF.view_deck
 },
 '''
-position = "after"
+position = "at"
 payload = '''
-BalatroTCG.GameActive and {
+{
+    label = localize('b_full_deck'),
+    tab_definition_function = G.UIDEF.view_deck
+},
+(BalatroTCG.GameActive and {
     label = localize('b_tcg_graveyard'),
     tab_definition_function = G.UIDEF.view_deck,
     tab_definition_function_args = 'graveyard'
-},
+} or nil)
 '''
 match_indent = true
 overwrite = true
@@ -701,6 +728,15 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''if MP.GAME.ce_cache == false then'''
+position = "after"
+payload = '''if MP.GAME.ce_cache == false and not BalatroTCG.GameActive'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
 target = 'card.lua'
 pattern = '''if self.ability.eternal then badges[#badges + 1] = 'eternal' end'''
 position = "after"
@@ -756,7 +792,7 @@ pattern = '''if #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 th
 position = "at"
 payload = '''
 if #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 and BalatroTCG.GameActive then
-    if not G.STATE_COMPLETE then
+    if (BalatroTCG.PlayerActive or BalatroTCG.AI) and not G.STATE_COMPLETE then
         end_tcg_round()
     end
     G.STATE_COMPLETE = true
@@ -886,10 +922,11 @@ overwrite = true
 target = 'card.lua'
 pattern = '''if G.STAGE == G.STAGES.RUN then'''
 position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN and BalatroTCG.GameStarted and (not BalatroTCG.GameActive or not (self.area and self.area.config.type == 'joker' and self.area ~= G.jokers)) then
-if self.tcg_calculate and type(self.tcg_calculate) == 'function' then
-    return self:tcg_calculate( { updating = true } )
-end
+payload = '''
+if G.STAGE == G.STAGES.RUN and not (not BalatroTCG.GameStarted and BalatroTCG.GameActive) then
+    if self.tcg_calculate and type(self.tcg_calculate) == 'function' then
+        return self:tcg_calculate( { updating = true } )
+    end
 '''
 match_indent = true
 overwrite = true

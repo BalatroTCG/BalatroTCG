@@ -8,22 +8,22 @@ function Card:override_rank(rank)
 end
 
 function Card:override_suit(suit)
-    if card:is_playing_card() then
-        local suit_prefix = _suit..'_'
-        local rank_suffix = card.base.id < 10 and tostring(card.base.id) or
-                            card.base.id == 10 and 'T' or card.base.id == 11 and 'J' or
-                            card.base.id == 12 and 'Q' or card.base.id == 13 and 'K' or
-                            card.base.id == 14 and 'A'
-        card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+    if self:is_playing_card() then
+        local suit_prefix = suit..'_'
+        local rank_suffix = self.base.id < 10 and tostring(self.base.id) or
+                            self.base.id == 10 and 'T' or self.base.id == 11 and 'J' or
+                            self.base.id == 12 and 'Q' or self.base.id == 13 and 'K' or
+                            self.base.id == 14 and 'A'
+        self:set_base(G.P_CARDS[suit_prefix..rank_suffix])
     elseif self.ability.set == 'Tarot' then
-        if _suit == 'S' then
-            card:set_ability(G.P_CENTERS.c_world)
-        elseif _suit == 'H' then
-            card:set_ability(G.P_CENTERS.c_sun)
-        elseif _suit == 'D' then
-            card:set_ability(G.P_CENTERS.c_star)
-        elseif _suit == 'C' then
-            card:set_ability(G.P_CENTERS.c_moon)
+        if suit == 'S' then
+            self:set_ability(G.P_CENTERS.c_world)
+        elseif suit == 'H' then
+            self:set_ability(G.P_CENTERS.c_sun)
+        elseif suit == 'D' then
+            self:set_ability(G.P_CENTERS.c_star)
+        elseif suit == 'C' then
+            self:set_ability(G.P_CENTERS.c_moon)
             --TARGET: Sigil changing tarot suits
         end
     elseif self.ability.tcg_extra then
@@ -270,7 +270,7 @@ function Card:use_consumeable(area, copier)
                 if self.ability.name == 'Sigil' then
                     --use_consumeable_ref(self, area, copier)
 
-                    local _suit = pseudorandom_element(SMODS.SUITS, pseudoseed('sigil')).card_key
+                    local _suit = pseudorandom_element(SMODS.Suits, pseudoseed('sigil')).card_key
                     for i=1, #G.hand.cards do
                         G.E_MANAGER:add_event(Event({func = function()
                             local card = G.hand.cards[i]
@@ -349,10 +349,10 @@ function Card:use_consumeable(area, copier)
                     play_sound('gold_seal', 1.2, 0.4)
                     card:set_eternal(true)
                 end
-
+                
                 local _first_dissolve = false
                 for _, joker in ipairs(G.jokers.cards) do
-                    if (not SMODS.is_eternal(v, self)) then v.getting_sliced = true; v:start_dissolve(nil, _first_dissolve);_first_dissolve = true end
+                    if (not SMODS.is_eternal(joker, self)) then v.getting_sliced = true; v:start_dissolve(nil, _first_dissolve);_first_dissolve = true end
                 end
             else
                 use_consumeable_ref(self, area, copier)
@@ -1104,7 +1104,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 -- self.config.center.no_suit = true
                 -- self.config.center.no_rank = true
                 -- self.config.center.replace_base_card = true
-                self.config.center.generate_ui = modified_desc_enh
+                --self.config.center.generate_ui = modified_desc_enh
             elseif name == 'Lucky Card' then
                 self.ability.p_dollars = 10
             elseif name == 'Steel Card' then
@@ -1132,13 +1132,13 @@ function Card:set_ability(center, initial, delay_sprites)
             end
         elseif name == 'Hone' then
             self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
-                for k, v in pairs(G.playing_cards) do
-                    if v.ability.name == 'The Wheel of Fortune' then
-                        v.ability.extra = 2
-                    end
-                end
-            end
+            -- self.config.center.redeem = function(self, card)
+            --     for k, v in pairs(G.playing_cards) do
+            --         if v.ability.name == 'The Wheel of Fortune' then
+            --             v.ability.extra = 2
+            --         end
+            --     end
+            -- end
         elseif name == 'Glow Up' then
             self.config.center.generate_ui = modified_desc_vch
             self.config.center.redeem = function(self, card)
@@ -1205,15 +1205,47 @@ function Card:set_ability(center, initial, delay_sprites)
     elseif self.ability.set == 'Tarot' then
         if not BalatroTCG.Unbalance then
             if name == 'The Hermit' then
-                self.ability.extra = 15
+                --self.ability.extra = 15
             elseif name == 'The Emperor' then
                 self.config.center.generate_ui = modified_desc_tarot
             elseif name == 'The High Priestess' then
                 self.config.center.generate_ui = modified_desc_tarot
             elseif name == 'Temperance' then
-                self.ability.extra = 30
+                --self.ability.extra = 30
+                self.tcg_calculate = function(self, context)
+                    if context.updating then
+                        self.ability.money = 0
+                        for i = 1, #G.jokers.cards do
+                            if G.jokers.cards[i].ability.set == 'Joker' then
+                                self.ability.money = self.ability.money + G.jokers.cards[i].sell_cost
+                            end
+                        end
+                        self.ability.money = math.min(self.ability.money, self.ability.extra)
+                    end
+                end
+            elseif name == 'Ectoplasm' or name == 'Hex' then
+                self.tcg_calculate = function(self, context)
+                    if context.updating then
+                        self.eligible_editionless_jokers = EMPTY(self.eligible_editionless_jokers)
+                        for k, v in pairs(G.jokers.cards) do
+                            if v.ability.set == 'Joker' and (not v.edition) then
+                                table.insert(self.eligible_editionless_jokers, v)
+                            end
+                        end
+                    end
+                end
             elseif name == 'The Wheel of Fortune' then
-                if G.GAME.used_vouchers['v_hone'] then v.ability.extra = 2 end
+                self.tcg_calculate = function(self, context)
+                    if context.updating then
+                        self.eligible_strength_jokers = EMPTY(self.eligible_strength_jokers)
+                        for k, v in pairs(G.jokers.cards) do
+                            if v.ability.set == 'Joker' and (not v.edition) then
+                                table.insert(self.eligible_strength_jokers, v)
+                            end
+                        end
+                    end
+                end
+            --     if G.GAME.used_vouchers['v_hone'] then v.ability.extra = 2 end
             end
         end
     elseif self.ability.set == 'Spectral' then
@@ -1478,6 +1510,8 @@ function Card:set_ability(center, initial, delay_sprites)
         elseif name == 'Hallucination' then
             self.config.center.generate_ui = modified_desc
         elseif name == 'Supernova' then
+            self.config.center.generate_ui = modified_desc
+        elseif name == 'Burglar' then
             self.config.center.generate_ui = modified_desc
         elseif name == 'Abstract' then
             self.config.center.generate_ui = modified_desc

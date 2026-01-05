@@ -1221,6 +1221,10 @@ function load_custom_decks()
             end
         end
     end
+
+    if #BalatroTCG.CustomDecks < 1 then
+        BalatroTCG.CustomDecks[1] = get_new_tcg_deck()
+    end
 end
 
 
@@ -1758,8 +1762,7 @@ function Back:init(selected_back)
                         mult = context.mult
                     }
                 elseif context.damaging then
-                    local hurt = math.floor(context.damage / 4) * 1
-                    if hurt > 0 then context.status:damage(hurt) end
+                    context.damage = math.floor(context.damage / 2)
                 end
             end
         elseif selected_back.name == 'Anaglyph Deck' then
@@ -1802,11 +1805,11 @@ function Back:init(selected_back)
 
 end
 
-function get_new_deck()
+function get_new_tcg_deck()
 
     local index = #BalatroTCG.CustomDecks + 1
 
-    BalatroTCG.CustomDecks[index] = BalatroTCG.Deck('b_red', 'New Deck', {
+    BalatroTCG.CustomDecks[index] = BalatroTCG.Deck('b_red', 'Custom_Deck', {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
         { type = 'p', r = 'Q', s = 'S' },
