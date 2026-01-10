@@ -17,3 +17,5 @@ WARNING: This is a side project, I will be updating this slowly, and this projec
 - Finish the AI features to be not stupid
 - Convince the Balatro Multiplayer people to add support natively to their server???
 - Add a system to determine who goes first
+
+If you want to support more of this mod or anything else I do, I have a [Kofi](https://ko-fi.com/isagoodfriend)
