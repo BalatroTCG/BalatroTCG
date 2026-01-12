@@ -1326,6 +1326,10 @@ function tcg_card_nominal(card)
     if card.type == 'c' then
         factor = factor + set_rating[G.P_CENTERS[card.c].set] + pseudohash(card.c) * 0.01
     elseif card.type == 'j' then
+        local rarity = G.P_CENTERS[card.c].rarity
+        if type(rarity) == 'string' then
+            rarity = 5 -- i guess they can be strings?
+        end
         factor = factor + G.P_CENTERS[card.c].rarity + G.P_CENTERS[card.c].cost * 0.01 + pseudohash(card.c) * 0.0001
     elseif card.type == 'p' then
         factor = factor + rank_rating[card.r] * 0.01 + suit_rating[card.s]
@@ -1410,9 +1414,11 @@ function BalatroTCG.Deck:set_cost()
         if card.type ~= 'p' then
             local consumable = G.P_CENTERS[card.c]
 
-            self.cost = self.cost + tcg_base_cost(consumable.name, consumable.set, consumable.cost)
+            self.cost = self.cost + tcg_base_cost(consumable.set, consumable.name, consumable.cost)
         end
     end
+    
+    BalatroTCG.DeckCost = 125 - self.cost
 end
 
 function tcg_get_limitations(backname)
@@ -1526,9 +1532,6 @@ function tcg_get_limitations(backname)
     elseif backname == 'b_erratic' then
         limits.playing_card_copies = 4
     elseif backname == 'b_challenge' then
-        limits.max_jokers = 0
-        limits.max_uncommons = 0
-        limits.max_rares = 0
         limits.max_consumables = 30
         limits.max_tarots = 30
         limits.max_planets = 30
@@ -1548,6 +1551,123 @@ function tcg_get_limitations(backname)
     end
 
     return limits
+end
+
+function get_TCG_params(back)
+    local ret = {
+        max_budget = 1e308,
+        dollars = 100,
+        hand_size = 8,
+        discards = 2,
+        hands = 2,
+        joker_slots = 5,
+        consumable_slots = 2,
+        discount = 0,
+        joker_health = 25,
+        destroy_planets = false,
+        destroy_tarots = true,
+        destroy_spectrals = true,
+        starting_vouchers = {}
+    }
+
+    if not back then return ret end
+
+    if type(back) == 'table' then
+        local default = get_TCG_params(nil)
+
+        for k, v in ipairs(back) do
+            local values = get_TCG_params(v)
+
+            ret.max_budget = math.min(values.max_budget, ret.max_budget) + (values.dollars - default.dollars)
+            ret.discount = math.max(values.discount, ret.discount)
+
+            ret.dollars = math.max(ret.dollars + (values.dollars - default.dollars), 1)
+            ret.hand_size = math.max(ret.hand_size + (values.hand_size - default.hand_size), 1)
+            ret.discards = math.max(ret.discards + (values.discards - default.discards), 0)
+            ret.hands = math.max(ret.hands + (values.hands - default.hands), 1)
+            ret.consumable_slots = math.max(ret.consumable_slots + (values.consumable_slots - default.consumable_slots), 0)
+            ret.joker_health = math.max(ret.joker_health + (values.joker_health - default.joker_health), 1)
+
+            ret.destroy_planets = ret.destroy_planets or values.destroy_planets
+            ret.destroy_tarots = ret.destroy_tarots and values.destroy_tarots
+            ret.destroy_spectrals = ret.destroy_spectrals and values.destroy_spectrals
+
+            for _, v1 in ipairs(values.starting_vouchers) do
+                for _, v2 in ipairs(ret.starting_vouchers) do
+                    if v1 == v2 then goto skip_voucher end
+                end
+                table.insert(ret.starting_vouchers, v1)
+                ::skip_voucher::
+            end
+
+            if values.joker_slots == 0 or ret.joker_slots == 0 then
+                ret.joker_slots = 0
+            else
+                ret.joker_slots = math.max(ret.joker_slots + (values.joker_slots - default.joker_slots), 1)
+            end
+        end
+
+        ret.dollars = math.min(ret.dollars, ret.max_budget)
+
+        return ret
+    end
+
+    local deck
+
+    if back then
+        deck = Back(G.P_CENTERS[back])
+    end
+
+    if deck and deck.tcg_apply then
+        deck:tcg_apply(ret)
+    else
+        if back == 'b_red' then
+            ret.discards = ret.discards + 1
+        elseif back == 'b_blue' then
+            ret.hands = ret.hands + 1
+        elseif back == 'b_yellow' then
+            ret.dollars = ret.dollars + 25
+        elseif back == 'Green Deck' then
+        elseif back == 'b_black' then
+            ret.joker_slots = ret.joker_slots + 1
+            ret.hand_size = ret.hand_size - 1
+        elseif back == 'b_magic' then
+        elseif back == 'b_nebula' then
+        elseif back == 'b_ghost' then
+        elseif back == 'b_abandoned' then
+        elseif back == 'b_checkered' then
+        elseif back == 'b_zodiac' then
+            ret.starting_vouchers = {
+                "v_planet_merchant",
+                "v_tarot_merchant",
+            }
+        elseif back == 'b_painted' then
+            ret.hand_size = ret.hand_size + 2
+            ret.joker_slots = ret.joker_slots - 1
+        elseif back == 'Anaglyph Deck' then
+        elseif back == 'Plasma Deck' then
+        elseif back == 'Erratic Deck' then
+        elseif back == 'b_challenge' then
+            ret.destroy_tarots = false
+            ret.destroy_spectrals = false
+            ret.joker_slots = 0
+        elseif back == 'b_mp_cocktail' then
+            ret.hands = ret.hands - 1
+        elseif back == 'b_mp_gradient' then
+        elseif back == 'b_mp_heidelberg' then
+        elseif back == 'b_mp_indigo' then
+        elseif back == 'b_mp_oracle' then
+            ret.starting_vouchers = {
+                "v_clearance_sale",
+            }
+            ret.dollars = ret.dollars * 0.75
+            ret.max_budget = ret.dollars
+        elseif back == 'b_mp_orange' then
+        elseif back == 'b_mp_violet' then
+        end
+    end
+
+    return ret
 end
 
 function BalatroTCG.Deck:is_legal()
@@ -1572,9 +1692,9 @@ function BalatroTCG.Deck:is_legal()
         vouchers = 0,
     }
     
-    if #self.cards > limits.deck_size then
+    if BalatroTCG.Settings.DeckLimitations.Size and #self.cards > limits.deck_size then
         errors['tcg_err_deck_big'] = {#self.cards, limits.deck_size}
-    elseif #self.cards < limits.deck_size then
+    elseif BalatroTCG.Settings.DeckLimitations.Size and #self.cards < limits.deck_size then
         errors['tcg_err_deck_small'] = {#self.cards, limits.deck_size}
     end
 
@@ -1625,7 +1745,9 @@ function BalatroTCG.Deck:is_legal()
 
             stats.jokers = stats.jokers + 1
 
-            if joker.rarity == 2 then
+            if type(joker.rarity) == 'string' then -- for now, ban any exclusive rarity types.  May find a way around this later.
+                errors['tcg_err_consumeable_banned'] = {}
+            elseif joker.rarity == 2 then
                 stats.uncommons = stats.uncommons + 1
             elseif joker.rarity >= 3 then
                 stats.rares = stats.rares + 1
@@ -1683,37 +1805,37 @@ function BalatroTCG.Deck:is_legal()
     end
     
     self:set_cost()
-    if self.cost > 125 then
+    if BalatroTCG.Settings.DeckLimitations.Money and self.cost > 125 then
         errors['tcg_err_cost'] = { 125 }
     end
-    if #self.backs > (limits.deck_count or 1) then
+    if BalatroTCG.Settings.DeckLimitations.BackCounts and #self.backs > (limits.deck_count or 1) then
         errors['tcg_err_deck_count'] = { (#self.backs - 1), ((limits.deck_count or 1) - 1) }
     end
-    if stats.jokers > limits.max_jokers then
+    if BalatroTCG.Settings.DeckLimitations.Jokers and stats.jokers > limits.max_jokers then
         errors['tcg_err_joker_count'] = {stats.jokers, limits.max_jokers}
     end
-    if stats.uncommons > limits.max_uncommons then
+    if BalatroTCG.Settings.DeckLimitations.Jokers and stats.uncommons > limits.max_uncommons then
         errors['tcg_err_uncommons'] = {stats.uncommons, limits.max_uncommons}
     end
-    if stats.rares > limits.max_rares then
+    if BalatroTCG.Settings.DeckLimitations.Jokers and stats.rares > limits.max_rares then
         errors['tcg_err_rares'] = {stats.rares, limits.max_rares}
     end
-    if stats.consumables > limits.max_consumables then
+    if BalatroTCG.Settings.DeckLimitations.Consumeables and stats.consumables > limits.max_consumables then
         errors['tcg_err_consumables'] = {stats.consumables, limits.max_consumables}
     end
-    if stats.planets > limits.max_planets then
+    if BalatroTCG.Settings.DeckLimitations.Consumeables and stats.planets > limits.max_planets then
         errors['tcg_err_planets'] = {stats.planets, limits.max_planets}
     end
-    if stats.tarots > limits.max_tarots then
+    if BalatroTCG.Settings.DeckLimitations.Consumeables and stats.tarots > limits.max_tarots then
         errors['tcg_err_tarots'] = {stats.tarots, limits.max_tarots}
     end
-    if stats.spectrals > limits.max_spectrals then
+    if BalatroTCG.Settings.DeckLimitations.Consumeables and stats.spectrals > limits.max_spectrals then
         errors['tcg_err_spectrals'] = {stats.spectrals, limits.max_spectrals }
     end
-    if stats.vouchers > limits.max_vouchers then
+    if BalatroTCG.Settings.DeckLimitations.Consumeables and stats.vouchers > limits.max_vouchers then
         errors['tcg_err_vouchers'] = {stats.vouchers, limits.max_vouchers }
     end
-    if stats.total_copies > limits.total_copies then
+    if BalatroTCG.Settings.DeckLimitations.Consumeables and stats.total_copies > limits.total_copies then
         errors['tcg_err_copies'] = {stats.total_copies - limits.total_copies}
     end
     if limits.checkered_suits and stats.wrong_suits then

@@ -606,9 +606,9 @@ function Card:estimate_score(context)
                     
                     local card_vision = G.FUNCS.card_vision(round_stats, 0, 0)
 
-                    if self.ability.tcg_extra.suit then
+                    if self.tcg_extra.suit then
 
-                        local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.suit == self.ability.tcg_extra.suit end)
+                        local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.suit == self.tcg_extra.suit end)
 
                         return {
                             x_mult = math.pow(self.ability.extra, amount * card_vision / #context.full_deck)
@@ -635,8 +635,8 @@ function Card:estimate_score(context)
                     if round_stats.discards == 0 then return end
                     local card_vision = G.FUNCS.card_vision(round_stats, 0, 1)
 
-                    if self.ability.tcg_extra.rank then
-                        local rank = self.ability.tcg_extra.rank
+                    if self.tcg_extra.rank then
+                        local rank = self.tcg_extra.rank
 
                         local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.id == rank end)
 
@@ -673,7 +673,7 @@ function Card:estimate_score(context)
 
         elseif context.in_hand then
             if self.ability.name == 'Ancient Joker' then
-                local suit = self.ability.tcg_extra.suit or G.GAME.current_round.ancient_card.suit
+                local suit = self.tcg_extra.suit or G.GAME.current_round.ancient_card.suit
                 
                 if context.other_card:is_suit(suit) then
                     return {
@@ -686,7 +686,7 @@ function Card:estimate_score(context)
                 end
             end
             if self.ability.name == 'Mail-In Rebate' then
-                local rank = self.ability.tcg_extra.rank or G.GAME.current_round.mail_card.id
+                local rank = self.tcg_extra.rank or G.GAME.current_round.mail_card.id
 
                 if context.other_card:get_id() == rank then
                     return {

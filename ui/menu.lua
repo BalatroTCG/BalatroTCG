@@ -21,29 +21,40 @@ end
 
 function G.FUNCS.start_campaign(e)
 	G.SETTINGS.paused = true
+	reset_tcg_settings()
 
 	G.FUNCS.overlay_menu({
-		definition = G.UIDEF.create_tcg_deck_selection((e.config.id == 'from_game_over' or e.config.id == 'from_game_won' or e.config.id == 'restart_button') and e.config.id),
+		definition = G.UIDEF.create_tcg_deck_selection(e.config.id),
 	})
 	if (e.config.id == 'from_game_over' or e.config.id == 'from_game_won') then G.OVERLAY_MENU.config.no_esc = true end
 end
 
-G.FUNCS.change_viewed_tcg_deck = function(args)
+G.FUNCS.change_selected_tcg_deck = function(args)
 
 	BalatroTCG.DeckIndex = args.to_key
 	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[args.to_key]
 
-	if BalatroTCG.SelectedDeck == 'new' then
+	if BalatroTCG.TabDecks[args.to_key] == 'new' then
 		BalatroTCG.SelectedBack:change_to(G.P_CENTERS.b_red)
 	else
-		BalatroTCG.SelectedBack:change_to(G.P_CENTERS[BalatroTCG.SelectedDeck.backs[1]])
+		BalatroTCG.SelectedBack:change_to(G.P_CENTERS[BalatroTCG.TabDecks[args.to_key].backs[1]])
+	end
+
+end
+G.FUNCS.change_viewed_tcg_deck = function(args)
+	
+	BalatroTCG.DeckIndex = args.to_key
+
+	if BalatroTCG.TabDecks[args.to_key] == 'new' then
+		BalatroTCG.SelectedBack:change_to(G.P_CENTERS.b_red)
+	else
+		BalatroTCG.SelectedBack:change_to(G.P_CENTERS[BalatroTCG.TabDecks[args.to_key].backs[1]])
 	end
 
 end
 
 G.FUNCS.RUN_SETUP_check_tcg_back = function(e)
 	if BalatroTCG.DeckIndex ~= e.config.id then 
-		--print('Stuff')
 		--removes the UI from the previously selected back and adds the new one
 
 		for k, v in ipairs(BalatroTCG.DeckArea.cards) do
@@ -59,17 +70,17 @@ G.FUNCS.RUN_SETUP_check_tcg_back = function(e)
 end
 
 G.FUNCS.RUN_SETUP_check_tcgdeck_name = function(e)
-  if e.config.object and BalatroTCG.SelectedBack and BalatroTCG.DeckIndex ~= e.config.id then 
+  if e.config.object and BalatroTCG.DeckIndex ~= e.config.id then 
     --removes the UI from the previously selected back and adds the new one
 
-	local deck = BalatroTCG.SelectedDeck
+	local deck = BalatroTCG.TabDecks[BalatroTCG.DeckIndex]
 
-	local deckname, backname, id
+	local deckname, backname
 
-	if BalatroTCG.SelectedDeck == 'new' then
-		deckname, backname, id = 'New Deck', '???', 'new'
+	if not deck or deck == 'new' then
+		deckname, backname = 'New Deck', '???'
 	else
-		deckname, backname = deck.name, BalatroTCG.SelectedBack:get_name(), BalatroTCG.SelectedBack:get_name()
+		deckname, backname = deck.name, Back(G.P_CENTERS[BalatroTCG.TabDecks[BalatroTCG.DeckIndex].backs[1]]):get_name()
 	end
 	
     e.config.object:remove() 
@@ -117,10 +128,10 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'b_ghost' then loc_args = { }
 	elseif name_to_check == 'b_abandoned' then 
 	elseif name_to_check == 'b_checkered' then
-	elseif name_to_check == 'b_zodiac' then loc_args = { 1, effect_config.discount }
+	elseif name_to_check == 'b_zodiac' then loc_args = { localize{type = 'name_text', key = 'v_tarot_merchant', set = 'Voucher'}, localize{type = 'name_text', key = 'v_planet_merchant', set = 'Voucher'} }
 	elseif name_to_check == 'b_painted' then loc_args = { 2, -1 }
 	elseif name_to_check == 'b_anaglyph' then loc_args = {1, 3}
-	elseif name_to_check == 'b_plasma' then loc_args = { 1, 4 }
+	elseif name_to_check == 'b_plasma' then loc_args = { 50 }
 	elseif name_to_check == 'b_erratic' then loc_args = { 5 }
 	elseif name_to_check == 'b_challenge' then loc_args = { 30 }
 	
@@ -128,74 +139,24 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 	elseif name_to_check == 'b_mp_gradient' then loc_args = { }
 	elseif name_to_check == 'b_mp_heidelberg' then loc_args = { 2 }
 	elseif name_to_check == 'b_mp_indigo' then loc_args = {  }
-	elseif name_to_check == 'b_mp_oracle' then loc_args = { effect_config.discount, effect_config.dollars }
+	elseif name_to_check == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, effect_config.dollars }
 	elseif name_to_check == 'b_mp_orange' then loc_args = { 2 }
 	elseif name_to_check == 'b_mp_violet' then loc_args = { 2, 50 }
 	end
-	if BalatroTCG.SelectedDeck == 'new' then
+	if BalatroTCG.TabDecks[BalatroTCG.DeckIndex] == 'new' then
 		key_override = 'null'
 	end
 	localize{type = 'descriptions', key = key_override or (back_config.key .. '_tcg'), set = 'Back', nodes = loc_nodes, vars = loc_args}
     
-
     return 
     {n=G.UIT.ROOT, config={align = "cm", minw = min_dims*5, minh = min_dims*2.5, id = self.name, colour = G.C.CLEAR}, nodes={
         desc_from_rows(loc_nodes, true, min_dims*5)
     }}
 end
 
-function Card:generate_UIBox_tcg_table(other, ui_scale, min_dims)
+function select_tcg_deck_ui(tab_type)
 
-
-    min_dims = min_dims or 0.7
-    ui_scale = ui_scale or 0.9
-    local back_config = copy_table(other or G.P_CENTERS[self.tcg_deck_type])
-    local name_to_check = back_config.key
-    local effect_config = get_TCG_params(back_config.name)
-	local default = get_TCG_params(nil)
-	
-
-	back_config.key = back_config.key .. '_tcg'
-	back_config.set = 'Back'
-
-    local loc_args, loc_nodes = {}, {}
-
-	local key_override
-	if back_config.tcg_loc_vars and type(back_config.tcg_loc_vars) == 'function' then
-		local res = back_config:tcg_loc_vars() or {}
-		loc_args = res.vars or {}
-		key_override = res.key
-	elseif name_to_check == 'b_blue' then loc_args = {effect_config.hands - default.hands}
-	elseif name_to_check == 'b_red' then loc_args = {effect_config.discards - default.discards}
-	elseif name_to_check == 'b_yellow' then loc_args = {effect_config.dollars - default.dollars}
-	elseif name_to_check == 'b_green' then loc_args = { 2 }
-	elseif name_to_check == 'b_black' then loc_args = { 1, 1}
-	elseif name_to_check == 'b_magic' then  loc_args = { 1 }
-	elseif name_to_check == 'b_nebula' then loc_args = { 1 }
-	elseif name_to_check == 'b_ghost' then loc_args = { }
-	elseif name_to_check == 'b_abandoned' then 
-	elseif name_to_check == 'b_checkered' then
-	elseif name_to_check == 'b_zodiac' then loc_args = { 1, effect_config.discount }
-	elseif name_to_check == 'b_painted' then loc_args = { 2, -1 }
-	elseif name_to_check == 'b_anaglyph' then loc_args = {1, 3}
-	elseif name_to_check == 'b_plasma' then loc_args = { 1, 4 }
-	elseif name_to_check == 'b_erratic' then loc_args = { 5 }
-	elseif name_to_check == 'b_challenge' then loc_args = { 30 }
-	
-	elseif name_to_check == 'b_mp_cocktail' then loc_args = { 2, 1 }
-	elseif name_to_check == 'b_mp_gradient' then loc_args = { }
-	elseif name_to_check == 'b_mp_heidelberg' then loc_args = { 2 }
-	elseif name_to_check == 'b_mp_indigo' then loc_args = {  }
-	elseif name_to_check == 'b_mp_oracle' then loc_args = { effect_config.discount, effect_config.dollars }
-	elseif name_to_check == 'b_mp_orange' then loc_args = { 2 }
-	elseif name_to_check == 'b_mp_violet' then loc_args = { 2, 50 }
-	end
-
-	return generate_card_ui(back_config, nil, loc_args, "Back", badges, hide_desc, main_start, main_end, self)
-end
-
-
-function select_tcg_deck(tab_type)
+    BalatroTCG.UseTCG_UI = true
 
 	BalatroTCG.DeckArea = CardArea(
 		G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h,
@@ -203,14 +164,13 @@ function select_tcg_deck(tab_type)
 		G.CARD_H, 
 		{card_limit = 5, type = 'deck', highlight_limit = 0, deck_height = 0.75, thin_draw = 1})
 
-	local callback = 'change_viewed_tcg_deck'
+	local callback = 'change_selected_tcg_deck'
 	local full_decks = tableMerge(BalatroTCG.DefaultDecks, BalatroTCG.CustomDecks)
 	BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
 
 	BalatroTCG.TabDecks = {}
 	
-	if tab_type == 'build' then
-		callback = 'change_viewed_tcg_deck'
+	if tab_type == 'build' or tab_type == 'build_multi' then
 		if not _RELEASE_MODE then
 			for k, v in ipairs(BalatroTCG.DefaultDecks) do
 				if v:has_decks() then
@@ -227,15 +187,37 @@ function select_tcg_deck(tab_type)
 			BalatroTCG.TabDecks[1] = get_new_tcg_deck()
 		end
 		BalatroTCG.TabDecks[#BalatroTCG.TabDecks + 1] = 'new'
-	elseif tab_type == 'legal' then
+
+		if tab_type == 'build_multi' then 
+			callback = 'change_viewed_tcg_deck'
+		end
+	elseif tab_type == 'multiplayer' then
 		
+		callback = 'change_viewed_tcg_deck'
+		local legal_only = true
+
 		for k, v in ipairs(BalatroTCG.DefaultDecks) do
-			if v:has_decks() and (v:is_legal() == 'Legal' or not _RELEASE_MODE) then
+			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only) then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 		for k, v in ipairs(BalatroTCG.CustomDecks) do
-			if v:has_decks() and (v:is_legal() == 'Legal' or not _RELEASE_MODE)  then
+			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only)  then
+				table.insert(BalatroTCG.TabDecks, v)
+			end
+		end
+
+	elseif tab_type == 'legal' then
+
+		local legal_only = _RELEASE_MODE
+		
+		for k, v in ipairs(BalatroTCG.DefaultDecks) do
+			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only) then
+				table.insert(BalatroTCG.TabDecks, v)
+			end
+		end
+		for k, v in ipairs(BalatroTCG.CustomDecks) do
+			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only)  then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
@@ -250,6 +232,10 @@ function select_tcg_deck(tab_type)
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
+	end
+
+	if #BalatroTCG.TabDecks < 1 then
+		BalatroTCG.TabDecks[1] = BalatroTCG.DefaultDecks[1]
 	end
 
 	local index = 1
@@ -269,12 +255,14 @@ function select_tcg_deck(tab_type)
 	
 	BalatroTCG.DeckIndex = index
 	
-	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[index]
+	if tab_type ~= 'multiplayer' and tab_type ~= 'build_multi' then
+		BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[index]
+	end
 	
-	if BalatroTCG.SelectedDeck == 'new' then
+	if BalatroTCG.TabDecks[BalatroTCG.DeckIndex] == 'new' then
 		BalatroTCG.SelectedBack = nil
 	else
-		BalatroTCG.SelectedBack = Back(G.P_CENTERS[BalatroTCG.SelectedDeck.backs[1]])
+		BalatroTCG.SelectedBack = Back(G.P_CENTERS[BalatroTCG.TabDecks[BalatroTCG.DeckIndex].backs[1]])
 	end
 	
 	for i = 1, 10 do
@@ -284,13 +272,7 @@ function select_tcg_deck(tab_type)
 		BalatroTCG.DeckArea:emplace(card)
 	end
 	
-	-- print('-----')
-	-- print('asdf')
-	-- print('-----')
-	-- print(BalatroTCG.DeckIndex)
-	-- print(#BalatroTCG.TabDecks)
-
-
+	
 	return { n = G.UIT.R, config = { align = 'cm', minh = 1, minw = 1, colour = G.C.CLEAR, }, nodes = {
 		create_option_cycle({options = BalatroTCG.TabDecks, opt_callback = callback, current_option = index, colour = G.C.RED, w = 3.5, mid = 
 			{ n=G.UIT.R, config = {align = 'cm', minh=3.3, minw = 5 }, nodes = {
@@ -305,7 +287,7 @@ function select_tcg_deck(tab_type)
 							{n=G.UIT.O, config={id = nil, func = 'RUN_SETUP_check_tcgdeck_name', object = Moveable()}},
 						}},
 						{n=G.UIT.R, config={align = "cm", colour = G.C.WHITE, minh = 1.7, r = 0.1}, nodes={
-							{n=G.UIT.O, config={id = BalatroTCG.DeckIndex, func = 'RUN_SETUP_check_tcg_back', object = UIBox{definition = (BalatroTCG.SelectedBack and BalatroTCG.SelectedBack:generate_tcg_UI() or nil), config = {offset = {x=0,y=0}}}}}
+							{n=G.UIT.O, config={id = -20, func = 'RUN_SETUP_check_tcg_back', object = UIBox{definition = (BalatroTCG.SelectedBack and BalatroTCG.SelectedBack:generate_tcg_UI() or nil), config = {offset = {x=0,y=0}}}}}
 						}}       
 					}},
 				}}
@@ -317,27 +299,64 @@ end
 function G.UIDEF.create_tcg_deck_selection(from_game_over)
 	G.tcg_deck_page = 1
 	G.tcg_addition_page = 1
+
+	local values = {
+		build_tab = true,
+		can_exit = true,
+		return_to = 'play_options'
+	}
+
+	if not from_game_over then
+
+	elseif from_game_over == 'multiplayer' then
+		values.build_tab = true
+		values.can_exit = true
+		values.return_to = 'exit_overlay_menu'
+
+	elseif from_game_over == 'restart_button' then
+		values.build_tab = false
+		values.can_exit = true
+		values.return_to = 'options'
+	else
+		values.build_tab = false
+		values.can_exit = false
+		values.return_to = nil
+	end
 	
 	local tabs = {
 				-- Single Match Tab
 				{ label = localize("b_tcgtab_single"), chosen = true, tab_definition_function = function()
 					
-					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
-						select_tcg_deck('legal'),
+					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = 
+					MP and MP.LOBBY and MP.LOBBY.code and 
+					{
+						select_tcg_deck_ui('multiplayer'),
+						UIBox_button({
+							label = { localize("b_tcgtab_select") },
+							colour = G.C.BLUE,
+							button = "select_tcg_deck_mp",
+							minw = 5,
+						})
+					}
+					or
+					{
+						select_tcg_deck_ui('legal'),
 						UIBox_button({
 							label = { localize("b_play_cap") },
 							colour = G.C.BLUE,
 							button = "tcg_start_single",
 							minw = 5,
 						})
-					}}
+					}
+				}
 				end},
 				-- Build Deck Tab
-				(not from_game_over) and
+				(values.build_tab) and
 				{ label = localize("b_tcgtab_deck"), chosen = false, tab_definition_function = function()
 					
 					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
-						select_tcg_deck('build'),
+						
+						select_tcg_deck_ui(MP and MP.LOBBY and MP.LOBBY.code and 'build_multi' or 'build'),
 						
 						{n = G.UIT.R, config = { padding = 0, align = "cm", colour = G.C.CLEAR }, nodes = {
 							{n = G.UIT.C, config = { padding = 0.2, align = "cm", colour = G.C.CLEAR }, nodes = {
@@ -364,12 +383,10 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 				end} or nil,
 			}
 
-	local from_restart = (not from_game_over) or from_game_over == 'restart_button'
-	
 	return (
 		create_UIBox_generic_options({
-			no_back = not from_restart, no_esc = not from_restart,
-			back_func = from_game_over and nil or "play_options",
+			no_back = not values.can_exit, no_esc = not values.can_exit,
+			back_func = values.return_to,
 			contents = 
 				{{n = G.UIT.R, config = { padding = 0, align = "cm" }, nodes = {
 					create_tabs({snap_to_nav = true, colour = G.C.RED, tabs = tabs})
@@ -513,15 +530,17 @@ end
 
 function G.FUNCS.lobby_choose_tcg_deck()
 
+	-- G.SETTINGS.paused = true
+	-- G.FUNCS.overlay_menu{
+	-- 	definition = G.UIDEF.run_setup((e.config.id == 'from_game_over' or e.config.id == 'from_game_won' or e.config.id == 'challenge_list') and e.config.id),
+	-- }
+	-- if (e.config.id == 'from_game_over' or e.config.id == 'from_game_won') then G.OVERLAY_MENU.config.no_esc =true end
+
 	G.SETTINGS.paused = true
-	G.FUNCS.overlay_menu{
-		definition = 
-		create_UIBox_generic_options({ padding = 0, contents = {
-			{ n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'cm', padding = 0.5, colour = G.C.CLEAR, }, nodes = {
-				select_tcg_deck('legal'),
-			}}
-		}})
-	}
+	
+	G.FUNCS.overlay_menu({
+		definition = G.UIDEF.create_tcg_deck_selection('multiplayer'),
+	})
 end
 
 function clear_collection()
@@ -530,8 +549,16 @@ function clear_collection()
 	end
 end
 
+G.FUNCS.select_tcg_deck_mp = function(e)
+	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[BalatroTCG.DeckIndex]
+	MP.ACTIONS.lobby_options()
+
+end
+
 function create_tcg_builder(type, callback)
-	BalatroTCG.BuildingDeck = BalatroTCG.BuildingDeck or BalatroTCG.SelectedDeck
+	BalatroTCG.BuildingDeck = BalatroTCG.BuildingDeck or BalatroTCG.TabDecks[BalatroTCG.DeckIndex]
+
+	reset_tcg_settings()
 
     BalatroTCG.UseTCG_UI = true
 
@@ -607,10 +634,13 @@ function create_tcg_builder(type, callback)
 		) then
 				v.original_id = v.key
 				G.CARD_POOL[#G.CARD_POOL + 1] = v
+				if v.key == 'v_overstock_norm' or v.key == 'v_overstock_plus' then
+					v.tcg_broken = true
+				end
 			end
 		end
 		for i = 1, math.ceil(#G.CARD_POOL/(5*#G.your_collection)) do
-			table.insert(joker_options, localize('k_page')..' '..tostring(i)..'/'..tostring(math.ceil(#G.CARD_POOL/(4*#G.your_collection))))
+			table.insert(joker_options, localize('k_page')..' '..tostring(i)..'/'..tostring(math.ceil(#G.CARD_POOL/(5*#G.your_collection))))
 		end
 		
 	end
@@ -635,6 +665,7 @@ function create_tcg_builder(type, callback)
 				card.facing = 'back'
 				card.original_id = center.original_id
 				card.tcg_deck_type = center.original_id
+				card.tcg_broken = center.tcg_broken
 				G.your_collection[j]:emplace(card, nil, true)
 			end
 		end
@@ -645,16 +676,18 @@ function create_tcg_builder(type, callback)
 				if not center then break end
 				local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, center, G.P_CENTERS.c_base)
 				card.cost = 0
+				card.tcg_broken = center.tcg_broken
 				G.your_collection[j]:emplace(card)
 			end
 		end
 	elseif type == 'Voucher' then
 		for i = 1, 4 do
 			for j = 1, #G.your_collection do
-				local center = G.CARD_POOL[i+(j-1)*4 + (G.tcg_addition_page - 1) * 10]
+				local center = G.CARD_POOL[i+(j-1)*4 + (G.tcg_addition_page - 1) * 8]
 				if not center then break end
 				local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, nil, center)
 				card.original_id = center.original_id
+				card.tcg_broken = center.tcg_broken
 				G.your_collection[j]:emplace(card)
 			end
 		end
@@ -665,6 +698,7 @@ function create_tcg_builder(type, callback)
 				if not center then break end
 				local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, nil, center)
 				card.original_id = center.original_id
+				card.tcg_broken = center.tcg_broken
 				G.your_collection[j]:emplace(card)
 			end
 		end
@@ -681,12 +715,14 @@ function create_tcg_builder(type, callback)
 	end
 
 	local legal_status = BalatroTCG.BuildingDeck:is_legal()
+	local color = G.C.UI.TEXT_LIGHT
     local loc_nodes = nil, {}
-	local loc_args = { type = 'text', key = "tcg_err_unknown", nodes = loc_nodes, vars = {}, default_col = G.C.WHITE, scale = 1.5 }
+	local loc_args = { type = 'text', key = "tcg_err_unknown", nodes = loc_nodes, vars = {}, shadow = true, default_col = color, scale = 1.5 }
 
 	if legal_status == 'Legal' then
 		loc_args.key = 'tcg_err_none'
 	else
+		loc_args.default_col = G.C.RED
 		for k, v in pairs(legal_status) do
 			loc_args.key = k
 			loc_args.vars = v
@@ -708,7 +744,7 @@ function create_tcg_builder(type, callback)
 				
 				{n=G.UIT.R, config={align = "cm",minh = 1.2, padding = 0.2}, nodes={{n=G.UIT.R, config={align = "cm"}, nodes={
 					
-					{n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = BalatroTCG.BuildingDeck, ref_value = 'cost'}}, font = G.LANGUAGES['en-us'].font, colours = {G.C.MONEY},shadow = true, rotate = true, scale = 0.45})}},
+					{n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = BalatroTCG, ref_value = 'DeckCost'}}, font = G.LANGUAGES['en-us'].font, colours = { BalatroTCG.DeckCost >= 0 and G.C.MONEY or G.C.RED },shadow = true, rotate = true, scale = 0.45})}},
 					
 					{n=G.UIT.C, config={align = "cm",minh = 1, padding = 0.1}, nodes={{n=G.UIT.R, config={align = "cm"}, nodes={
 						
@@ -738,7 +774,7 @@ G.FUNCS.tcg_start_build = function(e)
 
 	save_decks()
 
-	BalatroTCG.BuildingDeck = BalatroTCG.SelectedDeck
+	BalatroTCG.BuildingDeck = BalatroTCG.TabDecks[BalatroTCG.DeckIndex]
 	
 	if BalatroTCG.BuildingDeck == 'new' then
 		BalatroTCG.BuildingDeck = get_new_tcg_deck()
@@ -763,7 +799,7 @@ G.FUNCS.tcg_delete_deck = function(e)
 	save_decks()
 
 	G.FUNCS.overlay_menu({
-		definition = G.UIDEF.create_tcg_deck_selection((e.config.id == 'from_game_over' or e.config.id == 'from_game_won') and e.config.id),
+		definition = G.UIDEF.create_tcg_deck_selection(e.config.id),
 	})
 end
 
@@ -809,7 +845,7 @@ G.FUNCS.create_tcg_builder_menu = function(e)
 
 	return create_UIBox_generic_options({
 		no_back = from_game_over, no_esc = from_game_over,
-		back_func = from_game_over and nil or "play_options",
+		back_func = (MP and MP.LOBBY and MP.LOBBY.code) and 'exit_overlay_menu' or "play_options",
 		contents = 
 			{{n = G.UIT.R, config = { padding = 0, align = "cm" }, nodes = {
 				create_tabs({snap_to_nav = true, colour = G.C.RED, tabs = tabs})
@@ -926,6 +962,7 @@ G.FUNCS.your_collection_tcg_consumeables_page = function(args)
 			if not center then break end
 			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.empty, center)
 			card.original_id = center.original_id
+			card.tcg_broken = center.tcg_broken
 			G.your_collection[j]:emplace(card)
 		end
 	end
@@ -948,6 +985,7 @@ G.FUNCS.your_collection_tcg_vouchers_page = function(args)
 			if not center then break end
 			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.empty, center)
 			card.original_id = center.original_id
+			card.tcg_broken = center.tcg_broken
 			G.your_collection[j]:emplace(card)
 		end
 	end
@@ -970,6 +1008,7 @@ G.FUNCS.your_collection_tcg_cards_page = function(args)
 			if not center then break end
 			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, center, G.P_CENTERS['c_base'])
 			card.cost = 0
+			card.tcg_broken = center.tcg_broken
 			G.your_collection[j]:emplace(card)
 		end
 	end
@@ -998,6 +1037,7 @@ G.FUNCS.your_collection_tcg_backs_page = function(args)
 			card.facing = 'back'
 			card.original_id = center.original_id
 			card.tcg_deck_type = center.original_id
+			card.tcg_broken = center.tcg_broken
 			G.your_collection[j]:emplace(card, nil, true)
 		end
 	end
@@ -1039,6 +1079,8 @@ end
 local mainmenu_ref = G.UIDEF.override_main_menu_play_button
 function G.UIDEF.override_main_menu_play_button()
     
+    BalatroTCG.UseTCG_UI = false
+
 	local set = UIBox_button({
 			label = { localize("b_tcg_tcg") },
 			colour = G.C.GREEN,
@@ -1097,6 +1139,8 @@ function G.UIDEF.override_main_menu_play_button()
 end
 
 function TCG_create_UIBox_HUD()
+	local content = create_UIBox_HUD()
+	
     local scale = 0.4
 
     local contents = {}
@@ -1202,11 +1246,24 @@ function TCG_create_UIBox_HUD()
 	
 	{n=G.UIT.R, config={align = "cm",r=0.1, padding = 0,colour = G.C.DYN_UI.BOSS_MAIN, emboss = 0.05, id = 'row_attack'}, nodes={
 		{n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
-			{n=G.UIT.R, config={align = "cm", minw = 1.3}, nodes={
-				{n=G.UIT.R, config={align = "cm", padding = 0, maxw = 1.3}, nodes={{n=G.UIT.T, config={text = localize('b_tcg_attack'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}}},
+			{n=G.UIT.C, config={align = "cm", minw = 1.3}, nodes={
+				{n=G.UIT.T, config={text = localize('b_tcg_attack'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
 			}},
-			{n=G.UIT.R, config={align = "cm", minw = 1.0, minh = 1.0, r = 0.1, colour = G.C.DYN_UI.BOSS_DARK}, nodes={
+			{n=G.UIT.C, config={align = "cm", minw = 1.25, minh = 0.8, r = 0.1, colour = G.C.DYN_UI.BOSS_DARK}, nodes={
 				{n=G.UIT.T, config={ref_table = G.GAME, ref_value = 'chips_damage_text', lang = G.LANGUAGES['en-us'], scale = 0.85, colour = G.C.WHITE, id = 'damage_UI_count', func = 'chip_UI_damage', shadow = true}}
+			}},
+			{n=G.UIT.C, config={align = "cm", minw = 1.0, minh = 1.0, r = 0.1}, nodes={
+				UIBox_button({
+					id = "add_attack",
+					func = "tcg_can_add_attack",
+					button = "tcg_add_attack",
+					colour = G.C.PURPLE,
+					minw = 1.5,
+					minh = 0.8,
+					label = { '+' },
+					scale = 0.8,
+					col = true,
+				})
 			}}
 		}}
 	}}
@@ -1230,21 +1287,45 @@ function TCG_create_UIBox_HUD()
     }
 
 	
-    return {n=G.UIT.ROOT, config = {align = "cm", padding = 0.03, colour = G.C.UI.TRANSPARENT_DARK}, nodes={
-      {n=G.UIT.R, config = {align = "cm", padding= 0.05, colour = G.C.DYN_UI.MAIN, r=0.1}, nodes={
-        {n=G.UIT.R, config={align = "cm", colour = G.C.DYN_UI.BOSS_DARK, r=0.1, minh = 30, padding = 0.08}, nodes={
-          {n=G.UIT.R, config={align = "cm", minh = 0.3}, nodes={}},
-          {n=G.UIT.R, config={align = "cm", id = 'row_blind', minw = 1, minh = 3.0}, nodes={}},
-          contents.attack,
-          contents.dollars_chips,
-          contents.hand,
-          {n=G.UIT.R, config={align = "cm", id = 'row_round'}, nodes={
-            {n=G.UIT.C, config={align = "cm"}, nodes=contents.buttons},
-            {n=G.UIT.C, config={align = "cm"}, nodes=contents.round}
-          }},
-        }}
-      }}
-    }}
+    -- return {n=G.UIT.ROOT, config = {align = "cm", padding = 0.03, colour = G.C.UI.TRANSPARENT_DARK}, nodes={
+    --   {n=G.UIT.R, config = {align = "cm", padding= 0.05, colour = G.C.DYN_UI.MAIN, r=0.1}, nodes={
+    --     {n=G.UIT.R, config={align = "cm", colour = G.C.DYN_UI.BOSS_DARK, r=0.1, minh = 30, padding = 0.08}, nodes={
+    --       {n=G.UIT.R, config={align = "cm", minh = 0.3}, nodes={}},
+    --       {n=G.UIT.R, config={align = "cm", id = 'row_blind', minw = 1, minh = 3.0}, nodes={}},
+    --       contents.attack,
+    --       contents.dollars_chips,
+    --       contents.hand,
+    --       {n=G.UIT.R, config={align = "cm", id = 'row_round'}, nodes={
+    --         {n=G.UIT.C, config={align = "cm"}, nodes=contents.buttons},
+    --         {n=G.UIT.C, config={align = "cm"}, nodes=contents.round}
+    --       }},
+    --     }}
+    --   }}
+    -- }}
+
+	local area = content.nodes[1].nodes[1]
+
+	for k, v in ipairs(content.nodes[1].nodes[1].nodes[4].nodes[1].nodes) do
+		
+	end
+	-- if #content.nodes[1].nodes[1].nodes[4].nodes[1].nodes >= 3 then
+	-- 	table.remove(content.nodes[1].nodes[1].nodes[4].nodes[1].nodes, 3)
+	-- end
+	area.nodes[1].config.minh = 0
+	area.nodes[2].config.minh = 0
+
+	area.nodes[6] = area.nodes[5]
+	area.nodes[5] = area.nodes[4]
+	area.nodes[4] = area.nodes[3]
+	area.nodes[3] = contents.attack
+
+	--area.nodes[4].
+	area.nodes[6].nodes[2].nodes[1].nodes[1].nodes[2].nodes[1] = {n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'hands_left'}}, font = G.LANGUAGES['en-us'].font, colours = {G.C.BLUE},shadow = true, rotate = true, scale = 2*scale}),id = 'hand_UI_count'}}
+	area.nodes[6].nodes[2].nodes[1].nodes[3].nodes[2].nodes[1].nodes[1] = {n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'discards_left'}}, font = G.LANGUAGES['en-us'].font, colours = {G.C.RED},shadow = true, rotate = true, scale = 2*scale}),id = 'discard_UI_count'}}
+	
+	area.nodes[6].nodes[2].nodes[5].nodes[3].nodes[2].nodes[1] = {n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'round'}}, colours = {G.C.IMPORTANT},shadow = true, scale = 2*scale}),id = 'round_UI_count'}}
+
+	return content
 
 	--]]
 
@@ -1272,7 +1353,7 @@ function TCG_create_UIBox_HUD_blind()
 			-- }},
 			
 		}},
-		{n=G.UIT.R, config={align = "cm", minw = 4.5, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.DARK}, nodes={
+		{n=G.UIT.R, config={align = "cm", minw = 3, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.DARK}, nodes={
 			{n=G.UIT.R, config={align = "cm", minw = 3}, nodes={
 				{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.RED}, rotate = true, bump = true, silent = true, scale = 0}), id = 'dollars_to_be_earned'}},
 				
@@ -1300,14 +1381,13 @@ function G.FUNCS.start_tcg_lobby(e)
 	
 	G.SETTINGS.paused = false
 
+	MP.LOBBY.config.gamemode = "gamemode_mp_tcg"
+	MP.LOBBY.config.gamemode = 'vanilla'
+
 	MP.reset_lobby_config(true)
 
-	-- Check if the current gamemode is valid. If it's not, default to attrition.
-	MP.LOBBY.config.gamemode = "gamemode_mp_tcg"
-	MP.LOBBY.config.the_order = false
-	MP.LOBBY.config.preview_disabled = true
-	MP.LOBBY.config.timer = false
-	MP.LOBBY.config.disable_live_and_timer_hud = true
+	reset_tcg_settings()
+	
 
 	MP.ACTIONS.create_lobby(string.sub(MP.LOBBY.config.gamemode, 13))
 	G.FUNCS.exit_overlay_menu()
@@ -1328,7 +1408,18 @@ function G.UIDEF.create_UIBox_lobby_menu()
 
 	local t = create_UIBox_lobby_menu_ref()
 	if BalatroTCG.MP_Lobby then
-		t.nodes[1].nodes[2].nodes[2].nodes[3] = MP.UI.create_tcg_mp_button(0.45)
+		-- for i = #t.nodes[1].nodes[2].nodes[2].nodes, 3, -1 do
+		-- 	t.nodes[1].nodes[2].nodes[2].nodes[i + 1] = t.nodes[1].nodes[2].nodes[2].nodes[i]
+		-- end
+		t.nodes[1].nodes[2].nodes[2].nodes[1].nodes[1].config.button = 'tcg_lobby_options'
+			
+		t.nodes[1].nodes[2].nodes[2].nodes[3] = {
+			n=G.UIT.C,
+			config = {padding = 0.1},
+			nodes = {
+				MP.UI.create_tcg_mp_button(0.45)
+			}
+		}
 	end
 
 	
@@ -1337,16 +1428,333 @@ end
 
 function MP.UI.create_tcg_mp_button(text_scale)
 
+	BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
+
 	return UIBox_button({
 		id = "lobby_choose_tcg_deck",
 		button = "lobby_choose_tcg_deck",
 		colour = G.C.PURPLE,
 		minw = 2.15,
 		minh = 1.35,
-		label = { localize("b_tcgtab_select")},
+		label = { localize("b_tcgtab_select"), '(' .. (BalatroTCG.SelectedDeck.name) .. ')'},
 		scale = text_scale * 1.2,
 		col = true,
 	})
 
 end
 
+function MP.UI.create_tcg_mpoptions_button(text_scale)
+
+	return UIBox_button({
+		id = "tcg_lobby_options",
+		button = "tcg_lobby_options",
+		colour = G.C.PURPLE,
+		minw = 2.15,
+		minh = 1.35,
+		label = { localize("b_tcgtab_select") },
+		scale = text_scale * 1.2,
+		col = true,
+	})
+
+end
+
+
+
+function G.FUNCS.tcg_lobby_options(e)
+	G.FUNCS.overlay_menu({
+		definition = G.UIDEF.create_UIBox_tcg_lobby_options(),
+	})
+end
+
+
+local MP_reset_lobby_config_ref = MP.reset_lobby_config
+function MP.reset_lobby_config(persist_ruleset_and_gamemode)
+	
+	MP_reset_lobby_config_ref(persist_ruleset_and_gamemode)
+
+	if MP.LOBBY.config.gamemode == "gamemode_mp_tcg" then
+		MP.LOBBY.config.preview_disabled = true
+		MP.LOBBY.config.the_order = false
+		MP.LOBBY.config.timer = false
+		MP.LOBBY.config.disable_live_and_timer_hud = true
+		
+		MP.LOBBY.config.tcg_balanced = true
+		MP.LOBBY.config.health_pool = 100
+
+		MP.LOBBY.config.money_leak = true
+		MP.LOBBY.config.money_leak_start = 10
+		MP.LOBBY.config.money_leak_increase = 2
+
+		MP.LOBBY.config.game_round_limit = true
+		MP.LOBBY.config.round_limit = 15
+		MP.LOBBY.config.winner_type = "Lowest Money"
+
+		MP.LOBBY.config.deck_money_limit = true
+		MP.LOBBY.config.deck_joker_limits = true
+		MP.LOBBY.config.deck_size_limits = true
+		MP.LOBBY.config.deck_back_limits = true
+		MP.LOBBY.config.deck_consumeable_limits = true
+	else
+
+	end
+end
+
+function MP.UI.create_tcg_lobby_options_tab()
+	return {
+		n = G.UIT.ROOT,
+		config = {
+			emboss = 0.05,
+			minh = 4,
+			r = 0.1,
+			minw = 10,
+			align = "tm",
+			padding = 0.2,
+			colour = G.C.BLACK,
+		},
+		nodes = {
+			create_lobby_option_cycle(
+				"money_pool_option",
+				"b_opts_tcg_health",
+				0.85,
+				{ 50, 60, 75, 100, 125, 150 },
+				MP.UTILS.get_array_index_by_value(
+					{ 50, 60, 75, 100, 125, 150 },
+					MP.LOBBY.config.health_pool
+				),
+				"change_health_pool"
+			),
+			create_lobby_option_toggle("tcg_balanced", "b_opts_tcg_balanced", "tcg_balanced"),
+		},
+	}
+end
+function MP.UI.create_tcg_deck_options_tab()
+	return {
+		n = G.UIT.ROOT,
+		config = {
+			emboss = 0.05,
+			minh = 4,
+			r = 0.1,
+			minw = 10,
+			align = "tm",
+			padding = 0.2,
+			colour = G.C.BLACK,
+		},
+		nodes = {
+			{
+				n = G.UIT.C,
+				nodes = {
+					{
+						n = G.UIT.R,
+						config = { padding = 0, align = "cm", on_demand_tooltip = { text = { localize("b_opts_tcg_deck_money_limit_desc") } } },
+						nodes = { create_lobby_option_toggle("deck_money_limit", "b_opts_tcg_deck_money_limit", "deck_money_limit") }
+					},
+					{
+						n = G.UIT.R,
+						config = { padding = 0, align = "cm", on_demand_tooltip = { text = { localize("b_opts_tcg_deck_size_limits_desc") } } },
+						nodes = { create_lobby_option_toggle("deck_size_limits", "b_opts_tcg_deck_size_limits", "deck_size_limits") }
+					},
+					{
+						n = G.UIT.R,
+						config = { padding = 0, align = "cm", on_demand_tooltip = { text = { localize("b_opts_tcg_deck_back_limits_desc") } } },
+						nodes = { create_lobby_option_toggle("deck_back_limits", "b_opts_tcg_deck_back_limits", "deck_back_limits") }
+					},
+				}
+			},
+			{
+				n = G.UIT.C,
+				nodes = {
+					{
+						n = G.UIT.R,
+						config = { padding = 0, align = "cm", on_demand_tooltip = { text = { localize("b_opts_tcg_deck_joker_limits_desc") } } },
+						nodes = { create_lobby_option_toggle("deck_joker_limits", "b_opts_tcg_deck_joker_limits", "deck_joker_limits") }
+					},
+					{
+						n = G.UIT.R,
+						config = { padding = 0, align = "cm", on_demand_tooltip = { text = { localize("b_opts_tcg_deck_consumeable_limits_desc") } } },
+						nodes = { create_lobby_option_toggle("deck_consumeable_limits", "b_opts_tcg_deck_consumeable_limits", "deck_consumeable_limits") }
+					},
+				}
+			}
+		},
+	}
+end
+function MP.UI.create_tcg_ending_options_tab()
+	return {
+		n = G.UIT.ROOT,
+		config = {
+			emboss = 0.05,
+			minh = 4,
+			r = 0.1,
+			minw = 10,
+			align = "tm",
+			padding = 0.2,
+			colour = G.C.BLACK,
+		},
+		nodes = {
+			{
+				n = G.UIT.C,
+				nodes = {
+					{
+						n = G.UIT.R,
+						config = { padding = 0, align = "cm", on_demand_tooltip = { text = { localize("b_opts_tcg_money_leak_desc") } } },
+						nodes = { create_lobby_option_toggle("money_leak_enabled", "b_opts_tcg_money_leak", "money_leak") }
+					},
+					create_lobby_option_cycle(
+						"money_leak_start",
+						"b_opts_tcg_money_leak_start",
+						0.85,
+						{ 1, 2, 4, 6, 8, 10, 15, 20 },
+						MP.UTILS.get_array_index_by_value(
+							{ 1, 2, 4, 6, 8, 10, 15, 20 },
+							MP.LOBBY.config.money_leak_start
+						),
+						"change_money_leak_start"
+					),
+					create_lobby_option_cycle(
+						"money_leak_increase",
+						"b_opts_tcg_money_leak_increase",
+						0.85,
+						{ 0, 1, 2, 3, 4, 5 },
+						MP.UTILS.get_array_index_by_value(
+							{ 0, 1, 2, 3, 4, 5 },
+							MP.LOBBY.config.money_leak_increase
+						),
+						"change_money_leak_increase"
+					),
+				}
+			},
+			{
+				n = G.UIT.C,
+				nodes = {
+					{
+						n = G.UIT.R,
+						config = { padding = 0, align = "cm", on_demand_tooltip = { text = { localize("b_opts_tcg_game_round_limit_desc") } } },
+						nodes = { create_lobby_option_toggle("game_round_limit_enabled", "b_opts_tcg_game_round_limit", "game_round_limit"), }
+					},
+					
+					create_lobby_option_cycle(
+						"round_limit",
+						"b_opts_tcg_round_limit",
+						0.85,
+						{ 5, 8, 10, 12, 15, 20, 25, 30 },
+						MP.UTILS.get_array_index_by_value(
+							{ 5, 8, 10, 12, 15, 20, 25, 30 },
+							MP.LOBBY.config.round_limit
+						),
+						"change_round_limit"
+					),
+					create_lobby_option_cycle(
+						"winner_type",
+						"b_opts_tcg_winner_type",
+						0.85,
+						{ "Lowest Money", "Highest Money" },
+						MP.UTILS.get_array_index_by_value(
+							{ "Lowest Money", "Highest Money" },
+							MP.LOBBY.config.winner_type
+						),
+						"change_winner_type"
+					),
+				}
+			}
+		},
+	}
+end
+
+G.FUNCS.change_health_pool = function(args)
+	MP.LOBBY.config.health_pool = args.to_val
+	MP.ACTIONS.lobby_options()
+end
+G.FUNCS.change_money_leak_start = function(args)
+	MP.LOBBY.config.money_leak_start = args.to_val
+	MP.ACTIONS.lobby_options()
+end
+G.FUNCS.change_money_leak_increase = function(args)
+	MP.LOBBY.config.money_leak_increase = args.to_val
+	MP.ACTIONS.lobby_options()
+end
+
+G.FUNCS.change_round_limit = function(args)
+	MP.LOBBY.config.round_limit = args.to_val
+	MP.ACTIONS.lobby_options()
+end
+G.FUNCS.change_winner_type = function(args)
+	MP.LOBBY.config.winner_type = args.to_val
+	MP.ACTIONS.lobby_options()
+end
+
+local lobby_options_ref = MP.ACTIONS.lobby_options
+function MP.ACTIONS.lobby_options()
+	lobby_options_ref()
+	set_tcg_mp_settings()
+end
+
+function G.UIDEF.create_UIBox_tcg_lobby_options()
+	return create_UIBox_generic_options({
+		contents = {
+			{
+				n = G.UIT.R,
+				config = {
+					padding = 0,
+					align = "cm",
+				},
+				nodes = {
+					not MP.LOBBY.is_host and {
+						n = G.UIT.R,
+						config = {
+							padding = 0.3,
+							align = "cm",
+						},
+						nodes = {
+							{
+								n = G.UIT.T,
+								config = {
+									scale = 0.6,
+									shadow = true,
+									text = localize("k_opts_only_host"),
+									colour = G.C.UI.TEXT_LIGHT,
+								},
+							},
+						},
+					} or nil,
+					create_tabs({
+						snap_to_nav = true,
+						colour = G.C.BOOSTER,
+						tabs = {
+							{
+								label = localize("k_lobby_general"),
+								chosen = true,
+								tab_definition_function = function()
+									return MP.UI.create_tcg_lobby_options_tab()
+								end,
+							},
+							{
+								label = localize("k_lobby_gameplay"),
+								tab_definition_function = function()
+									return MP.UI.create_tcg_ending_options_tab()
+								end,
+							},
+							{
+								label = localize("k_lobby_deck"),
+								tab_definition_function = function()
+									return MP.UI.create_tcg_deck_options_tab()
+								end,
+							},
+							-- {
+							-- 	label = localize("k_lobby_modifiers"),
+							-- 	tab_definition_function = function()
+							-- 		return MP.UI.create_gamemode_modifiers_tab()
+							-- 	end,
+							-- },
+							-- {
+							-- 	label = localize("k_lobby_advanced"),
+							-- 	tab_definition_function = function()
+							-- 		return MP.UI.create_advanced_options_tab()
+							-- 	end,
+							-- },
+						},
+					}),
+				},
+			},
+		},
+	})
+end

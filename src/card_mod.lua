@@ -2,33 +2,48 @@
 local calculate_joker_ref = Card.calculate_joker
 
 function Card:override_rank(rank)
-    if self.ability.tcg_extra then
-        self.ability.tcg_extra.rank = G.P_CARDS['H_' .. rank].value
+    if self.tcg_extra then
+        self.tcg_extra.rank = rank
     end
 end
 
 function Card:override_suit(suit)
     if self:is_playing_card() then
-        local suit_prefix = suit..'_'
-        local rank_suffix = self.base.id < 10 and tostring(self.base.id) or
-                            self.base.id == 10 and 'T' or self.base.id == 11 and 'J' or
-                            self.base.id == 12 and 'Q' or self.base.id == 13 and 'K' or
-                            self.base.id == 14 and 'A'
-        self:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                            
+        assert(SMODS.change_base(self, suit.key))
     elseif self.ability.set == 'Tarot' then
-        if suit == 'S' then
+        if suit.card_key == 'S' then
             self:set_ability(G.P_CENTERS.c_world)
-        elseif suit == 'H' then
+        elseif suit.card_key == 'H' then
             self:set_ability(G.P_CENTERS.c_sun)
-        elseif suit == 'D' then
+        elseif suit.card_key == 'D' then
             self:set_ability(G.P_CENTERS.c_star)
-        elseif suit == 'C' then
+        elseif suit.card_key == 'C' then
             self:set_ability(G.P_CENTERS.c_moon)
             --TARGET: Sigil changing tarot suits
         end
-    elseif self.ability.tcg_extra then
-        self.ability.tcg_extra.suit = G.P_CARDS[suit .. '_2'].suit
+    elseif self.tcg_extra then
+        self.tcg_extra.suit = suit
     end
+end
+
+function Card:get_ability_rank(default)
+    if self.tcg_extra.rank then
+        return self.tcg_extra.rank.key
+    end
+    return default
+end
+function Card:get_ability_id(default)
+    if self.tcg_extra.rank then
+        return self.tcg_extra.rank.id
+    end
+    return default
+end
+function Card:get_ability_suit(default)
+    if self.tcg_extra.suit then
+        return self.tcg_extra.suit.key
+    end
+    return default
 end
 
 function Card:is_rank_joker(ranks)
@@ -160,6 +175,25 @@ function Card:use_consumeable(area, copier)
                     }))
                     delay(0.6)
                 end
+            elseif self.ability.name == 'Ankh' and not BalatroTCG.Settings.Unbalance then
+
+                local copyable_jokers = {}
+                for i, v in ipairs(G.jokers.cards) do
+                    if not G.jokers.cards[i].edition or G.jokers.cards[i].edition.type ~= "mp_phantom" then copyable_jokers[#copyable_jokers + 1] = v end
+                end
+                local chosen_joker = pseudorandom_element(copyable_jokers, pseudoseed('ankh_choice'))
+                
+                G.E_MANAGER:add_event(Event({trigger = 'before', delay = 0.4, func = function()
+                    local card = copy_card(chosen_joker, nil, nil, nil, chosen_joker.edition and chosen_joker.edition.negative)
+                    card:start_materialize()
+                    card:add_to_deck()
+                    card:set_rental(true)
+                    if card.edition and card.edition.negative then
+                        card:set_edition(nil, true)
+                    end
+                    G.jokers:emplace(card)
+                    return true end }))
+                
             elseif self.ability.name == 'The Emperor' then
                 
                 for i = 1, math.min(self.ability.consumeable.tarots, G.consumeables.config.card_limit - #G.consumeables.cards) do
@@ -176,6 +210,7 @@ function Card:use_consumeable(area, copier)
                                     goto skip
                                 end
                             end
+                            card:add_to_deck()
                             table.insert(G.playing_cards, card)
                             ::skip::
                             play_sound('timpani')
@@ -191,6 +226,10 @@ function Card:use_consumeable(area, copier)
                 
                 local rightmost = G.hand.highlighted[1]
                 local leftmost = G.hand.highlighted[1]
+                
+                leftmost.children.front:remove()
+                leftmost.children.front = nil
+                
                 for i=1, #G.hand.highlighted do
                     if G.hand.highlighted[i].T.x < leftmost.T.x then leftmost = G.hand.highlighted[i] end
                     if G.hand.highlighted[i].T.x > rightmost.T.x then rightmost = G.hand.highlighted[i] end
@@ -205,9 +244,11 @@ function Card:use_consumeable(area, copier)
                     leftmost.children.use_button:remove()
                     leftmost.children.use_button = nil
                 end
-                leftmost.ability.has_health = nil
-                leftmost.ability.health_amount = nil
-                leftmost.ability.max_health = nil
+                leftmost.tcg_extra.has_health = nil
+                leftmost.tcg_extra.health_amount = nil
+                leftmost.tcg_extra.max_health = nil
+
+                leftmost:set_sprites()
                 
             elseif self.ability.name == 'The High Priestess' then
 
@@ -237,11 +278,11 @@ function Card:use_consumeable(area, copier)
                 end
                 delay(0.6)
 
-            elseif self.ability.name == 'Immolate' then
+            elseif self.ability.name == 'Immolate' and not BalatroTCG.Settings.Unbalance then
                 self.ability.extra.dollars = 0
                 use_consumeable_ref(self, area, copier)
 
-            elseif self.ability.effect == 'Suit Conversion' and BalatroTCG.Unbalance then
+            elseif self.ability.effect == 'Suit Conversion' and BalatroTCG.Settings.Unbalance then
 
                 G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
                     play_sound('tarot1')
@@ -253,7 +294,7 @@ function Card:use_consumeable(area, copier)
                     G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.15,func = function() G.hand.cards[i]:flip();play_sound('card1', percent);G.hand.cards[i]:juice_up(0.3, 0.3);return true end }))
                 end
 
-                local _suit = SMODS.SUITS[self.ability.suit_conv].card_key
+                local _suit = SMODS.SUITS[self.ability.suit_conv]
                 for i=1, #G.hand.cards do
                     G.E_MANAGER:add_event(Event({func = function()
                         local card = G.hand.cards[i]
@@ -282,7 +323,7 @@ function Card:use_consumeable(area, copier)
                 if self.ability.name == 'Sigil' then
                     --use_consumeable_ref(self, area, copier)
 
-                    local _suit = pseudorandom_element(SMODS.Suits, pseudoseed('sigil')).card_key
+                    local _suit = pseudorandom_element(SMODS.Suits, pseudoseed('sigil'))
                     for i=1, #G.hand.cards do
                         G.E_MANAGER:add_event(Event({func = function()
                             local card = G.hand.cards[i]
@@ -292,18 +333,15 @@ function Card:use_consumeable(area, copier)
                     end  
                 end
                 if self.ability.name == 'Ouija' then
-                    local _rank = pseudorandom_element({'2','3','4','5','6','7','8','9','T','J','Q','K','A'}, pseudoseed('ouija'))
+                    local rank = pseudorandom_element(SMODS.Ranks, pseudoseed('ouija'))
                     for i=1, #G.hand.cards do
                         G.E_MANAGER:add_event(Event({func = function()
                             local card = G.hand.cards[i]
                             local set = card.ability.set
                             if card:is_playing_card() then
-                                local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
-                                local rank_suffix =_rank
-                                card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-                            elseif set == 'Tarot' then
+                                assert(SMODS.change_base(card, nil, rank.key))
                             else
-                                card:override_rank(_rank)
+                                card:override_rank(rank)
                             end
                         return true end }))
                     end  
@@ -450,7 +488,7 @@ function Card:calculate_joker(context)
                     for k, v in ipairs(G.jokers.cards) do
                         self:juice_up(0.3, 0.4)
                         play_sound('tarot1')
-                        v:set_tcg_health((v.ability.health_amount or 0) + self.ability.extra)
+                        v:set_tcg_health((v.tcg_extra.health_amount or 0) + self.ability.extra)
                         delay(0.4)
                     end
                     return true end
@@ -569,14 +607,14 @@ function Card:calculate_joker(context)
                 })
             end
         elseif context.discard then
-            if self.ability.name == 'Trading Card' and not BalatroTCG.Unbalance and not context.blueprint and G.GAME.current_round.discards_used <= 0 and #context.full_hand == 1 then
+            if self.ability.name == 'Trading Card' and not BalatroTCG.Settings.Unbalance and not context.blueprint and G.GAME.current_round.discards_used <= 0 and #context.full_hand == 1 then
                 return {
                     delay = 0.45, 
                     remove = true,
                     card = self
                 }
             end
-            if self.ability.name == 'Castle' and self.ability.tcg_extra.suit then
+            if self.ability.name == 'Castle' and self.tcg_extra.suit then
                 if not context.other_card.debuff and context.other_card:is_suit(G.GAME.current_round.castle_card.suit) and not context.blueprint then
                     self.ability.extra.chips = self.ability.extra.chips + self.ability.extra.chip_mod
                     
@@ -590,7 +628,7 @@ function Card:calculate_joker(context)
                 end
             end
             if self.ability.name == 'Mail-In Rebate' then
-                local rank = self.ability.tcg_extra.rank or G.GAME.current_round.mail_card.id
+                local rank = self:get_ability_id(G.GAME.current_round.mail_card.id)
                 if not context.other_card.debuff and context.other_card:is_rank_joker(rank) then
                     ease_dollars(self.ability.extra)
                     return {
@@ -603,7 +641,7 @@ function Card:calculate_joker(context)
                 end
             end
             if self.ability.name == 'Hit the Road' then
-                local rank = self.ability.tcg_extra.rank or 11
+                local rank = self:get_ability_id(11)
                 if not context.other_card.debuff and context.other_card:is_rank_joker(rank) and not context.blueprint then
                     self.ability.x_mult = self.ability.x_mult + self.ability.extra
                     return {
@@ -695,8 +733,9 @@ function Card:calculate_joker(context)
                     end
                 end
                 if self.ability.name == 'The Idol' then
-                    local suit = self.ability.tcg_extra.suit or G.GAME.current_round.idol_card.suit
-                    local rank = self.ability.tcg_extra.rank or G.GAME.current_round.idol_card.id
+                    
+                    local suit = self:get_ability_suit(G.GAME.current_round.idol_card.suit)
+                    local rank = self:get_ability_id(G.GAME.current_round.idol_card.id)
 
                     if context.other_card:is_rank_joker(rank) and context.other_card:is_suit(suit) then
                         return {
@@ -730,7 +769,7 @@ function Card:calculate_joker(context)
                     end
                 end
                 if self.ability.name == 'Rough Gem' then
-                    local suit = self.ability.tcg_extra.suit or "Diamonds"
+                    local suit = self:get_ability_suit("Diamonds")
                     
                     if context.other_card:is_suit(suit) then
                         G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + self.ability.extra
@@ -743,7 +782,7 @@ function Card:calculate_joker(context)
                     end
                 end
                 if self.ability.name == 'Onyx Agate' then
-                    local suit = self.ability.tcg_extra.suit or "Clubs"
+                    local suit = self:get_ability_suit("Clubs")
 
                     if context.other_card:is_suit(suit) then
                         return {
@@ -755,7 +794,7 @@ function Card:calculate_joker(context)
                     end
                 end
                 if self.ability.name == 'Arrowhead' then
-                    local suit = self.ability.tcg_extra.suit or "Spades"
+                    local suit = self:get_ability_suit("Spades")
                     if context.other_card:is_suit(suit) then
                         return {
                             chips = self.ability.extra,
@@ -766,7 +805,7 @@ function Card:calculate_joker(context)
                     end
                 end
                 if self.ability.name ==  'Bloodstone' then
-                    local suit = self.ability.tcg_extra.suit or "Hearts"
+                    local suit = self:get_ability_suit("Hearts")
 
                     if context.other_card:is_suit(suit) and pseudorandom('bloodstone') < G.GAME.probabilities.normal/self.ability.extra.odds then
                         return {
@@ -777,8 +816,10 @@ function Card:calculate_joker(context)
                         return nil
                     end
                 end
-                if self.ability.name == 'Ancient Joker' and self.ability.tcg_extra.suit then
-                    if context.other_card:is_suit(self.ability.tcg_extra.suit) then
+                if self.ability.name == 'Ancient Joker' then
+
+                    local suit = self:get_ability_suit(G.GAME.current_round.ancient_card.suit)
+                    if context.other_card:is_suit(suit) then
                         return {
                             x_mult = self.ability.extra,
                             card = self
@@ -811,7 +852,7 @@ function Card:calculate_joker(context)
         else
             if context.cardarea == G.jokers then
                 if context.before then
-                    if self.ability.name == 'Obelisk' and not context.blueprint and not BalatroTCG.Unbalance then
+                    if self.ability.name == 'Obelisk' and not context.blueprint and not BalatroTCG.Settings.Unbalance then
                         local reset = true
                         local play_more_than = (G.GAME.hands[context.scoring_name].played or 0)
                         for k, v in pairs(G.GAME.hands) do
@@ -840,7 +881,7 @@ function Card:calculate_joker(context)
                         for i = 1, #G.jokers.cards do
                             if G.jokers.cards[i].ability.set == 'Joker' then x = x + 1 end
                         end
-                        x = x + BalatroTCG.Status_Current.status.opponent_jokers
+                        x = x + #BalatroTCG.Status_Current.opponentJokers.cards
                         return {
                             message = localize{type='variable',key='a_mult',vars={x*self.ability.extra}},
                             mult_mod = x*self.ability.extra
@@ -1232,10 +1273,10 @@ function create_tcg_center(self)
                 G.GAME.modifiers.tcg_attack_cost = card.ability.extra.reroll
             end
         end
-    elseif self.ability.set == 'Tarot' then
-        if not BalatroTCG.Unbalance then
+    elseif self.set == 'Tarot' then
+        if not BalatroTCG.Settings.Unbalance then
             if name == 'The Hermit' then
-                --self.ability.extra = 15
+                --self.config.extra = 15
             elseif name == 'The Emperor' then
                 
             elseif name == 'The High Priestess' then
@@ -2137,36 +2178,39 @@ function create_tcg_center(self)
     return self
 end
 
-function TCG_Override_Desc(self, loc_vars)
-    if not self.ability.tcg_extra then return loc_vars end
+function TCG_Override_Desc(self, _c, loc_vars)
     
-    local money_power = (math.log(G.GAME.dollars + (G.GAME.dollar_buffer or 0)) / math.log(2)) + 1
+    local ability = self and self.ability or _c.config
 
-    if self.ability.name == 'Ancient Joker' and self.ability.tcg_extra.suit then loc_vars = {self.ability.extra, localize(self.ability.tcg_extra.suit, 'suits_singular'), colours = {G.C.SUITS[self.ability.tcg_extra.suit]}}
-    elseif self.ability.name == 'Campfire' then loc_vars = {self.ability.extra, self.ability.reduce, self.ability.x_mult}
-    elseif self.ability.name == 'Acrobat' then loc_vars = { self.ability.scaling, ((BalatroTCG.Status_Current and (BalatroTCG.Status_Current.status.round - 1) or 0) * self.ability.scaling + self.ability.initial)}
-    elseif self.ability.name == 'Red Card' then loc_vars = { self.ability.extra, self.ability.cards, self.ability.mult }
-    elseif self.ability.name == 'Rocket' then loc_vars = {self.ability.extra.dollars, self.ability.extra.increase, self.ability.extra.limit}
-    elseif self.ability.name == 'Fortune Teller' then loc_vars = {self.ability.extra, (G.GAME.consumeable_usage_total and G.GAME.consumeable_usage_total.tarot or 0) * self.ability.extra}    
-    elseif self.ability.name == 'Superposition' then loc_vars = {self.ability.extra}
-    elseif self.ability.name == 'Cloud 9' then loc_vars = {self.ability.extra, math.floor((self.ability.nine_tally or 0) / self.ability.extra)}
-    elseif self.ability.name == 'Blue Joker' then loc_vars = {self.ability.extra, self.ability.extra*((G.deck and G.deck.cards) and #G.deck.cards or 60)}
-    elseif self.ability.name == 'Chicot' then loc_vars = {self.ability.extra}
-    elseif self.ability.name == 'Golden Joker' then loc_vars = {self.ability.extra}
-    elseif self.ability.name == 'Dusk' then loc_vars = {self.ability.extra}
-    elseif self.ability.name == 'Mr. Bones' then loc_vars = {self.ability.extra}
-    elseif self.ability.name == 'Swashbuckler' then loc_vars = {self.ability.mult + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_joker_cost or 0)}
-    elseif self.ability.name == 'Throwback' then loc_vars = {self.ability.extra, self.ability.extra * self.ability.discards + 1}
-    elseif self.ability.name == 'Ceremonial Dagger' then loc_vars = {self.ability.extra.growth, self.ability.extra.mult}
-    elseif self.ability.name == 'Abstract Joker' then loc_vars = {self.ability.extra, ((G.jokers and G.jokers.cards and #G.jokers.cards or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_jokers or 0))*self.ability.extra}
-    elseif self.ability.name == 'Supernova' then loc_vars = {self.ability.extra}
-    elseif self.ability.name == 'Luchador' then loc_vars = {math.floor(self.ability.extra * 100)}
-    elseif self.ability.name == 'Reroll Surplus' then loc_vars = { 2 }
-    elseif self.ability.name == 'Reroll Glut' then loc_vars = { 1 }
-    elseif self.ability.name == 'Hone' then loc_vars = { localize{type = 'name_text', key = 'c_wheel_of_fortune', set = 'Tarot'}, 2 }
-    elseif self.ability.name == 'Misprint' then
+    if _c.name == 'Ancient Joker' and self then loc_vars = {ability.extra, localize(self:get_ability_suit(G.GAME.current_round.ancient_card.suit), 'suits_singular'), colours = {G.C.SUITS[self:get_ability_suit(G.GAME.current_round.ancient_card.suit)]}}
+    elseif _c.name == 'Campfire' then loc_vars = {ability.extra, ability.reduce, ability.x_mult}
+    elseif _c.name == 'Acrobat' then loc_vars = { ability.scaling, ((BalatroTCG.Status_Current and (BalatroTCG.Status_Current.status.round - 1) or 0) * ability.scaling + ability.initial)}
+    elseif _c.name == 'Red Card' then loc_vars = { ability.extra, ability.cards, ability.mult }
+    elseif _c.name == 'Rocket' then loc_vars = {ability.extra.dollars, ability.extra.increase, ability.extra.limit}
+    elseif _c.name == 'Fortune Teller' then loc_vars = {ability.extra, (G.GAME.consumeable_usage_total and G.GAME.consumeable_usage_total.tarot or 0) * ability.extra}    
+    elseif _c.name == 'Superposition' then loc_vars = {ability.extra}
+    elseif _c.name == 'Cloud 9' then loc_vars = {ability.extra, math.floor((ability.nine_tally or 0) / ability.extra)}
+    elseif _c.name == 'Blue Joker' then loc_vars = {ability.extra, ability.extra*((G.deck and G.deck.cards) and #G.deck.cards or 60)}
+    elseif _c.name == 'Chicot' then loc_vars = {ability.extra}
+    elseif _c.name == 'Golden Joker' then loc_vars = {ability.extra}
+    elseif _c.name == 'Dusk' then loc_vars = {ability.extra}
+    elseif _c.name == 'Dusk' then loc_vars = {ability.extra}
+    elseif _c.name == 'Mr. Bones' then loc_vars = {ability.extra}
+    elseif _c.name == 'Swashbuckler' then loc_vars = {ability.mult + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_joker_cost or 0)}
+    elseif _c.name == 'Throwback' then loc_vars = {ability.extra, ability.extra * ability.discards + 1}
+    elseif _c.name == 'Ceremonial Dagger' then loc_vars = {ability.extra.growth, ability.extra.mult}
+    elseif _c.name == 'Abstract Joker' then loc_vars = {ability.extra, ((G.jokers and G.jokers.cards and #G.jokers.cards or 0) + (BalatroTCG.Status_Current and #BalatroTCG.Status_Current.opponentJokers.cards or 0))*ability.extra}
+    elseif _c.name == 'Supernova' then loc_vars = {ability.extra}
+    elseif _c.name == 'Luchador' then loc_vars = {math.floor(ability.extra * 100)}
+    elseif _c.name == 'Bootstraps' then loc_vars = {ability.extra.mult, ability.extra.mult * math.floor(BalatroTCG.Status_Current and (BalatroTCG.Status_Current.status.dollars + (G.GAME.dollar_buffer or 0) + BalatroTCG.Status_Current.status.opponent_health) or 0)}
+    elseif _c.name == 'Bull' then loc_vars = {ability.extra, ability.extra*math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_health or 0)))}
+
+    elseif _c.name == 'The Idol' and self then loc_vars = {ability.extra, localize(self:get_ability_rank(G.GAME.current_round.idol_card.rank), 'ranks'), localize(self:get_ability_suit(G.GAME.current_round.idol_card.suit), 'suits_plural'), colours = {G.C.SUITS[self:get_ability_suit(G.GAME.current_round.idol_card.suit)]}}
+    elseif _c.name == 'Mail-In Rebate' and self then loc_vars = {ability.extra, localize(self:get_ability_rank(G.GAME.current_round.mail_card.rank), 'ranks')}
+
+    elseif _c.name == 'Misprint' then
         local r_mults = {}
-        for i = self.ability.extra.min, self.ability.extra.max do
+        for i = ability.extra.min, ability.extra.max do
             r_mults[#r_mults+1] = tostring(i)
         end
         local loc_mult = ' '..(localize('k_mult'))..' '
@@ -2187,35 +2231,53 @@ function TCG_Override_Desc(self, loc_vars)
             colours = {G.C.UI.TEXT_DARK},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.2011, scale = 0.32, min_cycle_time = 0})}},
         }
 
+    elseif _c.name == 'Reroll Surplus' then loc_vars = { ability.extra }
+    elseif _c.name == 'Seed Money' then loc_vars = { ability.extra }
+    elseif _c.name == 'Money Tree' then loc_vars = { BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.seed_reduction or 0 }
+    elseif _c.name == 'Reroll Glut' then loc_vars = { ability.extra }
+    elseif _c.name == 'Hieroglyph' then loc_vars = { ability.extra }
+    elseif _c.name == 'Petroglyph' then loc_vars = { ability.extra }
+    elseif _c.name == 'Hone' then loc_vars = { ability.extra }
+    elseif _c.name == 'Glow Up' then loc_vars = { ability.extra }
+    elseif _c.name == 'Illusion' then loc_vars = { ability.extra }
+    elseif _c.name == 'Tarot Merchant' then loc_vars = { ability.extra }
+    elseif _c.name == 'Planet Merchant' then loc_vars = { ability.extra }
+    elseif _c.name == 'Omen Globe' then loc_vars = { ability.extra }
+    elseif _c.name == "Director's Cut" then loc_vars = { ability.extra.reroll, ability.extra.damage }
+    elseif _c.name == 'Retcon' then loc_vars = { ability.extra.reroll, ability.extra.damage }
+    
+    elseif _c.name == 'Lucky Card' then loc_vars = { G.GAME.probabilities.normal, BalatroTCG.Settings.Unbalance and 15 or 10, ability.p_dollars};
+
     end
+
+    _c.vars = specific_vars
 
     return loc_vars
 end
 
-function Card:set_tcg_max_health(_amount) 
-    if not self.ability.eternal then
-        self.ability.has_health = true
-        self.ability.health_amount = _amount
-        self.ability.max_health = _amount
-    end
+function Card:set_tcg_max_health(_amount)
+
+    self.tcg_extra.has_health = true
+    self.tcg_extra.health_amount = _amount
+    self.tcg_extra.max_health = _amount
 end
 function Card:set_tcg_health(_amount) 
     if not self.ability.eternal then
         if _amount <= 0 then
             self:start_dissolve()
         else
-            self.ability.has_health = true
-            self.ability.health_amount = math.min(_amount, self.ability.max_health or 25)
+            self.tcg_extra.has_health = true
+            self.tcg_extra.health_amount = math.min(_amount, self.tcg_extra.max_health or 25)
         end
     end
 end
 function Card:remove_tcg_health(_amount) 
     if not self.ability.eternal then
-        self.ability.health_amount = (self.ability.health_amount or 0)
-        if self.ability.health_amount - _amount <= 0 then
+        self.tcg_extra.health_amount = (self.tcg_extra.health_amount or 0)
+        if self.tcg_extra.health_amount - _amount <= 0 then
             self.skip_destroy_animation = true
         end
-        self:set_tcg_health(self.ability.health_amount - _amount)
+        self:set_tcg_health(self.tcg_extra.health_amount - _amount)
 
         local dissolve_time = 0.7
         self.dissolve_colours = {{1,1,1,0.8}}
@@ -2230,7 +2292,7 @@ function Card:remove_tcg_health(_amount)
             fill = true
         })
 
-        card_eval_status_text(self, 'extra', nil, nil, nil, {message = tostring(self.ability.health_amount), colour = G.C.RED})
+        card_eval_status_text(self, 'extra', nil, nil, nil, {message = tostring(self.tcg_extra.health_amount), colour = G.C.RED})
 
         G.E_MANAGER:add_event(Event({
             trigger = 'after',

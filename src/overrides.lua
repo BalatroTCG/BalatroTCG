@@ -17,12 +17,12 @@ end
 local Card_highlight_ref = Card.highlight
 function Card:highlight(is_higlighted)
 
-    
+
     if self.area and (self.area.config.type == 'tcgdeck_buy' or self.area.config.type == 'tcgdeck_remove') then
         self.highlighted = is_higlighted
 
         if is_higlighted then
-            
+
             for j = 1, #G.your_collection do
                 for i = #G.your_collection[j].cards,1, -1 do
                     local c = G.your_collection[j].cards[i]
@@ -40,10 +40,10 @@ function Card:highlight(is_higlighted)
                 end
             end
 
-            
-            
+
+
             self.children.use_button = UIBox{
-                definition = self.area.config.type == 'tcgdeck_buy' and G.UIDEF.tcg_add_to_deck(self) or G.UIDEF.tcg_remove_to_deck(self), 
+                definition = self.area.config.type == 'tcgdeck_buy' and G.UIDEF.tcg_add_to_deck(self) or G.UIDEF.tcg_remove_from_deck(self),
                 config = {align= "bmi", offset = {x=0,y=0.85},parent =self}
             }
         elseif self.children.use_button then
@@ -53,42 +53,74 @@ function Card:highlight(is_higlighted)
     else
         Card_highlight_ref(self, is_higlighted)
     end
-    
+
 	if self.mp_cocktail_select and self.tcg_deck_type then
         if self.highlighted then
             for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do
                 if self.tcg_deck_type == v then goto skip end
             end
-            --print(self.tcg_deck_type)
             table.insert(BalatroTCG.BuildingDeck.backs, self.tcg_deck_type)
             ::skip::
         else
             for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do
-                if self.tcg_deck_type == v then 
+                if self.tcg_deck_type == v then
                     table.remove(BalatroTCG.BuildingDeck.backs, k)
                     break
                 end
             end
         end
 	end
+
+    if BalatroTCG.GameActive and BalatroTCG.Status_Current then
+        BalatroTCG.Status_Current:send_status()
+    end
+end
+
+local SMODS_scoring_calculation_function_ref = G.FUNCS.SMODS_scoring_calculation_function
+G.FUNCS.SMODS_scoring_calculation_function = function(e)
+    if BalatroTCG.GameActive then return end
+    return SMODS_scoring_calculation_function_ref(e)
+end
+
+local ease_hands_played_ref = ease_hands_played
+
+function ease_hands_played(mod, instant)
+    if BalatroTCG.PlayerActive then
+        ease_hands_played_ref(mod, instant)
+    else
+        G.GAME.current_round.hands_left = G.GAME.current_round.hands_left + mod
+    end
+
+    if BalatroTCG.GameActive then
+        BalatroTCG.Status_Current.status.hands_left = math.max(BalatroTCG.Status_Current.status.hands_left + mod, 0)
+    end
+end
+local ease_discard_ref = ease_discard
+
+function ease_discard(mod, instant)
+    if BalatroTCG.PlayerActive then
+        ease_discard_ref(mod, instant)
+    else
+        G.GAME.current_round.discards_left = G.GAME.current_round.discards_left + mod
+    end
+
+    if BalatroTCG.GameActive then
+        BalatroTCG.Status_Current.status.discards_left = math.max(BalatroTCG.Status_Current.status.discards_left + mod, 0)
+    end
 end
 
 local hover_ref = Card.hover
 function Card:hover()
 	hover_ref(self)
-	-- if self.tcg_deck_type then
-	-- 	self.ability_UIBox_table = self:generate_UIBox_ability_table()
-	-- 	self.config.h_popup = G.UIDEF.card_h_popup(self)
-	-- 	self.config.h_popup_config = self:align_h_popup()
-	-- 	Node.hover(self)
-	-- end
 end
 
 local Card_add_to_deck_ref = Card.add_to_deck
 function Card:add_to_deck(from_debuff)
     local obj = self.config.center
 
-    if BalatroTCG.GameActive and obj and obj.tcg_add_to_deck and type(obj.tcg_add_to_deck) == 'function' then
+    if not self.added_to_deck and BalatroTCG.GameActive and obj and obj.tcg_add_to_deck and type(obj.tcg_add_to_deck) == 'function' then
+        self.added_to_deck = true
+
         obj.tcg_add_to_deck(self, from_debuff)
         return
     else
@@ -98,8 +130,8 @@ end
 local Card_remove_from_deck_ref = Card.remove_from_deck
 function Card:remove_from_deck(from_debuff)
     local obj = self.config.center
-
-    if BalatroTCG.GameActive and obj and obj.tcg_remove_from_deck and type(obj.tcg_remove_from_deck) == 'function' then
+    if self.added_to_deck and BalatroTCG.GameActive and obj and obj.tcg_remove_from_deck and type(obj.tcg_remove_from_deck) == 'function' then
+        self.added_to_deck = false
         obj.tcg_remove_from_deck(self, from_debuff)
         return
     else
@@ -109,7 +141,7 @@ end
 
 local Game_save_settings_ref = Game.save_settings
 function Game:save_settings()
-    
+
     --local temp = G.SETTINGS.GAMESPEED
     --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed
 
@@ -124,8 +156,8 @@ function Card:calculate_seal(context)
     if BalatroTCG.GameActive and context.discard and context.other_card == self then
         local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
         local status = BalatroTCG.Status_Current
-        
-        
+
+
         if card and self.seal == 'Purple' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
             card.area:remove_card(card)
 
@@ -156,10 +188,14 @@ end
 function G.UIDEF.tcg_add_to_deck(e)
     local use = nil
     use = {n=G.UIT.C, config={align = "cr"}, nodes={
-      {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.GOLD, button = 'add_tcg_card'}, nodes={
-        
-        {n=G.UIT.T, config={text = (localize('$') .. tostring(G.tcg_tab == 'Backs' and (deck_back_cost(e.original_id) + 15) or e.cost)),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
-      }}
+        e.tcg_broken and 
+        {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.RED}, nodes={
+            {n=G.UIT.T, config={text = 'Not Ready',colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
+        }}
+        or 
+        {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.GOLD, button = 'add_tcg_card'}, nodes={
+            {n=G.UIT.T, config={text = (localize('$') .. tostring(G.tcg_tab == 'Backs' and (deck_back_cost(e.original_id) + 15) or e.cost)),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
+        }}
     }}
 
     local t = {
@@ -172,14 +208,14 @@ function G.UIDEF.tcg_add_to_deck(e)
     }}
     return t
 end
-function G.UIDEF.tcg_remove_to_deck(e)
+function G.UIDEF.tcg_remove_from_deck(e)
     local use = nil
     use = {n=G.UIT.C, config={align = "cr"}, nodes={
-      {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.RED, button = 'remove_tcg_card'}, nodes={
-        
+        {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.RED, button = 'remove_tcg_card'}, nodes={
+
         {n=G.UIT.T, config={text = localize('b_tcg_remove'),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
       }}
-    }}  
+    }}
 
     local t = {
         n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
@@ -201,11 +237,14 @@ G.FUNCS.add_tcg_card = function(e)
             if c == card then
                 if G.tcg_tab == 'Backs' then
                     if c.original_id == 'b_mp_cocktail' then
-                        
+
                         BalatroTCG.BuildingDeck.backs = { c.original_id }
 
                         BalatroTCG.BuildingDeck:sort()
                         BalatroTCG.BuildingDeck:set_cost()
+
+                        BalatroTCG.DeckCost = 125 - BalatroTCG.BuildingDeck.cost
+
                         save_decks()
 
                         if G.OVERLAY_MENU then G.OVERLAY_MENU:remove() end
@@ -237,7 +276,7 @@ G.FUNCS.add_tcg_card = function(e)
             end
         end
     end
-    
+
 
     refresh_builder_page()
 end
@@ -248,7 +287,7 @@ G.FUNCS.remove_tcg_card = function(e)
     local index = -1
 
     local c1 = e.config.ref_table
-    
+
     for j = 1, #G.your_tcg_deck do
         for i = #G.your_tcg_deck[j].cards,1, -1 do
             local c = G.your_tcg_deck[j].cards[i]
@@ -260,6 +299,35 @@ G.FUNCS.remove_tcg_card = function(e)
     end
 
     refresh_builder_page()
+end
+
+local cardarea_move = CardArea.move
+function CardArea:move(dt)
+    if BalatroTCG.GameActive then
+        local finalPos = nil
+        if self == BalatroTCG.Player.jokers or self == BalatroTCG.Player.consumeables then
+            finalPos = 0.5
+        elseif self == BalatroTCG.Player.opponentJokers or self == BalatroTCG.Player.opponentConsumeables then
+            finalPos = -2.5
+        elseif self == BalatroTCG.Player.opponentHand then
+            finalPos = -7
+        elseif self == BalatroTCG.Player.opponentPlay then
+            finalPos = -4
+        end
+
+        if finalPos then
+
+            if not BalatroTCG.PlayerActive then
+                finalPos = finalPos + 5
+            end
+
+            self.T.y = 15*G.real_dt*finalPos + (1-15*G.real_dt)*self.T.y
+            
+            if math.abs(finalPos - self.T.y) < 0.01 then self.T.y = finalPos end
+
+        end
+    end
+    return cardarea_move(self, dt)
 end
 
 function refresh_builder_page()
@@ -285,13 +353,23 @@ end
 local card_init_ref = Card.init
 function Card:init(X, Y, W, H, card, center, params)
     card_init_ref(self, X, Y, W, H, card, center, params)
-    self.ability.tcg_extra = {}
+    self.tcg_extra = {}
 end
 
 function Card:is_playing_card()
     return self.ability.set == 'Default' or self.ability.set == 'Enhanced'
 end
 
+local G_FUNCS_lobby_start_game_ref = G.FUNCS.lobby_start_game
+function G.FUNCS.lobby_start_game(e)
+    if BalatroTCG.MP_Lobby then
+        Client.send({
+            action = "startTcgBetting",
+        })
+    else
+        G_FUNCS_lobby_start_game_ref(e)
+    end
+end
 
 local can_use_consumeable_ref = Card.can_use_consumeable
 function Card:can_use_consumeable(any_state, skip_check)
@@ -302,14 +380,14 @@ function Card:can_use_consumeable(any_state, skip_check)
     end
 
     if self.ability.name == 'Wraith' then return true end
-    
+
     if value then
         if self.ability.name == 'Cryptid' then
-            if BalatroTCG.Unbalance then return true end
-            
+            if BalatroTCG.Settings.Unbalance then return true end
+
             if not G.hand.highlighted[1]:is_playing_card() then return false end
         elseif self.ability.name == 'Death' then
-            if BalatroTCG.Unbalance then return true end
+            if BalatroTCG.Settings.Unbalance then return true end
 
             local left = G.hand.highlighted[1]
             local right = G.hand.highlighted[2]
@@ -321,19 +399,19 @@ function Card:can_use_consumeable(any_state, skip_check)
             if not right:is_playing_card() then
                 return false
             end
-            
+
         elseif self.ability.name == 'Strength' then
             for k, v in ipairs(G.hand.highlighted) do
                 if not v:is_playing_card() then return false end
             end
 
         elseif self.ability.effect == 'Suit Conversion' then
-            if BalatroTCG.Unbalance then return true end
-            
+            if BalatroTCG.Settings.Unbalance then return true end
+
             for k, v in ipairs(G.hand.highlighted) do
                 if not v:is_playing_card() then return false end
             end
-        
+
         elseif self.ability.effect == 'Enhance' or
             self.ability.name == 'Talisman' or
             self.ability.name == 'Deja Vu' or
@@ -354,108 +432,6 @@ function Card:can_use_consumeable(any_state, skip_check)
     end
 end
 
-function get_TCG_params(back)
-    local ret = {
-        max_budget = 1e308,
-        dollars = 75,
-        hand_size = 8,
-        discards = 2,
-        hands = 1,
-        joker_slots = 5,
-        consumable_slots = 2,
-        discount = 0,
-        joker_health = 25,
-        destroy_planets = false,
-        destroy_tarots = true,
-        destroy_spectrals = true,
-    }
-
-    if not back then return ret end
-
-    if type(back) == 'table' then
-        local default = get_TCG_params(nil)
-        
-        for k, v in ipairs(back) do
-            local values = get_TCG_params(v)
-
-            ret.max_budget = math.min(values.max_budget, ret.max_budget) + (values.dollars - default.dollars)
-            ret.discount = math.max(values.discount, ret.discount)
-
-            ret.dollars = math.max(ret.dollars + (values.dollars - default.dollars), 1)
-            ret.hand_size = math.max(ret.hand_size + (values.hand_size - default.hand_size), 1)
-            ret.discards = math.max(ret.discards + (values.discards - default.discards), 0)
-            ret.hands = math.max(ret.hands + (values.hands - default.hands), 1)
-            ret.consumable_slots = math.max(ret.consumable_slots + (values.consumable_slots - default.consumable_slots), 0)
-            ret.joker_health = math.max(ret.joker_health + (values.joker_health - default.joker_health), 1)
-
-            ret.destroy_planets = ret.destroy_planets or values.destroy_planets
-            ret.destroy_tarots = ret.destroy_tarots and values.destroy_tarots
-            ret.destroy_spectrals = ret.destroy_spectrals and values.destroy_spectrals
-            
-            if values.joker_slots == 0 or ret.joker_slots == 0 then
-                ret.joker_slots = 0
-            else
-                ret.joker_slots = math.max(ret.joker_slots + (values.joker_slots - default.joker_slots), 1)
-            end
-        end
-
-        ret.dollars = math.min(ret.dollars, ret.max_budget)
-        
-        return ret
-    end
-
-    local deck
-
-    if back then
-        deck = Back(G.P_CENTERS[back])
-    end
-    
-    if deck and deck.tcg_apply then
-        deck:tcg_apply(ret)
-    else
-        if back == 'b_red' then
-            ret.discards = ret.discards + 1
-        elseif back == 'b_blue' then
-            ret.hands = ret.hands + 1
-        elseif back == 'b_yellow' then
-            ret.dollars = ret.dollars + 25
-        elseif back == 'Green Deck' then
-        elseif back == 'b_black' then
-            ret.joker_slots = ret.joker_slots + 1
-            ret.hand_size = ret.hand_size - 1
-        elseif back == 'b_magic' then
-        elseif back == 'b_nebula' then
-        elseif back == 'b_ghost' then
-        elseif back == 'b_abandoned' then
-        elseif back == 'b_checkered' then
-        elseif back == 'b_zodiac' then
-            ret.discount = 25
-        elseif back == 'b_painted' then
-            ret.hand_size = ret.hand_size + 2
-            ret.joker_slots = ret.joker_slots - 1
-        elseif back == 'Anaglyph Deck' then
-        elseif back == 'Plasma Deck' then
-        elseif back == 'Erratic Deck' then
-        elseif back == 'b_challenge' then
-            ret.destroy_tarots = false
-            ret.destroy_spectrals = false
-            ret.joker_slots = 0
-        elseif back == 'b_mp_cocktail' then
-            ret.discards = ret.discards - 1
-        elseif back == 'b_mp_gradient' then
-        elseif back == 'b_mp_heidelberg' then
-        elseif back == 'b_mp_indigo' then
-        elseif back == 'b_mp_oracle' then
-            ret.discount = 50
-            ret.dollars = ret.dollars - 25
-            ret.max_budget = ret.dollars
-        elseif back == 'b_mp_orange' then
-        elseif back == 'b_mp_violet' then
-        end
-    end
-
-    return ret
-end
 
 G_UIDEF_deck_info_ref = G.UIDEF.deck_info
 function G.UIDEF.deck_info(_show_remaining)
@@ -468,14 +444,14 @@ end
 -- G.playing_cards = temp
 local G_UIDEF_view_deck_ref = G.UIDEF.view_deck
 function G.UIDEF.view_deck(args)
-    
+
     if args == 'graveyard' then
         BalatroTCG.GraveyardView = true
         args = false
     else
         BalatroTCG.GraveyardView = false
     end
-    
+
     return G_UIDEF_view_deck_ref(args)
 end
 
@@ -496,11 +472,11 @@ function Card:is_suit(suit, bypass_debuff, flush_calc)
 end
 
 function play_button_type(h)
-    
+
 	if G.GAME.current_round.hands_left <= 0 or #h < 1 then
         return 'NULL'
     end
-    
+
 
     return 'SAFE'
 end
@@ -531,14 +507,14 @@ function SMODS.calculate_card_areas(_type, context, return_table, args)
         SMODS.current_evaluated_object = nil
         return flags
     end
-    
+
     return calculate_card_areas_ref(_type, context, return_table, args)
-    
+
 end
 
 local Back_trigger_effect_ref = Back.trigger_effect
 function Back:trigger_effect(args)
-    
+
 
     if BalatroTCG.GameActive then
         if not args then return end
@@ -565,7 +541,7 @@ function Back:trigger_effect(args)
         if args.context == 'final_scoring_step' then
             return args.chips, args.mult
         end
-        
+
         return
     else
         return Back_trigger_effect_ref(self, args)
@@ -595,10 +571,10 @@ G.FUNCS.playing_card_to_consumables = function(e)
                 G.consumeables:emplace(c1)
                 --Tallies for unlocks
                 G.GAME.round_scores.cards_purchased.amt = G.GAME.round_scores.cards_purchased.amt + 1
-                
+
                 SMODS.calculate_context({buying_card = true, card = c1})
 
-                if G.GAME.modifiers.inflation then 
+                if G.GAME.modifiers.inflation then
                     G.GAME.inflation = G.GAME.inflation + 1
                     G.E_MANAGER:add_event(Event({func = function()
                         for k, v in pairs(G.I.CARD) do
@@ -642,7 +618,7 @@ G.FUNCS.playing_card_to_hand = function(e)
                 remove_nils(c1.children)
 
                 G.hand:emplace(c1)
-                
+
                 play_sound('card1')
 
                 G.CONTROLLER:save_cardarea_focus('jokers')
@@ -658,8 +634,8 @@ G.FUNCS.can_buy_tcg = function(e)
     local v = e.config.ref_table
 
     local ignore = false
-    
-    if v.config.center.requires then 
+
+    if v.config.center.requires then
         ignore = true
         for kk, vv in pairs(v.config.center.requires) do
             if G.GAME.used_vouchers[vv] then
@@ -694,7 +670,7 @@ G.FUNCS.can_buy_tcg = function(e)
 end
 
 local ref_CardArea_parse_highlighted = CardArea.parse_highlighted
-    
+
 function CardArea:parse_highlighted()
     if not BalatroTCG.GameActive then return ref_CardArea_parse_highlighted(self) end
 
@@ -704,7 +680,7 @@ function CardArea:parse_highlighted()
         update_hand_text({immediate = true, nopulse = true, delay = 0}, {mult = 0, chips = 0, level = '', handname = ''})
         return
     end
-    
+
     ref_CardArea_parse_highlighted(self)
 
 end
@@ -712,7 +688,7 @@ end
 
 local update_new_round_ref = Game.update_new_round
 function Game:update_new_round(dt)
-    
+
     if BalatroTCG.GameActive then
         if not G.STATE_COMPLETE then
             G.STATE_COMPLETE = true
@@ -723,13 +699,13 @@ end
 
 local update_selecting_hand_ref = Game.update_selecting_hand
 function Game:update_selecting_hand(dt)
-    
+
     if BalatroTCG.GameActive then
         if G.hand and not BalatroTCG.PlayerActive and G.buttons then
             if BalatroTCG.AI then
                 BalatroTCG.AI:run()
             else
-                
+
             end
         end
     end
@@ -782,27 +758,27 @@ function CardArea:chance_card(rank, suit, pulls, need)
     )
 end
 
--- 
+--
 function get_chance(need, pulls, has, total)
     if has < need then
         return 0
     end
 
-    
+
     -- N = total
     -- n = pulls
     -- K = has
     -- k = need
-    
+
     local Nn = binomial(total, pulls)
 
-    
+
     local function exact_chance(amount)
         return binomial(has, amount) * binomial(total - has, pulls - amount) / Nn
     end
 
     local chance = 1
-    
+
     for i = need, pulls do
         chance = chance * (1 - exact_chance(i))
     end
@@ -854,6 +830,24 @@ function Card:get_chip_mult(context)
     return ret
 end
 
+local Card_get_chip_bonus_ref = Card.get_chip_bonus
+function Card:get_chip_bonus(context)
+    context = context or { }
+
+    if self.ability.set == 'Joker' and G.GAME.used_vouchers['v_hone'] then return 50 end
+
+    return Card_get_chip_bonus_ref(self, context)
+end
+
+local Card_get_chip_x_mult_ref = Card.get_chip_x_mult
+function Card:get_chip_x_mult(context)
+    context = context or { }
+    
+    if self.ability.set == 'Joker' and G.GAME.used_vouchers['v_glow_up'] then return 1.5 end
+
+    return Card_get_chip_x_mult_ref(self, context)
+end
+
 
 local ref_check_and_set_high_score = check_and_set_high_score
 function check_and_set_high_score(score, amt)
@@ -866,7 +860,7 @@ end
 
 local ref_draw_from_play_to_discard = G.FUNCS.draw_from_play_to_discard
 G.FUNCS.draw_from_play_to_discard = function(e)
-    
+
     local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.play.cards)
     if BalatroTCG.GameActive then BalatroTCG.Status_Current.status.last_hand = text end
     ref_draw_from_play_to_discard(e)
@@ -876,13 +870,25 @@ end
 local ref_draw_from_deck_to_hand = G.FUNCS.draw_from_deck_to_hand
 G.FUNCS.draw_from_deck_to_hand = function(e)
     if not G.hand then return false end
-    return ref_draw_from_deck_to_hand(e)
+    local val = ref_draw_from_deck_to_hand(e)
+    
+
+    return val
+end
+
+local draw_card_ref = draw_card
+function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
+    if card and BalatroTCG.GameActive then
+        if card.ability.set == 'Joker' then
+            card:set_tcg_health(card.tcg_extra.max_health)
+        end
+    end
+    draw_card_ref(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
 end
 
 local play_sound_ref = play_sound
 function play_sound(sound_code, per, vol)
     if BalatroTCG.MuteAudio and not G.SETTINGS.paused then return end
-    --if not (MP and MP.LOBBY and MP.LOBBY.code) and BalatroTCG.GameActive and not BalatroTCG.PlayerActive then return end
     play_sound_ref(sound_code, per, vol)
 end
 
@@ -911,13 +917,13 @@ function reset_mail_rank()
     end
 
     if true then
-        if valid_mail_cards[1] then 
+        if valid_mail_cards[1] then
             local mail_card = pseudorandom_element(valid_mail_cards, pseudoseed('mail'..G.GAME.round_resets.ante))
             G.GAME.current_round.mail_card.rank = mail_card.base.value
             G.GAME.current_round.mail_card.id = mail_card.base.id
         end
     else
-        if valid_mail_ranks[1] then 
+        if valid_mail_ranks[1] then
             local mail_card = pseudorandom_element(valid_mail_ranks, pseudoseed('mail'..G.GAME.round_resets.ante))
             G.GAME.current_round.mail_card.rank = mail_card.base.value
             G.GAME.current_round.mail_card.id = mail_card.base.id
@@ -939,7 +945,7 @@ function reset_castle_card()
             end
         end
     end
-    if valid_castle_cards[1] then 
+    if valid_castle_cards[1] then
         local castle_card = pseudorandom_element(valid_castle_cards, pseudoseed('cas'..G.GAME.round_resets.ante))
         G.GAME.current_round.castle_card.suit = castle_card.base.suit
     end
@@ -947,29 +953,31 @@ end
 
 local game_delete_run_ref = Game.delete_run
 function Game:delete_run(args)
-    
-    game_delete_run_ref(self, args)
+
+    BalatroTCG.GameActive = false
+    BalatroTCG.GameStarted = false
 
     if BalatroTCG.Player then
         BalatroTCG.Player:remove()
         BalatroTCG.Opponent:remove()
     end
+    BalatroTCG.Player = nil
+    BalatroTCG.Opponent = nil
 
-    -- Not sure why I need to do this but oh well
-    -- Shouldn't break anything?
-    SMODS.cards_to_draw = 0
-    
     BalatroTCG.GraveyardView = false
-    BalatroTCG.GameActive = false
-    BalatroTCG.GameStarted = false
     BalatroTCG.MuteAudio = false
     BalatroTCG.PlayerActive = false
     BalatroTCG.UseTCG_UI = false
     BalatroTCG.SavedSpeed = nil
-    BalatroTCG.Player = nil
-    BalatroTCG.Opponent = nil
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
+
+    game_delete_run_ref(self, args)
+
+
+    -- Not sure why I need to do this but oh well
+    -- Shouldn't break anything?
+    SMODS.cards_to_draw = 0
 end
 
 
@@ -982,7 +990,7 @@ end
 
 local Blind_debuff_hand_ref = Blind.debuff_hand
 function Blind:debuff_hand(cards, hand, handname, check)
-    
+
     for k, v in ipairs(cards) do
         if v:is_playing_card() then
             return Blind_debuff_hand_ref(self, cards, hand, handname, check)
@@ -993,11 +1001,11 @@ end
 
 local ease_dollars_ref = ease_dollars
 function ease_dollars(mod, instant)
-    
+
     if not BalatroTCG.GameActive then return ease_dollars_ref(mod, instant) end
 
     mod = math.min(BalatroTCG.Status_Current.status.max_budget, BalatroTCG.Status_Current.status.dollars + mod) - BalatroTCG.Status_Current.status.dollars
-    
+
     if BalatroTCG.PlayerActive then
         if mod > 0 then
             BalatroTCG.Player:add_play_stats('healing', mod, BalatroTCG.Player.status.round)
@@ -1017,11 +1025,39 @@ end
 
 local CardArea_emplace_ref = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
+
+    if BalatroTCG.GameActive and BalatroTCG.Status_Current then
+        BalatroTCG.Status_Current:send_visuals(card, self)
+
+        if card.ability.set == 'Planet' and (self == G.consumeables or self == G.jokers) then
+            if G.GAME.used_vouchers.v_planet_tycoon then
+                self.config.card_limit = self.config.card_limit + 1
+                card.ability.queue_negative_removal = true
+            end
+        elseif card.ability.set == 'Tarot' and (self == G.consumeables or self == G.jokers) then
+            if G.GAME.used_vouchers.v_tarot_tycoon then
+                self.config.card_limit = self.config.card_limit + 1
+                card.ability.queue_negative_removal = true
+            end
+        end
+    end
+    card.last_area = self
+
     local ret = CardArea_emplace_ref(self, card, location, stay_flipped)
 
-    if BalatroTCG.Opponent and BalatroTCG.Opponent.hard_set then BalatroTCG.Opponent:hard_set() end
+    if BalatroTCG.GameStarted and BalatroTCG.Opponent.hard_set then BalatroTCG.Opponent:hard_set() end
 
     return ret
+end
+
+local create_UIBox_detailed_tooltip_ref = create_UIBox_detailed_tooltip
+function create_UIBox_detailed_tooltip(_center)
+    
+    if BalatroTCG.UseTCG_UI then
+        _center = create_tcg_center(_center)
+    end
+
+    return create_UIBox_detailed_tooltip_ref(_center)
 end
 
 local start_dissolve_ref = Card.start_dissolve
@@ -1052,9 +1088,8 @@ end
 
 local start_setup_run_ref = G.FUNCS.start_setup_run
 G.FUNCS.start_setup_run = function(e)
-    BalatroTCG.UseTCG_UI = false
     BalatroTCG.GameActive = false
-    
+
     return start_setup_run_ref(e)
 end
 
@@ -1067,25 +1102,25 @@ G.FUNCS.can_discard = function(e)
         e.config.colour = G.C.RED
         e.config.button = 'discard_cards_from_highlighted'
     end
-    
+
 end
 
 function pick_from_areas(check, areas, seed)
     seed = seed or ''
+    local cards = {}
     for i = 1, #areas do
-        local cards = {}
-        
+
         for _, c in ipairs(areas[i].cards) do
             if check(c) then
                 cards[#cards + 1] = c
             end
         end
+    end
 
-        if #cards > 0 then
-            local card = pseudorandom_element(cards, pseudoseed(seed..G.GAME.round_resets.ante))
-            
-            return card
-        end
+    if #cards > 0 then
+        local card = pseudorandom_element(cards, pseudoseed(seed..G.GAME.round_resets.ante))
+
+        return card
     end
     return false
 end
@@ -1098,7 +1133,7 @@ end
 
 local is_face_ref = Card.is_face
 function Card:is_face(from_boss)
-    if BalatroTCG.GameActive then 
+    if BalatroTCG.GameActive then
         if not self:is_playing_card() then return false end
         if is_face_ref(self, from_boss) then return true end
         return self:is_rank_joker({11, 12, 13})
@@ -1108,9 +1143,22 @@ end
 
 local click_ref = Card.click
 function Card:click()
-    if not BalatroTCG.GameActive or BalatroTCG.PlayerActive then
-        return click_ref(self)
+    if BalatroTCG.GameActive and self.area and self.area.config.type == 'deck' and self.area.cards[1] == self then
+        if not BalatroTCG.PlayerActive then
+            G.SETTINGS.paused = true
+            if G.deck_preview then
+                G.deck_preview:remove()
+                G.deck_preview = nil
+            end
+            G.FUNCS.overlay_menu{
+                definition = G.UIDEF.deck_info(false),
+            }
+            return
+        end
+
+        return G.FUNCS.deck_info()
     end
+    return click_ref(self)
 end
 
 local old_uidef_run_info = G.UIDEF.run_info

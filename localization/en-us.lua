@@ -33,7 +33,7 @@ return {
             b_challenge_tcg={
                 name="Challenge Deck",
                 text={
-                    "No Jokers, {C:attention}#1#{} Items",
+                    "{C:attention}0{} Joker slots, {C:attention}#1#{} Items",
 					"Items can have",
                     "{C:attention}1{} duplicate",
                 },
@@ -71,14 +71,14 @@ return {
             b_magic_tcg={
                 name="Magic Deck",
                 text={
-                    "{C:attention}Tarot{} cards can have",
+                    "{C:tarot}Tarot{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
             b_nebula_tcg={
                 name="Nebula Deck",
                 text={
-                    "{C:attention}Planet{} cards can have",
+                    "{C:planet}Planet{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
@@ -95,7 +95,7 @@ return {
                     "Balance {C:blue}Chips{} and",
                     "{C:red}Mult{} when calculating",
                     "score for played hand",
-                    "Deal {C:red}half{} damage",
+                    "Deal {C:red}#1#%{} damage",
                 },
             },
             b_red_tcg={
@@ -108,15 +108,16 @@ return {
             b_yellow_tcg={
                 name="Yellow Deck",
                 text={
-                    "Start with",
+                    "Start game with",
                     "extra {C:money}$#1#",
                 },
             },
             b_zodiac_tcg={
                 name="Zodiac Deck",
                 text={
-                    "{C:attention}+#1#{} hand size,",
-                    "Items are {C:attention}#2#%{} off",
+                    "Start game with",
+                    "{C:tarot,T:v_tarot_merchant}#1#{},",
+                    "and {C:planet,T:v_planet_merchant}#2#{}",
                 },
             },
 
@@ -126,7 +127,7 @@ return {
 				text = {
 					"Copies all effects",
 					"of {C:attention}#1#{} other decks,",
-                    "{C:red}-#2#{} discard",
+                    "{C:red}-#2#{} hand",
 				},
 			},
 			b_mp_gradient_tcg = {
@@ -154,15 +155,16 @@ return {
 			b_mp_oracle_tcg = {
 				name = "Oracle Deck",
 				text = {
-                    "Items are {C:attention}#1#%{} off",
-					"Balance is capped",
-					"at {C:money}$#2#{}",
+                    "Start game with",
+                    "{C:money,T:v_clearance_sale}#1#{},",
+					"Balance is capped at",
+					"{C:money}#2#%{} starting value",
 				},
 			},
 			b_mp_orange_tcg = {
 				name = "Orange Deck",
 				text = {
-					"Start run with",
+					"Start game with",
 					"{C:attention}#1#{} random Tarots",
 					"in your consumables",
 				},
@@ -175,21 +177,21 @@ return {
 			},
         },
         Enhanced={
-            m_gold_tcg={
-                name="Gold Card",
-                text={
-                    "{C:money}$#1#{} if this",
-                    "card is held in hand",
-                    "at end of round,",
-                    "no rank or suit",
-                },
-            },
-            m_steel={
-                name="Steel Card",
+            m_glass_tcg={
+                name="Glass Card",
                 text={
                     "{X:mult,C:white} X#1# {} Mult",
-                    "while this card",
-                    "stays in hand",
+                    "{C:red}Destroyed{} on",
+                    "any retrigger",
+                },
+            },
+            m_lucky_tcg={
+                name="Lucky Card",
+                text={
+                    "{C:green}#1# in #2#{} chance",
+                    "to win {C:money}$#3#",
+                    "{C:red}Destroyed{} when",
+                    "successful",
                 },
             },
         },
@@ -314,16 +316,16 @@ return {
             j_bull_tcg={
                 name="Bull",
                 text={
-                    "{C:chips}+#1#{} Chips for",
-                    "each double of money",
+                    "{C:chips}+#1#{} Chips for every {C:money}$1{}",
+                    "you and your opponent have",
                     "{C:inactive}(Currently {C:chips}+#2#{C:inactive} Chips)",
                 },
             },
             j_bootstraps_tcg={
                 name="Bootstraps",
                 text={
-                    "{C:mult}+#1#{} Mult for every",
-                    "each double of money",
+                    "{C:mult}+#1#{} Mult for every {C:money}$1{}",
+                    "you and your opponent have",
                     "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)",
                 },
             },
@@ -424,7 +426,7 @@ return {
                 text={
                     "Reduce damage taken by",
                     "{C:attention}1{} per unique {C:planet}Planet",
-                    "card used this run",
+                    "card used this game",
                     "{C:inactive}(Currently {C:money}$#2#{C:inactive})",
                 }
             },
@@ -579,6 +581,14 @@ return {
             },
         },
         Spectral={
+            c_ankh_tcg={
+                name="Ankh",
+                text={
+                    "Create a copy of a",
+                    "random {C:attention}Joker{}, adds",
+                    "rental to copy",
+                },
+            },
             c_soul_tcg={
                 name="The Soul",
                 text={
@@ -618,7 +628,7 @@ return {
                 text={
                     "Draws the last",
                     "{C:tarot}Tarot{} or {C:planet}Planet{} card",
-                    "used during this run",
+                    "used during this game",
                     "{s:0.8,C:tarot}The Fool{s:0.8} excluded",
                 },
             },
@@ -837,6 +847,32 @@ return {
 			b_tcg_buy = "Buy $",
 			b_tcg_bet = "Bet",
 
+			k_lobby_deck = "Deck Limitations",
+
+			b_opts_tcg_balanced = "Use Balance Patches",
+			b_opts_tcg_health = "Starting Health",
+
+			b_opts_tcg_money_leak = "Enable Overtime Penalty",
+			b_opts_tcg_money_leak_desc = "Enable losing money per round after a set round number",
+			b_opts_tcg_money_leak_start = "Penalty Start Round",
+			b_opts_tcg_money_leak_increase = "Penalty Increase",
+
+			b_opts_tcg_game_round_limit = "Enable Round Limit",
+			b_opts_tcg_game_round_limit_desc = "Enable game ending at a set round",
+			b_opts_tcg_round_limit = "Round Limit",
+			b_opts_tcg_winner_type = "Win condition",
+
+			b_opts_tcg_deck_money_limit = "Deck Cost",
+			b_opts_tcg_deck_money_limit_desc = "Limit the deck cost",
+			b_opts_tcg_deck_size_limits = "Deck Size",
+			b_opts_tcg_deck_size_limits_desc = "Require decks to be a set size",
+			b_opts_tcg_deck_back_limits = "Deck Effects",
+			b_opts_tcg_deck_back_limits_desc = "Prevent decks having extra effects",
+			b_opts_tcg_deck_joker_limits = "Joker Limitations",
+			b_opts_tcg_deck_joker_limits_desc = "Limit Joker counts and rarity types",
+			b_opts_tcg_deck_consumeable_limits = "Consumeable Limitations",
+			b_opts_tcg_deck_consumeable_limits_desc = "Limit Consumeable counts",
+
 			k_tcg_bet = "Spend $ to go first?",
 			k_tcg_waiting = "Waiting for opponent...",
 
@@ -852,7 +888,7 @@ return {
                 "Back count too high (#1#), max count of #2#",
             },
             tcg_err_cost={
-                "Deck too expensive, must be $#1# or less",
+                "Deck too expensive",
             },
             tcg_err_deck_big={
                 "Deck is too big (#1#), required count of #2#",

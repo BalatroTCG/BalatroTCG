@@ -71,14 +71,41 @@ function TCG_PlayerStatus:init(deck, player)
         0, 0,
         CAI.joker_W,
         CAI.joker_H,
-        {card_limit = 2, type = 'opponent', highlight_limit = 1})
+        {card_limit = 5, type = 'opponent', highlight_limit = 1})
+    self.opponentConsumeables = CardArea(
+        0, 0,
+        CAI.consumeable_W,
+        CAI.consumeable_H, 
+        {card_limit = 2, type = 'opponent', highlight_limit = 0})
+    self.opponentHand = CardArea(
+        0, 0,
+        CAI.joker_W,
+        CAI.joker_H,
+        {card_limit = 8, type = 'opponent', highlight_limit = 0})
+    self.opponentPlay = CardArea(
+        0, 0,
+        CAI.joker_W,
+        CAI.joker_H,
+        {card_limit = 5, type = 'opponent', highlight_limit = 0})
+    self.opponentDiscard = CardArea(
+        0, 0,
+        CAI.joker_W,
+        CAI.joker_H,
+        {card_limit = 1e308, type = 'opponent', highlight_limit = 0})
     self.vouchers = CardArea(
         0, 0,
         CAI.consumeable_W,
         CAI.consumeable_H,
         { type = "hand", card_limit = 2, highlight_limit = 0 }
     )
-
+    
+    if player then
+        self.deck.T.x = G.TILE_W + 4
+        self.deck.T.y = G.TILE_H + 4
+    else
+        self.deck.T.x = self.hand.T.x - 10
+        self.deck.T.y = self.hand.T.y + 0.5
+    end
     
     self.seed = {}
     self.seed.hashed_seed = pseudohash(G.GAME.pseudorandom.seed)
@@ -128,7 +155,6 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.dollars = params.dollars
     self.status.used_vouchers = {}
     self.status.round = 1
-    self.status.opponent_jokers = 0
     self.status.opponent_joker_cost = 0
     self.status.opponent_health = 0
     self.status.bankrupt_at = 0
@@ -186,7 +212,6 @@ end
 
 function TCG_PlayerStatus:apply()
 
-    self:add_play_stats('damage', 0, self.status.round)
     BalatroTCG.CurrentPlayer = self
     
     G.GAME.hands = self.status.hand_upgrades
@@ -207,6 +232,9 @@ function TCG_PlayerStatus:apply()
     G.GAME.current_round.hands_played = 0
     G.GAME.current_round.discards_used = 0
     G.GAME.current_round.any_hand_drawn = nil
+    
+    self.status.hands_left = G.GAME.current_round.hands_left
+    self.status.discards_left = G.GAME.current_round.discards_left
     
     G.GAME.selected_back_key = self.back_key
     G.GAME.selected_back:change_to(G.P_CENTERS[self.back_key])
@@ -235,9 +263,8 @@ function TCG_PlayerStatus:apply()
     G.deck = self.deck
     G.hand = self.hand
     G.play = self.play
-    G.graveyard = self.graveyard
-    G.opponentJokers = self.opponentJokers
     G.vouchers = self.vouchers
+    G.graveyard = self.graveyard
     
     G.deck:shuffle('nr' .. self.status.round)
     SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind })
@@ -367,7 +394,6 @@ end
 function TCG_PlayerStatus:remove()
     self.jokers:remove()
     self.consumeables:remove()
-    self.jokers:remove()
     self.discard:remove()
     self.deck:remove()
     self.hand:remove()
@@ -392,16 +418,8 @@ function TCG_PlayerStatus:receive_message(message)
     if message.type == 'back' then
         self.Other.back_key = message.back
         
-    elseif message.type == 'ready' then
-		G.SETTINGS.paused = false
-		G.FUNCS.exit_overlay_menu()
-
-        message.damage = tonumber(message.damage)
-        self:receive_message({type = 'attack', damage = message.damage, key = 'start'})
-        switch_player(message.starting == 'true')
-        
     elseif message.type == 'startTurn' or message.type == 'attack' then
-        print(message.key)
+
 
         if not self.attacks[message.key] then
             self.attacks[message.key] = {
@@ -409,10 +427,6 @@ function TCG_PlayerStatus:receive_message(message)
                 index = tonumber(message.index),
             }
         end
-        Client.send({
-            action = "tcgReceiveAttack",
-            key = message.key
-        })
         
     elseif message.type == 'win_game' then
         end_tcg_game(true)
@@ -423,29 +437,288 @@ function TCG_PlayerStatus:receive_message(message)
     elseif message.type == 'health' then
         self.status.opponent_health = message.health
         self:send_message({ type = "healthEcho", health = self.status.dollars })
-    elseif message.type == 'joker_cost' then
-        self.status.opponent_joker_cost = tonumber(message.amount)
-    elseif message.type == 'jokers' then
-        self.status.opponent_jokers = tonumber(message.jokers)
+    elseif message.type == 'opponent_play' then
 
-        if #self.opponentJokers.cards ~= self.status.opponent_jokers then
-            
-            while #self.opponentJokers.cards > self.status.opponent_jokers do
-                self.opponentJokers.cards[1]:start_dissolve()
-                self.opponentJokers:remove_card(self.opponentJokers.cards[1])
+    elseif message.type == 'opponent_status' and self.is_player then
+        self.status.opponent_joker_cost = tonumber(message.joker_cost)
+
+        local highlighted_cards = {}
+
+        for str in string.gmatch(message.highlighted, "(%d+),") do
+            highlighted_cards[#self.opponentHand.cards - tonumber(str) + 1] = true
+        end
+
+        for i, card in ipairs(self.opponentHand.cards) do
+            card.highlighted = false
+            if highlighted_cards[i] then
+                card.highlighted = true
             end
+        end
 
-            while #self.opponentJokers.cards < self.status.opponent_jokers do
+        highlighted_cards = {}
+
+        for str in string.gmatch(message.play_highlighted, "(%d+),") do
+            highlighted_cards[tonumber(str)] = true
+        end
+
+        for i, card in ipairs(self.opponentPlay.cards) do
+            card.highlighted = false
+            if highlighted_cards[i] then
+                card.highlighted = true
+            end
+        end
+
+    elseif message.type == 'opponent_hand' and self.is_player then
+
+        
+        if message.from ~= message.to then
+            local from = self:string_to_fake_area(message.from)
+            local to = self:string_to_fake_area(message.to)
+
+            to = to or self.opponentDiscard
+
+            if from and #from.cards >= 1 then
+
+                local card = from.cards[#from.cards - math.min(tonumber(message.index), #from.cards) + 1]
                 
-                local card = Card(self.opponentJokers.T.x, self.opponentJokers.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
+                if not message.card_base or message.card_base == 'back' then
+                    if card.facing ~= 'back' then
+                        card:flip()
+                    end
+                else
+                    
+                    card.ability.set = message.card_set
+                    if card.ability.set == 'Default' then
+                        card:set_base(G.P_CARDS[message.card_base])
+                    else
+
+                        if card.ability.set == 'Tarot' then
+                            card:set_ability(G.P_CENTERS['c_hermit'])
+                        elseif card.ability.set == 'Spectral' then
+                            card:set_ability(G.P_CENTERS['c_deja_vu'])
+                        elseif card.ability.set == 'Planet' then
+                            card:set_ability(G.P_CENTERS['c_mercury'])
+                        -- TARGET: Default display
+                        else
+                            card:set_ability(G.P_CENTERS['j_joker'])
+                        end
+                        card.config.center = copy_table(card.config.center)
+
+                        card.bypass_discovery_center  = false
+                        card.config.center.discovered = false
+
+                        card:set_sprites(card.config.center, nil)
+                        card.children.front:remove()
+                        card.children.front = nil
+                    end
+                    
+                    if card.facing == 'back' then
+                        card:flip()
+                    end
+                end
+
+                from:remove_card(card)
+                to:emplace(card, nil, true)
+            else
+                local card = Card(to.T.x, to.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
                 card:flip()
                 card.states.drag.can = false
-                self.opponentJokers:emplace(card, nil, true)
+                to:emplace(card, nil, true)
+
+
+                to:align_cards()
             end
 
-            self.opponentJokers:align_cards()
+        end
+
+        -- local count = tonumber(message.joker_count)
+        -- if #self.opponentJokers.cards ~= count then
+            
+        --     while #self.opponentJokers.cards > count do
+        --         self.opponentJokers.cards[1]:start_dissolve()
+        --         self.opponentJokers:remove_card(self.opponentJokers.cards[1])
+        --     end
+
+        --     while #self.opponentJokers.cards < count do
+                
+        --         local card = Card(self.opponentJokers.T.x, self.opponentJokers.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
+        --         card:flip()
+        --         card.states.drag.can = false
+        --         self.opponentJokers:emplace(card, nil, true)
+        --     end
+
+        --     if #self.opponentJokers.cards > 1 then 
+        --         G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.2, func = function() 
+        --             G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); return true end })) 
+        --             delay(0.05)
+        --             G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); return true end })) 
+        --             delay(0.05)
+        --             G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); return true end })) 
+        --             delay(0.05)
+        --         return true end })) 
+        --     end
+
+        --     self.opponentJokers:align_cards()
+        -- end
+        
+        -- count = tonumber(message.hand_size)
+        -- if #self.opponentHand.cards ~= count then
+            
+        --     while #self.opponentHand.cards > count do
+        --         self.opponentHand.cards[1]:start_dissolve()
+        --         self.opponentHand:remove_card(self.opponentHand.cards[1])
+        --     end
+
+        --     while #self.opponentHand.cards < count do
+                
+        --         local card = Card(self.opponentHand.T.x, self.opponentHand.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
+        --         card:flip()
+        --         card.states.drag.can = false
+        --         self.opponentHand:emplace(card, nil, true)
+        --     end
+
+        --     -- add shuffle
+
+        --     self.opponentHand:align_cards()
+        -- end
+
+        -- count = tonumber(message.consumeables)
+        -- if #self.opponentConsumeables.cards ~= count then
+            
+        --     while #self.opponentConsumeables.cards > count do
+        --         self.opponentConsumeables.cards[1]:start_dissolve()
+        --         self.opponentConsumeables:remove_card(self.opponentConsumeables.cards[1])
+        --     end
+
+        --     while #self.opponentConsumeables.cards < count do
+                
+        --         local card = Card(self.opponentConsumeables.T.x, self.opponentConsumeables.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
+        --         card:flip()
+        --         card.states.drag.can = false
+        --         self.opponentConsumeables:emplace(card, nil, true)
+        --     end
+
+        --     -- add shuffle
+
+        --     self.opponentConsumeables:align_cards()
+        -- end
+        
+
+    end
+end
+
+function TCG_PlayerStatus:area_to_string(area)
+    if area == self.play then
+        return 'play'
+    elseif area == self.jokers then
+        return 'jokers'
+    elseif area == self.graveyard then
+        return 'graveyard'
+    elseif area == self.discard then
+        return 'discard'
+    elseif area == self.hand then
+        return 'hand'
+    elseif area == self.consumeables then
+        return 'consumeables'
+    end
+
+    return 'unknown'
+end
+
+function TCG_PlayerStatus:string_to_fake_area(string)
+    if string == 'play' then
+        return self.opponentPlay
+    elseif string == 'jokers' then
+        return self.opponentJokers
+    elseif string == 'discard' then
+        return self.opponentDiscard
+    elseif string == 'hand' then
+        return self.opponentHand
+    elseif string == 'consumeables' then
+        return self.opponentConsumeables
+    end
+
+    return nil
+end
+
+function TCG_PlayerStatus:send_visuals(card, area, start_area)
+    if not area or
+        (area == self.play or
+        area == self.jokers or
+        area == self.graveyard or
+        area == self.discard or
+        area == self.hand or
+        area == self.consumeables) then
+
+        if card then
+            local transfer = {
+                type = 'opponent_hand',
+                from = 'unknown',
+                to = 'unknown',
+            }
+            transfer.from = self:area_to_string(start_area or card.last_area)
+            transfer.index = 1
+
+            if card.area then
+                for i, c in ipairs(card.area.cards) do
+                    if card == c then
+                        transfer.index = i
+                        break
+                    end
+                end
+            end
+
+            
+            transfer.to = self:area_to_string(area)
+            
+            if transfer.from == 'hand' and transfer.to == 'play' then
+                
+                if card:is_playing_card() then
+                    transfer.card_set = 'Default'
+                    transfer.card_base = card.config.card_key
+                else
+                    transfer.card_set = card.ability.set
+                    transfer.card_base = 'item'
+                end
+            else
+                transfer.card_base = 'back'
+            end
+            self:send_message(transfer)
         end
     end
+
+    self:send_status()
+end
+
+function TCG_PlayerStatus:send_status()
+
+    if not BalatroTCG.GameStarted or not self.jokers then
+        return
+    end
+    local cost = 0
+    for _, joker in ipairs(self.jokers.cards) do
+        joker:set_cost()
+        cost = joker.sell_cost
+    end
+    local highlighted = ''
+    for i, card in ipairs(self.hand.cards) do
+        if card.highlighted then
+            highlighted = highlighted .. i .. ','
+        end
+    end
+    local play_highlighted = ''
+    for i, card in ipairs(self.play.cards) do
+        if card.highlighted then
+            play_highlighted = play_highlighted .. i .. ','
+        end
+    end
+
+    self:send_message({
+        type = 'opponent_status',
+        joker_cost = cost,
+        highlighted = highlighted,
+        play_highlighted = play_highlighted,
+    })
 end
 
 function TCG_PlayerStatus:add_protection(protect)
@@ -454,11 +727,16 @@ end
 
 function TCG_PlayerStatus:take_attacks()
     
+    if not self.has_rerolled and G.GAME.chips_damage_text == '0' and G.GAME.chips_damage <= 0 then
+        self.can_reroll = true
+    end
+
     for k, att in pairs(self.attacks) do
         
         if att.triggering then goto continue end
 
         att.triggering = true
+        attacks = true
         
         G.E_MANAGER:add_event(Event({
             
@@ -500,6 +778,8 @@ function TCG_PlayerStatus:take_attacks()
                 self.temp_safety = {}
         
                 local joker = nil
+
+                local at_player = att.index == 0 and att.damage or 0
         
                 for k, v in ipairs(return_table) do
                     if v.percent then
@@ -551,6 +831,20 @@ function TCG_PlayerStatus:take_attacks()
                     end
                 end
                 delay(0.5)
+
+                if att.damage > 0 and (G.GAME.modifiers.damage_reduction or 0) > 0 then
+                    att.damage = math.max(att.damage - G.GAME.modifiers.damage_reduction, 0)
+                    G.E_MANAGER:add_event(Event({
+                        trigger = 'after',
+                        func = function()
+                        play_sound('tarot1')
+                        G.GAME.chips_damage = math.max(G.GAME.chips_damage - G.GAME.modifiers.damage_reduction, 0)
+                        return true
+                    end
+                    }))
+                    delay(0.3)
+                end
+                
                 
                 G.E_MANAGER:add_event(Event({
                     
@@ -564,11 +858,20 @@ function TCG_PlayerStatus:take_attacks()
                             end
                         end
                     end
+
+                    if at_player then
+                        local reduced = at_player - att.damage
+
+                        if reduced > 0 then
+                            self:add_play_stats('damage_saved', G.GAME.chips_damage, self.status.round)
+                        end
+                    end
             
                     if joker and joker.ability.eternal then
                         joker = nil
                     end
             
+                    self.has_rerolled = false
                     if joker == nil then 
                         local damage = G.GAME.chips_damage
 
@@ -605,7 +908,6 @@ function TCG_PlayerStatus:send_message(message)
     if MP and MP.LOBBY and MP.LOBBY.code then
         message.action = "tcgPlayerStatus"
         Client.send(message)
-        print(message.type)
     else
         self.Other:receive_message(message)
     end
@@ -671,6 +973,7 @@ function TCG_PlayerStatus:damage(amount)
     
 end
 
+
 function TCG_PlayerStatus:hard_set()
     
     self.hand:hard_set_cards()
@@ -706,6 +1009,21 @@ function TCG_PlayerStatus:set_screen_positions()
         self.discard.T.x = self.jokers.T.x + self.jokers.T.w/2 + 0.3 + 15
         self.discard.T.y = 4.2
 
+        self.vouchers.T.x = self.deck.T.x - 1
+        self.vouchers.T.y = self.deck.T.y + 2.75
+
+        self.opponentConsumeables.T.x = self.opponentJokers.T.x + self.opponentJokers.T.w + 0.2
+        self.opponentConsumeables.T.y = self.opponentJokers.T.y - 5
+
+        self.opponentHand.T.x = self.opponentJokers.T.x
+        self.opponentHand.T.y = self.opponentJokers.T.y - 5
+
+        self.opponentPlay.T.x = self.opponentJokers.T.x
+        self.opponentPlay.T.y = self.opponentJokers.T.y - 4
+
+        self.opponentDiscard.T.x = -10
+        self.opponentDiscard.T.y = -2
+
     else
         self.hand.T.x = 0
         self.hand.T.y = -50
@@ -713,11 +1031,29 @@ function TCG_PlayerStatus:set_screen_positions()
         self.opponentJokers.T.x = 0
         self.opponentJokers.T.y = -100
         
+        -- if not _RELEASE_MODE then
+        --     self.hand.T.x = G.TILE_W - self.hand.T.w - 2.85
+        --     self.hand.T.y = G.TILE_H - self.hand.T.h
+        --     self.hand.T.y = self.hand.T.y - 5.5
+        -- end
+        
         if not _RELEASE_MODE then
-            self.hand.T.x = G.TILE_W - self.hand.T.w - 2.85
-            self.hand.T.y = G.TILE_H - self.hand.T.h
-            self.hand.T.y = self.hand.T.y - 5.5
+            self.opponentJokers.T.x = 0
+            self.opponentJokers.T.y = 0
         end
+
+        self.opponentConsumeables.T.x = self.opponentJokers.T.x + self.opponentJokers.T.w + 0.2
+        self.opponentConsumeables.T.y = self.opponentJokers.T.y
+
+        self.opponentHand.T.x = self.opponentJokers.T.x
+        self.opponentHand.T.y = self.opponentJokers.T.y + 2
+
+        self.opponentPlay.T.x = self.opponentHand.T.x
+        self.opponentPlay.T.y = self.opponentHand.T.y + 0.5
+            
+        self.opponentDiscard.T.x = -10
+        self.opponentDiscard.T.y = 5
+
 
         self.play.T.x = self.hand.T.x
         self.play.T.y = self.hand.T.y
@@ -729,18 +1065,19 @@ function TCG_PlayerStatus:set_screen_positions()
         self.consumeables.T.y = self.hand.T.y
 
         self.deck.T.x = self.hand.T.x - 10
-        self.deck.T.y = self.hand.T.y
+        self.deck.T.y = self.hand.T.y + 0.5
 
         self.discard.T.x = self.hand.T.x - 10
         self.discard.T.y = self.hand.T.y
+
+        self.vouchers.T.x = self.discard.T.x
+        self.vouchers.T.y = self.discard.T.y
 
     end
 
     self.graveyard.T.x = self.discard.T.x
     self.graveyard.T.y = self.discard.T.y - 3.5
     
-    self.vouchers.T.x = self.discard.T.x
-    self.vouchers.T.y = self.discard.T.y
 
     self.hand:hard_set_VT()
     self.play:hard_set_VT()

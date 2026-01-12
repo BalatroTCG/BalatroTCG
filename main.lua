@@ -125,7 +125,109 @@ end
 BalatroTCG.load_dir("ui")
 BalatroTCG.load_dir("src")
 
+BalatroTCG.config_tab = function()
+	local blind_anim = AnimatedSprite(
+		0,
+		0,
+		1.4,
+		1.4,
+		G.ANIMATION_ATLAS["mp_player_blind_col"],
+		G.P_BLINDS[MP.UTILS.blind_col_numtokey(MP.LOBBY.blind_col)].pos
+	)
+	blind_anim:define_draw_steps({
+		{ shader = "dissolve", shadow_height = 0.05 },
+		{ shader = "dissolve" },
+	})
+
+	-- MP.PREVIEW.text = SMODS.Mods["tcgb"].config.preview.text or ""
+	-- MP.PREVIEW.button = SMODS.Mods["tcgb"].config.preview.button or ""
+	local ret = {
+		n = G.UIT.ROOT,
+		config = {
+			r = 0.1,
+			minw = 5,
+			align = "cm",
+			padding = 0.2,
+			colour = G.C.BLACK,
+		},
+		nodes = {
+			{
+				n = G.UIT.R,
+				config = {
+					padding = 0,
+					align = "cm",
+					on_demand_tooltip = {
+						text = {
+							localize("k_preview_integration_desc"),
+							localize("k_preview_credit"),
+						},
+					},
+				},
+				nodes = {
+					create_toggle({
+						id = "fantoms_preview_integration_toggle",
+						label = localize("b_opts_tcg_balanced"),
+						ref_table = BalatroTCG.config,
+						ref_value = "Balance",
+					}),
+				},
+			},
+		},
+	}
+	return ret
+end
+
 G.C.OPPONENT = HEX("AC3232")
+
+local _start_up = Game.start_up
+function Game:start_up()
+    _start_up(self)
+    reset_tcg_settings()
+end
+
+function reset_tcg_settings()
+    BalatroTCG.Settings = {
+        Unbalance = not BalatroTCG.config.Balance,
+        StartingMoney = 100,
+        MoneyLeak = true,
+        MoneyLeakStart = 10,
+        MoneyLeakIncrease = 2,
+        EndingRound = true,
+        RoundEnd = 15,
+        WinCondition = "Lowest Money",
+        DeckLimitations = {
+            Money = true,
+            Size = true,
+            Jokers = true,
+            Consumeables = true,
+            BackCounts = true
+        }
+    }
+end
+function set_tcg_mp_settings()
+    BalatroTCG.Settings = {
+        Unbalance = not MP.LOBBY.config.tcg_balanced,
+        StartingMoney = MP.LOBBY.config.health_pool,
+        MoneyLeak = MP.LOBBY.config.money_leak,
+        MoneyLeakStart = MP.LOBBY.config.money_leak_start,
+        MoneyLeakIncrease = MP.LOBBY.config.money_leak_increase,
+        EndingRound = MP.LOBBY.config.game_round_limit,
+        RoundEnd = MP.LOBBY.config.round_limit,
+        WinCondition = MP.LOBBY.config.winner_type,
+        DeckLimitations = {
+            Money = MP.LOBBY.config.deck_money_limit,
+            Size = MP.LOBBY.config.deck_size_limits,
+            Jokers = MP.LOBBY.config.deck_joker_limits,
+            Consumeables = MP.LOBBY.config.deck_consumeable_limits,
+            BackCounts = MP.LOBBY.config.deck_back_limits,
+        },
+    }
+
+    if BalatroTCG.SelectedDeck:is_legal() ~= 'Legal' then
+        BalatroTCG.SelectedDeck = BalatroTCG.DefaultDecks[1]
+        MP.ACTIONS.unready_lobby()
+    end
+end
 
 function tableMerge(table1, table2)
 	local result = {}
@@ -142,6 +244,7 @@ end
 G.FUNCS.tcg_start_single = function(e)
 
     G.SETTINGS.paused = true
+    reset_tcg_settings()
 
     G.E_MANAGER:clear_queue()
     G.FUNCS.wipe_on()
@@ -226,11 +329,10 @@ function Game:start_tcg_game(args)
     local playerDeck = BalatroTCG.SelectedDeck
     if playerDeck == 'random' then playerDeck = BalatroTCG.TabDecks[pseudorandom('asdf', 1, #BalatroTCG.TabDecks)] end
     
-    --local opponentDeck = get_tcg_deck(1)
-    local opponentDeck = get_tcg_deck(pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks))
+    local opponentDeck = BalatroTCG.DefaultDecks[pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks)]
 
     if args.online then
-        opponentDeck = BalatroTCG.Deck('b_red', 'empty', {})
+        opponentDeck = get_new_tcg_deck()
     end
 
 
@@ -370,13 +472,6 @@ function Game:start_tcg_game(args)
     BalatroTCG.PlayerActive = false
     --switch_player(args.starting)
     
-    if G.SETTINGS.FN then
-        G.SETTINGS.FN.preview_score = false
-        G.SETTINGS.FN.preview_dollars = false
-        G.SETTINGS.FN.hide_face_down = true
-        G.SETTINGS.FN.show_min_max = true
-    end
-
     if true then
         G.E_MANAGER:add_event(Event({
             trigger = 'immediate',
@@ -397,10 +492,8 @@ function Game:start_tcg_game(args)
 
 end
 
-function TCG_GetDamage()
-
-    local value = G.GAME.chips
-
+function TCG_GetDamage(value)
+    
     if value > 0 then
         value = math.log10(value)
         value = value * value
@@ -443,7 +536,7 @@ function end_tcg_round()
 
     BalatroTCG.Switching = true
     
-    local damage = TCG_GetDamage()
+    local damage = TCG_GetDamage(G.GAME.chips) + G.GAME.chips_damage
     local index = 0
     
     if damage > 0 then
@@ -456,6 +549,7 @@ function end_tcg_round()
     end
     BalatroTCG.Status_Current.last_attack = damage
     BalatroTCG.Status_Current.last_target = index
+    
 
     if BalatroTCG.MP_Lobby then
         BalatroTCG.Status_Current:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
@@ -466,8 +560,16 @@ function end_tcg_round()
         BalatroTCG.Status_Current:send_message({type = 'attack', damage = damage, index = index, key = BalatroTCG.Status_Current.status.round })
     end
 
+    BalatroTCG.Status_Current:add_play_stats('damage_given', damage, BalatroTCG.Status_Current.status.round)
 
 
+    if BalatroTCG.Settings.MoneyLeak and BalatroTCG.Status_Current.status.round >= BalatroTCG.Settings.MoneyLeakStart then
+        if BalatroTCG.Settings.MoneyLeakIncrease <= 0 then
+            BalatroTCG.Status_Current:damage(1)
+        else
+            BalatroTCG.Status_Current:damage((BalatroTCG.Status_Current.status.round - BalatroTCG.Settings.MoneyLeakStart + 1) * BalatroTCG.Settings.MoneyLeakIncrease)
+        end
+    end
 
     if BalatroTCG.PlayerActive then
         delay(0.2)
@@ -542,13 +644,6 @@ function end_tcg_round()
                 BalatroTCG.Status_Current:send_message({ type = 'jokers', jokers = #BalatroTCG.Status_Current.jokers.cards })
                 BalatroTCG.Status_Current:send_message({ type = "health", health = BalatroTCG.Status_Current.status.dollars })
 
-                local cost = 0
-                for _, joker in ipairs(G.jokers.cards) do
-                    joker:set_cost()
-                    cost = joker.sell_cost
-                end
-                BalatroTCG.Status_Current:send_message({ type = 'joker_cost', amount = cost })
-                
                 for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
                     joker:highlight(false)
                 end
