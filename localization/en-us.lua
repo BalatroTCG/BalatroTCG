@@ -820,6 +820,7 @@ return {
 		dictionary = {
 			b_tcg_vanilla = "Vanilla",
 			b_tcg_tcg = "TCG",
+			b_tcg_tcg_lobby = "TCG Lobby",
             
             b_tcg_build = "Build",
             b_tcg_delete = "Delete",

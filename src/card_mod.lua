@@ -94,7 +94,7 @@ function Card:use_consumeable(area, copier)
             end
         end
 
-        BalatroTCG.Status_Current:send_visuals(self, G.discard, area)
+        BalatroTCG.Status_Current:setup_visuals(self, G.discard, area)
         
         stop_use()
 
@@ -2250,7 +2250,7 @@ function TCG_Override_Desc(self, _c, loc_vars)
 
     end
 
-    _c.vars = specific_vars
+    _c.vars = loc_vars or _c.vars
 
     return loc_vars
 end

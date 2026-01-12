@@ -643,13 +643,9 @@ elseif parsedAction.action == "tcg_compatible" then
 elseif parsedAction.action == "tcgStartGame" then
     G.SETTINGS.paused = false
     G.FUNCS.exit_overlay_menu()
-    message.damage = tonumber(message.damage)
-    BalatroTCG.Player:receive_message({type = 'attack', damage = message.damage, key = 'start'})
-    switch_player(message.starting == 'true')
-elseif parsedAction.action == "tcgIsWaiting" then
-    if BalatroTCG.Player and not BalatroTCG.PlayerActive then
-        Client.send({action = "tcgEndTurn", damage = BalatroTCG.Player.last_attack, index = BalatroTCG.Player.last_target })
-    end
+    parsedAction.damage = tonumber(parsedAction.damage)
+    BalatroTCG.Player:receive_message({type = 'attack', damage = parsedAction.damage, key = 'start'})
+    switch_player(parsedAction.starting == 'true' or parsedAction.starting == true)
 '''
 match_indent = true
 overwrite = true
@@ -668,7 +664,7 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
-pattern = '''if parsedAction.action == "connected" then'''
+pattern = '''elseif parsedAction.action == "version" then'''
 position = "after"
 payload = '''
     BalatroTCG.MultiCompat = false

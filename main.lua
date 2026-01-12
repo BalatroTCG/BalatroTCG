@@ -223,7 +223,7 @@ function set_tcg_mp_settings()
         },
     }
 
-    if BalatroTCG.SelectedDeck:is_legal() ~= 'Legal' then
+    if BalatroTCG.SelectedDeck and BalatroTCG.SelectedDeck:is_legal() ~= 'Legal' then
         BalatroTCG.SelectedDeck = BalatroTCG.DefaultDecks[1]
         MP.ACTIONS.unready_lobby()
     end

@@ -456,7 +456,7 @@ end
 function G.FUNCS.set_betting(e)
 
 	if MP and MP.LOBBY and MP.LOBBY.code then
-		Client.send({action = "tcgBet", amount = BalatroTCG.BetAmount })
+		Client.send({action = "tcgBet", bet = BalatroTCG.BetAmount })
 		G.FUNCS.overlay_menu({
 			definition = G.UIDEF.waiting_for_opponent(),
 		})
@@ -1090,7 +1090,7 @@ function G.UIDEF.override_main_menu_play_button()
 
     if MP then
 		local value = mainmenu_ref()
-
+		
 		
 		local content = 
 		value.nodes[1]
@@ -1098,24 +1098,20 @@ function G.UIDEF.override_main_menu_play_button()
 			.nodes[1]
 			.nodes
 
-
-		for i = 2, #content do
-			local temp = content[i]
-			content[i] = set
-			set = temp
+		for i = #content, 2, -1 do
+			content[i + 1] = content[i]
 		end
-		content[#content + 1] = set
+		content[2] = set
+		
 		
 		if BalatroTCG.MultiCompat then
-			content[3].nodes[1].config.button = 'start_tcg_lobby'
-		elseif MP.LOBBY.connected then
-			for i = 3, #content do
-				content[i] = nil
+			for i = #content, 2, -1 do
+				content[i + 1] = content[i]
 			end
-			
 			content[3] = UIBox_button({
-				label = { localize("b_tcgtab_online_incompat") },
-				colour = G.C.RED,
+				label = { localize("b_tcg_tcg_lobby") },
+				colour = G.C.GREEN,
+				button = "start_tcg_lobby",
 				minw = 5,
 			})
 		end
@@ -1322,8 +1318,14 @@ function TCG_create_UIBox_HUD()
 	--area.nodes[4].
 	area.nodes[6].nodes[2].nodes[1].nodes[1].nodes[2].nodes[1] = {n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'hands_left'}}, font = G.LANGUAGES['en-us'].font, colours = {G.C.BLUE},shadow = true, rotate = true, scale = 2*scale}),id = 'hand_UI_count'}}
 	area.nodes[6].nodes[2].nodes[1].nodes[3].nodes[2].nodes[1].nodes[1] = {n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'discards_left'}}, font = G.LANGUAGES['en-us'].font, colours = {G.C.RED},shadow = true, rotate = true, scale = 2*scale}),id = 'discard_UI_count'}}
-	
 	area.nodes[6].nodes[2].nodes[5].nodes[3].nodes[2].nodes[1] = {n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'round'}}, colours = {G.C.IMPORTANT},shadow = true, scale = 2*scale}),id = 'round_UI_count'}}
+
+	area.nodes[6].nodes[2].nodes[3].nodes[1].nodes[1].nodes[1].nodes[1] = 
+		{n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'dollars', prefix = localize('$')}},
+			scale_function = function ()
+				return scale_number(G.GAME.dollars, 2.2 * scale, 99999, 1000000)
+			end, maxw = 1.35, colours = {G.C.MONEY}, font = G.LANGUAGES['en-us'].font, shadow = true,spacing = 2, bump = true, scale = 2.2*scale}), id = 'dollar_text_UI'
+		}}
 
 	return content
 
@@ -1382,7 +1384,7 @@ function G.FUNCS.start_tcg_lobby(e)
 	G.SETTINGS.paused = false
 
 	MP.LOBBY.config.gamemode = "gamemode_mp_tcg"
-	MP.LOBBY.config.gamemode = 'vanilla'
+	MP.LOBBY.config.ruleset = 'ruleset_mp_vanilla'
 
 	MP.reset_lobby_config(true)
 

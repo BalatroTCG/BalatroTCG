@@ -697,6 +697,14 @@ function Game:update_new_round(dt)
     update_new_round_ref(self, dt)
 end
 
+local gameupdate_ref = Game.update
+function Game:update(dt)
+    gameupdate_ref(self, dt)
+    if BalatroTCG.GameStarted then
+        BalatroTCG.Status_Current:check_visuals()
+    end
+end
+
 local update_selecting_hand_ref = Game.update_selecting_hand
 function Game:update_selecting_hand(dt)
 
@@ -1027,7 +1035,9 @@ local CardArea_emplace_ref = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
 
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
-        BalatroTCG.Status_Current:send_visuals(card, self)
+        if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then
+            BalatroTCG.Status_Current:setup_visuals(card, self)
+        end
 
         if card.ability.set == 'Planet' and (self == G.consumeables or self == G.jokers) then
             if G.GAME.used_vouchers.v_planet_tycoon then
