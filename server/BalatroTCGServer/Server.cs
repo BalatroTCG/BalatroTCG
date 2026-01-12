@@ -274,7 +274,7 @@ namespace BalatroTCGServer {
 				else
 					builder.Append('{');
 				string value = item.Item2.ToString();
-				if (item.Item2 is bool) {
+				if (item.Item2 is bool || value.ToLower() == "true" || value.ToLower() == "false") {
 					value = value.ToLower();
 				}
 				builder.Append($"\"{item.Item1}\":\"{value}\"");
@@ -492,7 +492,7 @@ namespace BalatroTCGServer {
 			'9',
 		};
 
-		Dictionary<string, string> Options;
+		Dictionary<string, object> Options;
 		Dictionary<Client, int> Bets;
 
 		Dictionary<string, Attack> Attacks = new Dictionary<string, Attack>();
@@ -511,7 +511,7 @@ namespace BalatroTCGServer {
 
 		public Lobby(string gamemode) {
 			ConnectedPlayers = new List<Client>();
-			Options = new Dictionary<string, string>();
+			Options = new Dictionary<string, object>();
 			Bets = new Dictionary<Client, int>();
 			GameMode = gamemode;
 			LobbyCode = "";
@@ -553,6 +553,7 @@ namespace BalatroTCGServer {
 				("gamemode", GameMode),
 			};
 			foreach (var kv in Options) {
+				
 				tosend.Add((kv.Key, kv.Value));
 			}
 			client.Send(tosend.ToArray());
@@ -667,7 +668,7 @@ namespace BalatroTCGServer {
 					Options.Clear();
 					foreach (var kv in data) {
 						if (kv.Key != "action") {
-							Options[kv.Key] = kv.Value!.ToString();
+							Options[kv.Key] = kv.Value!;
 						}
 					}
 					BroadcastOptions();
@@ -697,7 +698,7 @@ namespace BalatroTCGServer {
 						ActivePlayer = first;
 
 						for (int i = 0; i < ConnectedPlayers.Count; i++) {
-							ConnectedPlayers[i].Send(("action", "tcgPlayerStatus"), ("type", "ready"), ("damage", (first == ConnectedPlayers[i] ? bestBet : 0)), ("starting", first == ConnectedPlayers[i]));
+							ConnectedPlayers[i].Send(("action", "tcgStartGame"), ("damage", (first == ConnectedPlayers[i] ? bestBet : 0)), ("starting", first == ConnectedPlayers[i]));
 						}
 					}
 					break;

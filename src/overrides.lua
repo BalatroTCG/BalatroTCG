@@ -1027,17 +1027,19 @@ end
 local start_dissolve_ref = Card.start_dissolve
 function Card:start_dissolve(dissolve_colours, silent, dissolve_time_fac, no_juice)
 
-    if self.tcg_todeck and not (self.edition and self.edition.negative) then
+
+    if self.tcg_todeck and not (self.tcg_extra and self.tcg_extra.virtual) then
+        
+
+        if self.ability.queue_negative_removal then
+            if self.area then
+                self.area.config.card_limit = self.area.config.card_limit - 1
+            end
+        end
+
         if self.area then self.area:remove_card(self) end
         self:remove_from_deck()
-        if self.ability.queue_negative_removal then 
-            if self.ability.consumeable then
-                G.consumeables.config.card_limit = G.consumeables.config.card_limit - 1
-            else
-                G.jokers.config.card_limit = G.jokers.config.card_limit - 1
-            end 
-        end
-        
+
         self:set_ability(G.P_CENTERS[self.config.center.key])
 
         G.discard:emplace(self)

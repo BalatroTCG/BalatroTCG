@@ -652,36 +652,37 @@ return {
             v_directors_cut_tcg={
                 name="Director's Cut",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Spend {C:money}$#1#{} once per round",
+                    "to add {C:attention}#2#{} damage",
+                    "to your attack",
                 },
             },
             v_glow_up_tcg={
                 name="Glow Up",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "{C:attention}Jokers{} each give",
+                    "{X:red,C:white}#1#x{} Mult",
                 },
             },
             v_hieroglyph_tcg={
                 name="Hieroglyph",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Reduce damage taken by {C:money}#1#",
+                    "{C:red}-1{} discard",
                 },
             },
             v_hone_tcg={
                 name="Hone",
                 text={
-                    "{C:tarotT:c_wheel_of_fortune}#1#{} has a",
-                    "1 in #2# chance of hitting.",
+                    "{C:attention}Jokers{} each give",
+                    "{C:blue}+#1#{} chips",
                 },
             },
             v_illusion_tcg={
                 name="Illusion",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Scored cards give",
+                    "{X:red,C:white}#1#x{} Mult",
                 },
             },
             v_liquidation_tcg={
@@ -694,108 +695,113 @@ return {
             v_magic_trick_tcg={
                 name="Magic Trick",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
-                    -- "{C:attention}Playing cards{} can",
-                    -- "be bought"
+                    "{C:attention}Playing cards{} can",
+                    "be bought"
                 },
             },
             v_money_tree_tcg={
                 name="Money Tree",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Gain {C:money}$1{} per round",
+                    "for every {C:attention}dollar",
+                    "lost from Seed Money",
+                    "{C:inactive}(Currently {C:money}$#1#{}{C:inactive})",
                 },
             },
             v_omen_globe_tcg={
                 name="Omen Globe",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Start each round",
+                    "with {C:attention}#1# {C:spectral}Spectral{}",
+                    "in your inventory",
                 },
             },
             v_overstock_norm_tcg={
                 name="Overstock",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "{C:attention}Consumeables{} can be put",
+                    "in {C:attention}Joker{} slots",
                 },
             },
             v_overstock_plus_tcg={
                 name="Overstock Plus",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "{C:attention}Jokers{} can be put in",
+                    "your {C:attention}inventory",
                 },
             },
             v_petroglyph_tcg={
                 name="Petroglyph",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Reduce damage taken by {C:money}#1#",
+                    "{C:red}-1{} discard",
                 },
             },
             v_planet_merchant_tcg={
                 name="Planet Merchant",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Start each round",
+                    "with {C:attention}#1# {C:planet}Planet{}",
+                    "in your inventory",
                 },
             },
             v_planet_tycoon_tcg={
                 name="Planet Tycoon",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "{C:planet}Planets{} don't take up",
+                    "inventory space",
                 },
             },
             v_reroll_glut_tcg={
                 name="Reroll Glut",
                 text={
-                    "Extra {C:red}Discards{}",
+                    "Extra {C:red}discards{}",
                     "cost {C:money}$#1#{}",
                 },
             },
             v_reroll_surplus_tcg={
                 name="Reroll Surplus",
                 text={
-                    "Extra {C:red}Discards{}",
+                    "Extra {C:red}discards{}",
                     "cost {C:money}$#1#{}",
                 },
             },
             v_retcon_tcg={
                 name="Retcon",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Spend {C:money}$#1#{} once per round",
+                    "to add {C:attention}#2#{} damage",
+                    "to your attack",
                 },
             },
             v_seed_money_tcg={
                 name="Seed Money",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Lose {C:money}$#1#{}",
+                    "per round?",
                 },
             },
             v_telescope_tcg={
                 name="Telescope",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Always draw the {C:planet}Planet{}",
+                    "card for your most",
+                    "played {C:attention}poker hand",
                 },
             },
             v_tarot_merchant_tcg={
                 name="Tarot Merchant",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "Start each round",
+                    "with {C:attention}#1# {C:tarot}Tarot{}",
+                    "in your inventory",
                 },
             },
             v_tarot_tycoon_tcg={
                 name="Tarot Tycoon",
                 text={
-                    "{C:inactive}Does nothing...",
-                    "{C:inactive}for now",
+                    "{C:tarot}Tarots{} don't take up",
+                    "inventory space",
                 },
             },
         },

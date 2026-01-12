@@ -74,8 +74,9 @@ function TCG_PlayerStatus:init(deck, player)
         {card_limit = 2, type = 'opponent', highlight_limit = 1})
     self.vouchers = CardArea(
         0, 0,
-        CAI.discard_W,CAI.discard_H,
-        { type = "discard", card_limit = 1e308 }
+        CAI.consumeable_W,
+        CAI.consumeable_H,
+        { type = "hand", card_limit = 2, highlight_limit = 0 }
     )
 
     
@@ -117,10 +118,13 @@ function TCG_PlayerStatus:init(deck, player)
         total_joker_damage = 0,
     }
 
+    self.can_reroll = true
 
     self.status = {}
 
     self.status.max_budget = params.max_budget
+    self.status.hands_left = 0
+    self.status.discards_left = 0
     self.status.dollars = params.dollars
     self.status.used_vouchers = {}
     self.status.round = 1
@@ -129,6 +133,7 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.opponent_health = 0
     self.status.bankrupt_at = 0
     self.status.unused_discards = 0
+    self.status.seed_reduction = 0
     self.status.last_tarot_planet = nil
     self.status.hand_upgrades = copy_table(G.GAME.hands)
     self.status.probabilities = copy_table(G.GAME.probabilities)
@@ -136,6 +141,33 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.modifiers = {}
 
     self.attacks = {}
+
+    G.consumeables = self.consumeables
+    G.jokers = self.jokers
+    G.discard = self.discard
+    G.deck = self.deck
+    G.hand = self.hand
+    G.play = self.play
+    G.vouchers = self.vouchers
+    G.graveyard = self.graveyard
+
+    BalatroTCG.Status_Current = self
+    
+    for k, v in ipairs(params.starting_vouchers) do
+        local voucher = Card(-100, -100, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[v])
+        voucher:apply_to_run()
+        self.status.used_vouchers[v] = true
+    end
+    
+    -- This is to fix a bug where the screen goes black.  Someone explain this to me please
+    G.consumeables = nil
+    G.jokers = nil
+    G.discard = nil
+    G.deck = nil
+    G.hand = nil
+    G.play = nil
+    G.vouchers = nil
+    G.graveyard = nil
 end
 
 function TCG_PlayerStatus:pass_over()
@@ -208,15 +240,107 @@ function TCG_PlayerStatus:apply()
     G.vouchers = self.vouchers
     
     G.deck:shuffle('nr' .. self.status.round)
-    SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind})
-    
-    -- for k, joker in ipairs(self.jokers.cards) do
-    --     if joker.ability.d_size > 0 then
-    --         ease_discard(joker.ability.d_size)
-    --     end
-    -- end
-    
+    SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind })
 
+    for k, voucher in ipairs(self.vouchers.cards) do
+        if voucher.ability.name == 'Planet Merchant' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+            
+            local card = pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard})
+            if card then
+                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                card.area:remove_card(card)
+                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                    card:start_materialize()
+                    G.consumeables:emplace(card)
+
+                    for _, c in ipairs(G.playing_cards) do
+                        if c == card then
+                            goto skip
+                        end
+                    end
+                    G.GAME.consumeable_buffer = 0
+                    table.insert(G.playing_cards, card)
+                    ::skip::
+                    play_sound('timpani')
+                    voucher:juice_up(0.3, 0.4)
+                    return true
+                end
+                }))
+            end
+        elseif voucher.ability.name == 'Tarot Merchant' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+
+            local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+            if card then
+                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                card.area:remove_card(card)
+                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                    card:start_materialize()
+                    G.consumeables:emplace(card)
+
+                    for _, c in ipairs(G.playing_cards) do
+                        if c == card then
+                            goto skip
+                        end
+                    end
+                    table.insert(G.playing_cards, card)
+                    ::skip::
+                    G.GAME.consumeable_buffer = 0
+                    play_sound('timpani')
+                    voucher:juice_up(0.3, 0.4)
+                    return true
+                end
+                }))
+            end
+        elseif voucher.ability.name == 'Omen Globe' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+
+            local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})
+            if card then
+                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                card.area:remove_card(card)
+                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                    card:start_materialize()
+                    G.consumeables:emplace(card)
+
+                    for _, c in ipairs(G.playing_cards) do
+                        if c == card then
+                            goto skip
+                        end
+                    end
+                    table.insert(G.playing_cards, card)
+                    ::skip::
+                    G.GAME.consumeable_buffer = 0
+                    play_sound('timpani')
+                    return true
+                end
+                }))
+            end
+        elseif voucher.ability.name == 'Telescope' then
+            local _planet, _hand, _tally = nil, nil, 0
+            for k, v in ipairs(G.handlist) do
+                if G.GAME.hands[v].visible and G.GAME.hands[v].played > _tally then
+                    _hand = v
+                    _tally = G.GAME.hands[v].played
+                end
+            end
+            if _hand then
+                for k, v in pairs(G.P_CENTER_POOLS.Planet) do
+                    if v.config.hand_type == _hand then
+                        _planet = v.key
+                    end
+                end
+                local center = G.P_CENTERS[_planet]
+                for k, card in ipairs(G.deck.cards) do
+                    if card.ability.name == center.name then
+                        G.deck.cards[k] = G.deck.cards[#G.deck.cards]
+                        G.deck.cards[#G.deck.cards] = card
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    
     for k, v in ipairs(self.playing_cards) do 
         v:set_cost()
     end
@@ -252,6 +376,15 @@ function TCG_PlayerStatus:remove()
     self.opponentJokers:remove()
     self.vouchers:remove()
     
+    self.jokers = nil
+    self.consumeables = nil
+    self.discard = nil
+    self.deck = nil
+    self.hand = nil
+    self.play = nil
+    self.graveyard = nil
+    self.opponentJokers = nil
+    self.vouchers = nil
 end
 
 function TCG_PlayerStatus:receive_message(message)

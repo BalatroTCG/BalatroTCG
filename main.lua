@@ -64,7 +64,14 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 ]]
 
 -- TODO:
--- 
+-- Implement rest of vouchers
+
+
+-- Receiving actions:
+-- 'startTcgBetting' Run when the host starts a TCG game.  Return with a 'startGame' with 'seed' for the seed
+-- 'tcgBet' Each player can bet money to go first.  Once all players have given their bet, send a 'tcgStartGame' action.  The player who won the bet will recieve their bet in the form of 'damage' with this command as well as 'starting' at true
+-- 'tcgPlayerStatus' is just an echo action.  Send to the other player as it comes in.
+-- 'tcgEndTurn' will happen when one player's turn ends.  Echo back to the other player with a 'tcgStartTurn' with the parameters passed through
 
 BalatroTCG = SMODS.current_mod
 
@@ -130,6 +137,7 @@ function tableMerge(table1, table2)
 	end
 	return result
 end
+
 
 G.FUNCS.tcg_start_single = function(e)
 
@@ -422,6 +430,17 @@ end
 
 function end_tcg_round()
     
+    
+    for k, voucher in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
+        if voucher.ability.name == 'Seed Money' and not BalatroTCG.Status_Current.status.used_vouchers['v_money_tree'] then
+            BalatroTCG.Status_Current.status.seed_reduction = BalatroTCG.Status_Current.status.seed_reduction + 1
+            BalatroTCG.Status_Current:damage(1)
+        elseif voucher.ability.name == 'Money Tree' then
+            ease_dollars(BalatroTCG.Status_Current.status.seed_reduction)
+        end
+    end
+
+
     BalatroTCG.Switching = true
     
     local damage = TCG_GetDamage()
@@ -555,7 +574,22 @@ function end_tcg_round()
     }))
 end
 
+G.FUNCS.tcg_add_attack = function(e)
+    G.GAME.chips_damage = G.GAME.chips_damage + G.GAME.modifiers.tcg_attack
+    BalatroTCG.Status_Current.can_reroll = false
+    BalatroTCG.Status_Current.has_rerolled = true
+    BalatroTCG.Status_Current:damage(G.GAME.modifiers.tcg_attack_cost)
+end
 
+G.FUNCS.tcg_can_add_attack = function(e)
+    if BalatroTCG.PlayerActive and G.GAME.modifiers.tcg_attack and BalatroTCG.Player.can_reroll then
+        e.config.colour = G.C.RED
+        e.config.button = 'tcg_add_attack'
+    else
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    end
+end
 
 function switch_player(playerActive)
     
@@ -591,8 +625,6 @@ function switch_player(playerActive)
     
     G.RESET_JIGGLES = nil
     BalatroTCG.Switching = false
-
-    --print("Setting state: " .. tostring(BalatroTCG.PlayerActive))
     
 end
 
@@ -612,6 +644,7 @@ if MP then
 end
 
 function end_tcg_game(win)
+    BalatroTCG.GameStarted = false
     
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',

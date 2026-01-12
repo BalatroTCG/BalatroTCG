@@ -73,7 +73,23 @@ local use_consumeable_ref = Card.use_consumeable
 function Card:use_consumeable(area, copier)
     
     if BalatroTCG.GameActive then
+        if self.ability.queue_negative_removal then
+            if area then
+                area.config.card_limit = area.config.card_limit - 1
+            end
+        end
+
+        BalatroTCG.Status_Current:send_visuals(self, G.discard, area)
+        
         stop_use()
+
+        if self.ability.set == 'Planet' then
+            if not BalatroTCG.Status_Current.params.destroy_planets then self.tcg_todeck = true end
+        elseif self.ability.set == 'Tarot' then
+            if not BalatroTCG.Status_Current.params.destroy_tarots then self.tcg_todeck = true end
+        elseif self.ability.set == 'Spectral' then
+            if not BalatroTCG.Status_Current.params.destroy_spectrals then self.tcg_todeck = true end
+        end
 
         if self.debuff then return nil end
         local used_tarot = copier or self
@@ -83,14 +99,7 @@ function Card:use_consumeable(area, copier)
             obj.tcg_use(self, area, copier)
             return
         else
-            if self.ability.set == 'Planet' then
-                if not BalatroTCG.Status_Current.params.destroy_planets then self.tcg_todeck = true end
-            elseif self.ability.set == 'Tarot' then
-                if not BalatroTCG.Status_Current.params.destroy_tarots then self.tcg_todeck = true end
-            elseif self.ability.set == 'Spectral' then
-                if not BalatroTCG.Status_Current.params.destroy_spectrals then self.tcg_todeck = true end
-            end
-
+            
             if self.ability.set == 'Planet' then
                 use_consumeable_ref(self, area, copier)
             elseif self.ability.name == 'Judgement' then
@@ -113,6 +122,7 @@ function Card:use_consumeable(area, copier)
                                 goto skip
                             end
                         end
+                        card:add_to_deck()
                         table.insert(G.playing_cards, card)
                         ::skip::
                         play_sound('timpani')
@@ -140,6 +150,7 @@ function Card:use_consumeable(area, copier)
                                 goto skip
                             end
                         end
+                        card:add_to_deck()
                         table.insert(G.playing_cards, card)
                         ::skip::
                         play_sound('timpani')
@@ -214,6 +225,7 @@ function Card:use_consumeable(area, copier)
                                     goto skip
                                 end
                             end
+                            card:add_to_deck()
                             table.insert(G.playing_cards, card)
                             ::skip::
                             play_sound('timpani')
@@ -365,17 +377,14 @@ end
 
 
 function Card:calculate_joker(context)
-    
-
-
     if self.ability.set ~= "Joker" or not BalatroTCG.GameActive then
         return calculate_joker_ref(self, context)
     end
 
     if self.debuff then return nil end
 
-    if self.tcg_calculate and type(self.tcg_calculate) == 'function' then
-        return self:tcg_calculate(context)
+    if self.config.center.tcg_calculate and type(self.config.center.tcg_calculate) == 'function' then
+        return self.config.center.tcg_calculate(self, context)
     end
     
     if self.ability.set == "Joker" then
@@ -1001,205 +1010,226 @@ function Card:calculate_joker(context)
     return calculate_joker_ref(self, context)
 end
 
-function modified_desc(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    if not BalatroTCG.UseTCG_UI then return end
-
-    for i = #desc_nodes, 1, -1 do
-        table.remove(desc_nodes, i)
-    end
-    localize { type = 'descriptions', set = "Joker", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
-end
-function modified_desc_tarot(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    if not BalatroTCG.UseTCG_UI then return end
-
-    for i = #desc_nodes, 1, -1 do
-        table.remove(desc_nodes, i)
-    end
-    localize { type = 'descriptions', set = "Tarot", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
-end
-function modified_desc_spec(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    if not BalatroTCG.UseTCG_UI then return end
-
-    for i = #desc_nodes, 1, -1 do
-        table.remove(desc_nodes, i)
-    end
-    localize { type = 'descriptions', set = "Spectral", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
-end
-function modified_desc_vch(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    if not BalatroTCG.UseTCG_UI then return end
-
-    for i = #desc_nodes, 1, -1 do
-        table.remove(desc_nodes, i)
-    end
-    localize { type = 'descriptions', set = "Voucher", key = card.config.center.key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
-end
-function modified_desc_enh(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    
-    if not card then
-        --card = { ability = copy_table(self.config), fake_card = true }
-    end
-    
-    local key = ""
-    if card then
-        key = card.config.center.key
-        SMODS.Center.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-    else
-        return
-    end
-
-    if not BalatroTCG.UseTCG_UI then return end
-
-    for i = #desc_nodes, 1, -1 do
-        table.remove(desc_nodes, i)
-    end
-    localize { type = 'descriptions', set = "Enhanced", key = key .. '_tcg', vars = specific_vars or {}, nodes = desc_nodes }
-end
-
-function tcg_base_cost(set, name, base_cost)
-    if BalatroTCG.Unbalance then return end
-
-    if set == 'Planet' then
-        return base_cost - 1
-    elseif set == 'Joker' then
-        if name == 'Joker' then
-            return 1
-        elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-            return base_cost - 2
-        elseif name == 'Jolly Joker' or name == 'Zany Joker' or name == 'Mad Joker' or name == 'Crazy Joker' or name == 'Droll Joker' or name == 'Sly Joker' or name == 'Wily Joker' or name == 'Clever Joker' or name == 'Devious Joker' or name == 'Crafty Joker' then
-            return base_cost - 1
-        elseif name == 'Brainstorm' then
-            return 8
-        elseif name == 'Oops! All 6s' then
-            return 7
-        end
-    end
-
-    return base_cost
-end
-
-local set_ability = Card.set_ability
+local set_ability_ref = Card.set_ability
 function Card:set_ability(center, initial, delay_sprites)
+    if BalatroTCG.UseTCG_UI then
+        center = create_tcg_center(center)
+    end
 
-    set_ability(self, center, initial, delay_sprites)
-    
-    if not BalatroTCG.UseTCG_UI then return end
+    return set_ability_ref(self, center, initial, delay_sprites)
+end
 
-    self.config.center.tcg_estimate = nil
+-- This function is way too laggy but it's the only solution I have right now
+function copy_center(center)
+    local funcs = {}
+
+    local function copy_table(O)
+        local O_type = type(O)
+        local copy
+        if O_type == 'table' then
+            if funcs[O] then
+                copy = funcs[O]
+            else
+                copy = {}
+                funcs[O] = copy
+
+                for k, v in next, O, nil do
+                    copy[copy_table(k)] = copy_table(v)
+                end
+                setmetatable(copy, copy_table(getmetatable(O)))
+            end
+        else
+            copy = O
+        end
+        return copy
+    end
+
+    funcs = {}
+
+    return copy_table(center)
+end
+
+BalatroTCG.ModifiedCenters = {}
+
+function create_tcg_center(self)
+
+    if BalatroTCG.ModifiedCenters[self.key] then return BalatroTCG.ModifiedCenters[self.key] end
+
+    local center = {}
+    for k, v in pairs(self) do
+        center[k] = v
+    end
+    center.config = copy_table(self.config)
+
+    setmetatable(center, getmetatable(self))
+
+    self = center
+
+    self.tcg_estimate = nil
     self.tcg_calculate = nil
     
-    local name = self.ability.name
+    local name = self.name
 
-    self.base_cost = tcg_base_cost(self.ability.set, name, self.base_cost)
+    self.cost = tcg_base_cost(self.set, name, self.cost)
 
-
-    if self.config.center.tcg_modify and type(self.config.center.tcg_modify) == 'function' then
-        self.config.center.tcg_modify(self)
-    elseif self.ability.set == 'Enhanced' then
-        if not BalatroTCG.Unbalance then
+    if self.tcg_modify and type(self.tcg_modify) == 'function' then
+        self.tcg_modify(self)
+    elseif self.set == 'Enhanced' then
+        if not BalatroTCG.Settings.Unbalance then
             if name == 'Gold Card' then
-                -- self.config.center.no_suit = true
-                -- self.config.center.no_rank = true
-                -- self.config.center.replace_base_card = true
-                --self.config.center.generate_ui = modified_desc_enh
+
             elseif name == 'Lucky Card' then
-                self.ability.p_dollars = 10
+                --self.config.p_dollars = 10
+                self.config.p_dollars = 10
+            elseif name == 'Glass Card' then
+                
+
             elseif name == 'Steel Card' then
-                --self.ability.h_x_mult = 1.25
+                --self.config.h_x_mult = 1.25
             end
         end
-    elseif self.ability.set == 'Voucher' then
+    elseif self.set == 'Voucher' then
         if name == 'Reroll Surplus' then
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
-                G.GAME.modifiers.extra_discard = 2
+            self.config.extra = 2
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.extra_discard = card.ability.extra
             end
         elseif name == 'Reroll Glut' then
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
-                G.GAME.modifiers.extra_discard = 1
+            self.config.extra = 1
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.extra_discard = card.ability.extra
             end
         elseif name == 'Seed Money' then
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+            self.config.extra = 1
+            
+            self.redeem = function(self, card)
             end
         elseif name == 'Money Tree' then
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+            
+            self.redeem = function(self, card)
             end
         elseif name == 'Hone' then
-            self.config.center.generate_ui = modified_desc_vch
-            -- self.config.center.redeem = function(self, card)
-            --     for k, v in pairs(G.playing_cards) do
-            --         if v.ability.name == 'The Wheel of Fortune' then
-            --             v.ability.extra = 2
-            --         end
-            --     end
-            -- end
+            self.config.extra = 50
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.joker_chip_extra = card.ability.extra
+            end
         elseif name == 'Glow Up' then
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
-
+            self.config.extra = 1.5
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.joker_xmult_extra = card.ability.extra
             end
-        elseif name == 'Overstock' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Overstock' then
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.consumeable_in_jokers = true
             end
-        elseif name == 'Overstock Plus' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Overstock Plus' then
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.joker_in_consumeables = true
             end
-        elseif name == 'Omen Globe' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Omen Globe' then
+            self.config.extra = 1
+            
+            self.redeem = function(self, card)
             end
-        elseif name == 'Telescope' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Telescope' then
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.draw_telescope = true
             end
-        elseif name == 'Tarot Merchant' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Tarot Merchant' then
+            self.config.extra = 1
+            
+            self.redeem = function(self, card)
+                
             end
-        elseif name == 'Tarot Tycoon' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Tarot Tycoon' then
+            
+            self.redeem = function(self, card)
+                for k, card in ipairs(G.jokers.cards) do
+                    if card.ability.set == 'Tarot' then
+                        card.area.config.card_limit = card.area.config.card_limit + 1
+                        card.ability.queue_negative_removal = true
+                    end
+                end
+                for k, card in ipairs(G.consumeables.cards) do
+                    if card.ability.set == 'Tarot' then
+                        card.area.config.card_limit = card.area.config.card_limit + 1
+                        card.ability.queue_negative_removal = true
+                    end
+                end
             end
-        elseif name == 'Planet Merchant' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Planet Merchant' then
+            self.config.extra = 1
+            
+            self.redeem = function(self, card)
             end
-        elseif name == 'Planet Tycoon' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Planet Tycoon' then
+            
+            self.redeem = function(self, card)
+                for k, card in ipairs(G.jokers.cards) do
+                    if card.ability.set == 'Planet' then
+                        card.area.config.card_limit = card.area.config.card_limit + 1
+                        card.ability.queue_negative_removal = true
+                    end
+                end
+                for k, card in ipairs(G.consumeables.cards) do
+                    if card.ability.set == 'Planet' then
+                        card.area.config.card_limit = card.area.config.card_limit + 1
+                        card.ability.queue_negative_removal = true
+                    end
+                end
             end
-        elseif name == 'Magic Trick' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Magic Trick' then
+            
+            self.redeem = function(self, card)
                 G.GAME.modifiers.buy_cards = true
             end
-        elseif name == 'Illusion' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Illusion' then
+            self.config.extra = 1.5
+            
+            self.redeem = function(self, card)
             end
-        elseif name == 'Hieroglyph' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Hieroglyph' then
+            self.config.extra = 4
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.damage_reduction = (G.GAME.modifiers.damage_reduction or 0) + card.ability.extra
+                G.GAME.round_resets.discards = G.GAME.round_resets.discards - 1
+                ease_discard(-1)
             end
-        elseif name == 'Petroglyph' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Petroglyph' then
+            self.config.extra = 4
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.damage_reduction = (G.GAME.modifiers.damage_reduction or 0) + card.ability.extra
+                G.GAME.round_resets.discards = G.GAME.round_resets.discards - 1
+                ease_discard(-1)
             end
-        elseif name == "Director's Cut" then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == "Director's Cut" then
+            self.config.extra = {
+                reroll = 10,
+                damage = 10
+            }
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.tcg_attack = card.ability.extra.damage
+                G.GAME.modifiers.tcg_attack_cost = card.ability.extra.reroll
             end
-        elseif name == 'Retcon' then 
-            self.config.center.generate_ui = modified_desc_vch
-            self.config.center.redeem = function(self, card)
+        elseif name == 'Retcon' then
+            self.config.extra = {
+                reroll = 8,
+                damage = 16
+            }
+            
+            self.redeem = function(self, card)
+                G.GAME.modifiers.tcg_attack = card.ability.extra.damage
+                G.GAME.modifiers.tcg_attack_cost = card.ability.extra.reroll
             end
         end
     elseif self.ability.set == 'Tarot' then
@@ -1207,11 +1237,11 @@ function Card:set_ability(center, initial, delay_sprites)
             if name == 'The Hermit' then
                 --self.ability.extra = 15
             elseif name == 'The Emperor' then
-                self.config.center.generate_ui = modified_desc_tarot
+                
             elseif name == 'The High Priestess' then
-                self.config.center.generate_ui = modified_desc_tarot
+                
             elseif name == 'Temperance' then
-                --self.ability.extra = 30
+                --self.config.extra = 30
                 self.tcg_calculate = function(self, context)
                     if context.updating then
                         self.ability.money = 0
@@ -1248,213 +1278,215 @@ function Card:set_ability(center, initial, delay_sprites)
             --     if G.GAME.used_vouchers['v_hone'] then v.ability.extra = 2 end
             end
         end
-    elseif self.ability.set == 'Spectral' then
-        if name == 'The Soul' or name == 'Wraith' or name == 'Immolate' then
-            self.config.center.generate_ui = modified_desc_spec
+    elseif self.set == 'Spectral' then
+        if name == 'The Soul' or name == 'Wraith' then
+            
+        elseif not BalatroTCG.Settings.Unbalance and (name == 'Ankh' or name == 'Immolate') then
+            
         end
         
-    elseif self.ability.set == 'Planet' then
-    elseif self.ability.set == 'Joker' then
+    elseif self.set == 'Planet' then
+    elseif self.set == 'Joker' then
         
-        if not BalatroTCG.Unbalance then
+        if not BalatroTCG.Settings.Unbalance then
             if name == 'Joker' then
-                self.ability.mult = 5
+                self.config.mult = 5
             elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-                self.ability.extra.s_mult = 5
-            elseif (self.ability.t_mult or 0) > 0 or (self.ability.t_chips or 0) > 0 then
+                self.config.extra.s_mult = 5
+            elseif (self.config.t_mult or 0) > 0 or (self.config.t_chips or 0) > 0 then
 
                 if name == 'Jolly Joker' then
-                    self.ability.t_mult = 10
+                    self.config.t_mult = 10
                 elseif name == 'Zany Joker' then
-                    self.ability.t_mult = 15
+                    self.config.t_mult = 15
                 elseif name == 'Mad Joker' then
-                    self.ability.t_mult = 12
+                    self.config.t_mult = 12
                 elseif name == 'Crazy Joker' then
-                    self.ability.t_mult = 30
+                    self.config.t_mult = 30
                 elseif name == 'Droll Joker' then
-                    self.ability.t_mult = 15
+                    self.config.t_mult = 15
                 elseif name == 'Sly Joker' then
-                    self.ability.t_chips = 100
+                    self.config.t_chips = 100
                 elseif name == 'Wily Joker' then
-                    self.ability.t_chips = 150
+                    self.config.t_chips = 150
                 elseif name == 'Clever Joker' then
-                    self.ability.t_chips = 150
+                    self.config.t_chips = 150
                 elseif name == 'Devious Joker' then
-                    self.ability.t_chips = 300
+                    self.config.t_chips = 300
                 elseif name == 'Crafty Joker' then
-                    self.ability.t_chips = 120
+                    self.config.t_chips = 120
                 end
 
             -- Combo
             elseif name == 'Walkie Talkie' then
-                self.ability.extra.chips = 4
-                self.ability.extra.mult = 10
+                self.config.extra.chips = 4
+                self.config.extra.mult = 10
             elseif name == 'Scholar' then
-                self.ability.extra.chips = 100
-                self.ability.extra.mult = 10
+                self.config.extra.chips = 100
+                self.config.extra.mult = 10
 
             -- Chips
             elseif name == 'Banner' then
-                self.ability.extra = 80
+                self.config.extra = 80
             elseif name == 'Castle' then
-                self.ability.extra.chip_mod = 12
+                self.config.extra.chip_mod = 12
             elseif name == 'Stuntman' then
-                self.ability.extra.chip_mod = 500
+                self.config.extra.chip_mod = 500
             elseif name == 'Wee Joker' then
-                self.ability.extra.chip_mod = 18
+                self.config.extra.chip_mod = 18
             elseif name == 'Odd Todd' then
-                self.ability.extra = 75
+                self.config.extra = 75
             elseif name == 'Runner' then
-                self.ability.extra.chip_mod = 40
+                self.config.extra.chip_mod = 40
             elseif name == 'Ice Cream' then
-                self.ability.extra.chips = 200
-                self.ability.extra.chip_mod = 40
+                self.config.extra.chips = 200
+                self.config.extra.chip_mod = 40
             elseif name == 'Hiker' then
-                self.ability.extra = 12
+                self.config.extra = 12
             elseif name == 'Square Joker' then
-                self.ability.extra.chip_mod = 8
+                self.config.extra.chip_mod = 8
             elseif name == 'Bull' then
-                self.ability.extra = 50
+                self.config.extra = 6
             elseif name == 'Blue Joker' then
-                self.ability.extra = 3
+                self.config.extra = 3
             elseif name == 'Scary Face' then
-                self.ability.extra = 45
+                self.config.extra = 45
             elseif name == 'Stone Joker' then
-                self.ability.extra = 50
+                self.config.extra = 50
             elseif name == 'Arrowhead' then
-                self.ability.extra = 75
+                self.config.extra = 75
             elseif name == 'Onyx Agate' then
-                self.ability.extra = 12
+                self.config.extra = 12
             
             -- Mult
             elseif name == 'Green Joker' then
-                self.ability.extra.hand_add = 4
-                self.ability.extra.discard_sub = 4
+                self.config.extra.hand_add = 4
+                self.config.extra.discard_sub = 4
             elseif name == 'Misprint' then
-                self.ability.extra.min = 00
-                self.ability.extra.max = 40
+                self.config.extra.min = 00
+                self.config.extra.max = 40
             elseif name == 'Ride the Bus' then
-                self.ability.extra = 4
+                self.config.extra = 4
             elseif name == 'Half Joker' then
-                self.ability.extra.mult = 35
+                self.config.extra.mult = 35
             elseif name == 'Abstract Joker' then
-                self.ability.extra = 6
+                self.config.extra = 6
             elseif name == 'Mystic Summit' then
-                self.ability.extra.mult = 25
+                self.config.extra.mult = 25
             elseif name == 'Even Steven' then
-                self.ability.extra = 6
+                self.config.extra = 6
             elseif name == 'Spare Trousers' then
-                self.ability.extra = 8
+                self.config.extra = 8
             elseif name == 'Erosion' then
-                self.ability.extra = 6
+                self.config.extra = 6
             elseif name == 'Popcorn' then
-                self.ability.mult = 30
-                self.ability.extra = 5
+                self.config.mult = 30
+                self.config.extra = 5
             elseif name == 'Fibonacci' then
-                self.ability.extra = 13
+                self.config.extra = 13
             elseif name == 'Fortune Teller' then
-                self.ability.extra = 5
+                self.config.extra = 5
             elseif name == 'Bootstraps' then
-                self.ability.extra.mult = 4
+                self.config.extra.mult = 1
             elseif name == 'Supernova' then
-                self.ability.extra = 5
+                self.config.extra = 5
             elseif name == 'Ceremonial Dagger' then
-                self.ability.extra = {
+                self.config.extra = {
                     mult = 0,
                     growth = 3,
                 }
 
             -- XMult
             elseif name == 'Loyalty Card' then
-                self.ability.extra.Xmult = 10
+                self.config.extra.Xmult = 10
             elseif name == 'Steel Joker' then
-                self.ability.extra = 0.5
+                self.config.extra = 0.5
             elseif name == 'Blackboard' then
-                self.ability.extra = 5
+                self.config.extra = 5
             elseif name == 'Cavendish' then
-                self.ability.extra = {
+                self.config.extra = {
                     Xmult = 10,
                     odds = 1000,
                 }
             elseif name == 'Constellation' then
-                self.ability.extra = 0.5
+                self.config.extra = 0.5
             elseif name == 'Madness' then
-                self.ability.extra = 2
+                self.config.extra = 2
             elseif name == 'Vampire' then
-                self.ability.extra = 0.5
+                self.config.extra = 0.5
             elseif name == 'Hologram' then
-                self.ability.extra = 0.5
+                self.config.extra = 0.5
             elseif name == 'Obelisk' then
-                self.ability.extra = 1.5
-                self.config.center.generate_ui = modified_desc
+                self.config.extra = 1.5
+                
             elseif name == 'Ramen' then
-                self.ability.x_mult = 4
-                self.ability.extra = 0.25
+                self.config.x_mult = 4
+                self.config.extra = 0.25
             elseif name == 'Photograph' then
-                self.config.center.generate_ui = modified_desc
+                
             elseif name == 'Lucky Cat' then
-                self.ability.extra = 0.5
+                self.config.extra = 1.5
             elseif name == "Driver's License" then
-                self.ability.extra = 10
+                self.config.extra = 10
             elseif name == 'Hit the Road' then
-                self.ability.extra = 2
+                self.config.extra = 2
             elseif name == 'Flower Pot' then
-                self.ability.extra = 10
+                self.config.extra = 10
             elseif name == 'The Duo' then
-                self.ability.x_mult = 3
+                self.config.x_mult = 3
             elseif name == 'The Trio' then
-                self.ability.x_mult = 4
+                self.config.x_mult = 4
             elseif name == 'The Family' then
-                self.ability.x_mult = 5
+                self.config.x_mult = 5
             elseif name == 'The Order' then
-                self.ability.x_mult = 10
+                self.config.x_mult = 10
             elseif name == 'The Tribe' then
-                self.ability.x_mult = 3
+                self.config.x_mult = 3
             elseif name == 'Caino' then
-                self.ability.extra = 5
+                self.config.extra = 5
             elseif name == 'Baseball Card' then
-                self.ability.extra = 2
+                self.config.extra = 2
             elseif name == 'Glass Joker' then
-                self.ability.extra = 1.5
+                self.config.extra = 1.0
             elseif name == 'Yorick' then
-                self.ability.extra.xmult = 2.5
+                self.config.extra.xmult = 2.5
             elseif name == 'Seeing Double' then
-                self.ability.extra = 3
+                self.config.extra = 3
 
             -- Trigger XMult
             elseif name == 'Bloodstone' then
-                self.ability.extra = {
-                    Xmult = 1.25,
-                    odds = 2,
-                }
+                self.config.extra = {
+                    Xmult = 1.5,
+                    odds = 3
+            }
             elseif name == 'Idol' then
-                self.config.center.generate_ui = modified_desc
+                
             elseif name == 'Baron' then
-                --self.ability.extra = 1.25
+                --self.config.extra = 1.25
 
             -- Econ
             elseif name == 'Vagabond' then
-                self.ability.extra = 15
+                self.config.extra = 15
             elseif name == 'Mail-In Rebate' then
-                self.ability.extra = 3
+                self.config.extra = 3
             elseif name == 'Golden Ticket' then
-                self.ability.extra = 3
+                self.config.extra = 3
             elseif name == 'Faceless Joker' then
-                self.ability.extra.dollars = 10
+                self.config.extra.dollars = 10
 
             -- Misc
             elseif name == 'Merry Andy' then
-                self.ability.d_size = 2
+                self.config.d_size = 2
             elseif name == 'Burglar' then
-                self.ability.extra = 2
+                self.config.extra = 2
             elseif name == 'Trading Card' then
-                self.config.center.generate_ui = modified_desc
+                
             elseif name == 'Riff-raff' then
-                self.ability.extra = 1
+                self.config.extra = 1
             end
         else
             if name == 'Ceremonial Dagger' then
-                self.ability.extra = {
+                self.config.extra = {
                     mult = 0,
                     growth = 2,
                 }
@@ -1462,10 +1494,10 @@ function Card:set_ability(center, initial, delay_sprites)
         end
         
         -- self.tcg_calculate = function(self, context) end
-        -- self.config.center.tcg_estimate = function(self, context) end
+        -- self.tcg_estimate = function(self, context) end
         
         if name == 'Sample' then
-            self.config.center.tcg_estimate = function(self, context)
+            self.tcg_estimate = function(self, context)
                 if context.purchase == self then
                     return {
                         mult = 0,
@@ -1479,7 +1511,7 @@ function Card:set_ability(center, initial, delay_sprites)
 
 
         if name == 'Joker' then
-            self.config.center.tcg_estimate = function(self, context)
+            self.tcg_estimate = function(self, context)
                 if context.purchase == self then
                     return {
                         mult = self.ability.extra
@@ -1487,7 +1519,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Satellite' then
-            self.config.center.generate_ui = modified_desc
+            
             
             self.tcg_calculate = function(self, context)
                 if context.tcg_take_damage and not context.blueprint then
@@ -1504,34 +1536,61 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Riff-raff' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Fortune Teller' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Hallucination' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Supernova' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Burglar' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Abstract' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Astronomer' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Card Sharp' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Madness' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Seance' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Sixth Sense' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == "Driver's License" then 
             self.tcg_calculate = function(self, context)
                 if context.updating then
                     self.ability.driver_tally = 0
                     for k, v in pairs(G.playing_cards) do
-                        if v.config.center ~= G.P_CENTERS.c_base then self.ability.driver_tally = self.ability.driver_tally+1 end
+                        if v:is_playing_card() and v.config.center ~= G.P_CENTERS.c_base then self.ability.driver_tally = self.ability.driver_tally+1 end
                     end
+                elseif context.joker_main and self.ability.driver_tally >= 16 then
+                    return {
+                        message = localize{type='variable',key='a_xmult',vars={self.ability.extra}},
+                        Xmult_mod = self.ability.extra,
+                    }
+                end
+            end
+        elseif name == 'Bootstraps' then
+            
+            self.tcg_calculate = function(self, context)
+                if context.joker_main then
+                    local money = (G.GAME.dollars + (G.GAME.dollar_buffer or 0)) + BalatroTCG.Status_Current.status.opponent_health
+                    return {
+                        message = localize{type='variable',key='a_mult',vars={self.ability.extra.mult * math.floor(money)}},
+                        mult_mod = self.ability.extra.mult * math.floor(money)
+                    }
+                end
+            end
+        elseif name == 'Bull' then
+            
+            self.tcg_calculate = function(self, context)
+                if context.joker_main then
+                    local money = (G.GAME.dollars + (G.GAME.dollar_buffer or 0)) + BalatroTCG.Status_Current.status.opponent_health
+                    return {
+                        message = localize{type='variable',key='a_chips',vars={self.ability.extra * math.floor(money)}},
+                        chip_mod = self.ability.extra * math.floor(money)
+                    }
                 end
             end
         elseif name == "Steel Joker" then 
@@ -1541,6 +1600,12 @@ function Card:set_ability(center, initial, delay_sprites)
                     for k, v in pairs(G.playing_cards) do
                         if v.config.center == G.P_CENTERS.m_steel then self.ability.steel_tally = self.ability.steel_tally+1 end
                     end
+                elseif context.joker_main and self.ability.steel_tally >= 1 then
+                    local xmult = self.ability.extra * self.ability.steel_tally + 1
+                    return {
+                        message = localize{type='variable',key='a_xmult',vars={xmult}},
+                        Xmult_mod = xmult,
+                    }
                 end
             end
         elseif name == "Stone Joker" then 
@@ -1550,6 +1615,12 @@ function Card:set_ability(center, initial, delay_sprites)
                     for k, v in pairs(G.playing_cards) do
                         if v.config.center == G.P_CENTERS.m_stone then self.ability.stone_tally = self.ability.stone_tally+1 end
                     end
+                elseif context.joker_main and self.ability.stone_tally >= 1 then
+                    local chips = self.ability.extra * self.ability.stone_tally
+                    return {
+                        message = localize{type='variable',key='a_chips',vars={chips}},
+                        chip_mod = chips
+                    }
                 end
             end
         elseif name == "Joker Stencil" then 
@@ -1559,11 +1630,16 @@ function Card:set_ability(center, initial, delay_sprites)
                     for i = 1, #G.jokers.cards do
                         if G.jokers.cards[i].ability.name == 'Joker Stencil' then self.ability.x_mult = self.ability.x_mult + 1 end
                     end
+                elseif context.joker_main and self.ability.x_mult > 1 then
+                    return {
+                        message = localize{type='variable',key='a_xmult',vars={self.ability.x_mult}},
+                        Xmult_mod = self.ability.x_mult,
+                    }
                 end
             end
         elseif name == 'Blueprint' then
             
-            if self.ability.name == "Blueprint" then
+            if self.name == "Blueprint" then
             end
             self.tcg_calculate = function(self, context)
                 if context.updating then
@@ -1629,7 +1705,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Swashbuckler' then
-            self.config.center.generate_ui = modified_desc
+            
 
             self.tcg_calculate = function(self, context)
                 if context.updating then
@@ -1692,6 +1768,7 @@ function Card:set_ability(center, initial, delay_sprites)
                         func = function() 
                             local card = copy_card(pseudorandom_element(G.consumeables.cards, pseudoseed('perkeo')), nil)
                             card:set_edition({negative = true}, true)
+                            card.tcg_extra.virtual = true
                             card:add_to_deck()
                             G.consumeables:emplace(card) 
                             return true
@@ -1741,8 +1818,8 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Luchador' then
-            self.config.center.generate_ui = modified_desc
-            self.ability.extra = 0.5
+            
+            self.config.extra = 0.5
 
             self.tcg_calculate = function(self, context)
                 if context.selling_self then
@@ -1750,7 +1827,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Diet Cola' then
-            self.config.center.generate_ui = modified_desc
+            
 
             self.tcg_calculate = function(self, context)
                 if context.selling_self then
@@ -1759,7 +1836,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Ceremonial Dagger' then
-            self.config.center.generate_ui = modified_desc
+            
             
             self.tcg_calculate = function(self, context)
                 if context.setting_blind and not self.getting_sliced and not context.blueprint then
@@ -1802,8 +1879,8 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'To the Moon' then
-            self.config.center.generate_ui = modified_desc
-            self.config.center.blueprint_compat = true
+            
+            self.blueprint_compat = true
 
             self.tcg_calculate = function(self, context)
                 if not context.repetition and not context.individual and context.end_of_round then
@@ -1819,7 +1896,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Delayed Gratification' then
-            self.config.center.blueprint_compat = true
+            self.blueprint_compat = true
 
             self.tcg_calculate = function(self, context)
                 if not context.repetition and not context.individual and context.end_of_round and G.GAME.current_round.discards_used == 0 and G.GAME.current_round.discards_left > 0 then
@@ -1834,7 +1911,7 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-            self.config.center.tcg_estimate = function(self, context)
+            self.tcg_estimate = function(self, context)
                 if context.purchase == self then
                     local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_suit(self.ability.extra.suit) end) * G.FUNCS.card_vision(context.round_stats, 0, 0) / #context.full_deck
                     return {
@@ -1846,13 +1923,13 @@ function Card:set_ability(center, initial, delay_sprites)
                     }
                 end
             end
-        elseif (self.ability.t_mult or 0) > 0 or (self.ability.t_chips or 0) > 0 then
-            self.config.center.tcg_estimate = function(self, context)
+        elseif (self.config.t_mult or 0) > 0 or (self.config.t_chips or 0) > 0 then
+            self.tcg_estimate = function(self, context)
                 
             end
         elseif name == 'Business Card' then
-            self.ability.money = 2
-            self.config.center.generate_ui = modified_desc
+            self.config.money = 2
+            
             self.tcg_calculate = function(self, context)
                 if context.individual and context.cardarea == G.play then
                     if context.other_card:is_face() and pseudorandom('business') < G.GAME.probabilities.normal/self.ability.extra then
@@ -1865,7 +1942,7 @@ function Card:set_ability(center, initial, delay_sprites)
                     end
                 end
             end
-            self.config.center.tcg_estimate = function(self, context)
+            self.tcg_estimate = function(self, context)
                 if context.purchase == self then
 
                     local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_face() == rank end) * G.FUNCS.card_vision(context.round_stats, 0, 0) / #context.full_deck
@@ -1910,9 +1987,9 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Red Card' then
-            self.ability.extra = 6
-            self.ability.cards = 3
-            self.config.center.generate_ui = modified_desc
+            self.config.extra = 6
+            self.config.cards = 3
+            
 
             self.tcg_calculate = function(self, context)
                 if context.discard and context.other_card == context.full_hand[#context.full_hand] then
@@ -1936,12 +2013,12 @@ function Card:set_ability(center, initial, delay_sprites)
                     }
                 end
             end
-            self.config.center.tcg_estimate = function(self, context)
+            self.tcg_estimate = function(self, context)
                 
             end
         elseif name == 'Throwback' then
-            self.config.center.generate_ui = modified_desc
-            self.ability.discards = 0
+            
+            self.config.discards = 0
             
             self.tcg_calculate = function(self, context)
                 if not context.repetition and not context.individual and context.end_of_round then
@@ -1959,32 +2036,32 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Rocket' then
-            self.ability.extra.dollars = 2
-            self.ability.extra.increase = 4
-            self.ability.extra.limit = 14
-            self.config.center.generate_ui = modified_desc
+            self.config.extra.dollars = 2
+            self.config.extra.increase = 4
+            self.config.extra.limit = 14
+            
         elseif name == 'Flash Card' then
-            self.ability.extra = 1
-            self.config.center.generate_ui = modified_desc
+            self.config.extra = 1
+            
         elseif name == 'Acrobat' then
-            self.ability.scaling = 0.25
-            self.ability.initial = 1
-            self.config.center.generate_ui = modified_desc
+            self.config.scaling = 0.25
+            self.config.initial = 1
+            
         elseif name == 'Campfire' then
-            self.ability.extra = 1.5
-            self.ability.reduce = 1
-            self.config.center.generate_ui = modified_desc
+            self.config.extra = 1.5
+            self.config.reduce = 1
+            
         elseif name == 'Vagabond' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Square Joker' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Dusk' then
-            self.ability.extra = 10
-            self.config.center.generate_ui = modified_desc
+            self.config.extra = 10
+            
         elseif name == 'Cloud 9' then
-            self.ability.extra = 2
-            self.config.center.generate_ui = modified_desc
-            self.config.center.blueprint_compat = false
+            self.config.extra = 2
+            
+            self.blueprint_compat = false
             self.tcg_calculate = function(self, context)
                 if context.tcg_take_damage and not context.blueprint then
                     return {
@@ -1998,19 +2075,19 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Troubadour' then
-            self.config.center.generate_ui = modified_desc
+            
 
-            self.config.center.tcg_add_to_deck = function(self, from_debuff)
+            self.tcg_add_to_deck = function(self, from_debuff)
                 G.hand:change_size(self.ability.extra.h_size)
                 BalatroTCG.Status_Current.params.discards = BalatroTCG.Status_Current.params.discards + self.ability.extra.h_plays
             end
-            self.config.center.tcg_remove_from_deck = function(self, from_debuff)
+            self.tcg_remove_from_deck = function(self, from_debuff)
                 G.hand:change_size(-self.ability.extra.h_size)
                 BalatroTCG.Status_Current.params.discards = BalatroTCG.Status_Current.params.discards - self.ability.extra.h_plays
             end
         elseif name == 'Golden Joker' then
-            self.ability.extra = 2
-            self.config.center.generate_ui = modified_desc
+            self.config.extra = 2
+            
             self.tcg_calculate = function(self, context)
                 if context.tcg_take_damage and not context.blueprint then
                     return {
@@ -2019,8 +2096,8 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Mr. Bones' then
-            self.ability.extra = 5
-            self.config.center.generate_ui = modified_desc
+            self.config.extra = 5
+            
             self.tcg_calculate = function(self, context)
                 if context.tcg_take_damage and not context.blueprint then
                     local count = 0
@@ -2034,17 +2111,17 @@ function Card:set_ability(center, initial, delay_sprites)
                 end
             end
         elseif name == 'Chicot' then
-            self.ability.extra = 3
-            self.config.center.generate_ui = modified_desc
+            self.config.extra = 3
+            
         elseif name == 'Showman' then
-            self.config.center.generate_ui = modified_desc
+            
         elseif name == 'Chaos the Clown' then
-            self.config.center.generate_ui = modified_desc
+            
             
         elseif name == 'Matador' then
-            self.config.center.eternal_compat = false
-            self.config.center.blueprint_compat = false
-            self.config.center.generate_ui = modified_desc
+            self.eternal_compat = false
+            self.blueprint_compat = false
+            
             self.tcg_calculate = function(self, context)
                 if context.tcg_take_damage and not context.blueprint then
                     return {
@@ -2054,6 +2131,10 @@ function Card:set_ability(center, initial, delay_sprites)
             end
         end
     end
+
+    BalatroTCG.ModifiedCenters[self.key] = self
+
+    return self
 end
 
 function TCG_Override_Desc(self, loc_vars)

@@ -1375,6 +1375,34 @@ function deck_back_cost(name)
 
 end
 
+function tcg_base_cost(set, name, base_cost)
+    if BalatroTCG.Settings.Unbalance then return base_cost end
+
+    if set == 'Planet' then
+        return base_cost - 1
+    elseif set == 'Spectral' then
+        return base_cost + 1
+    elseif set == 'Joker' then
+        if name == 'Joker' then
+            return 1
+        elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
+            return base_cost - 2
+        elseif name == 'Jolly Joker' or name == 'Zany Joker' or name == 'Mad Joker' or name == 'Crazy Joker' or name == 'Droll Joker' or name == 'Sly Joker' or name == 'Wily Joker' or name == 'Clever Joker' or name == 'Devious Joker' or name == 'Crafty Joker' then
+            return base_cost - 1
+        elseif name == 'Brainstorm' then
+            return 8
+        elseif name == 'Oops! All 6s' then
+            return 7
+        elseif name == 'Credit Card' then
+            return 3
+        elseif name == 'Mail-In Rebate' then
+            return 5
+        end
+    end
+
+    return base_cost
+end
+
 function BalatroTCG.Deck:set_cost()
     self.cost = deck_back_cost(self.backs) + 15
 
@@ -1880,17 +1908,4 @@ function get_new_tcg_deck()
 	
     BalatroTCG.CustomDecks[index]:set_cost()
     return BalatroTCG.CustomDecks[index]
-end
-
-function get_tcg_deck(index, illegal)
-    index = index or 1
-	if index <= #BalatroTCG.DefaultDecks then
-		return BalatroTCG.DefaultDecks[index]
-	end
-    index = index - #BalatroTCG.DefaultDecks
-	if index <= #BalatroTCG.CustomDecks then
-		return BalatroTCG.CustomDecks[index]
-	end
-    
-    return BalatroTCG.DefaultDecks[1]
 end
