@@ -1376,7 +1376,7 @@ function create_tcg_center(self)
             elseif name == 'Castle' then
                 self.config.extra.chip_mod = 12
             elseif name == 'Stuntman' then
-                self.config.extra.chip_mod = 500
+                self.config.extra.chip_mod = 400
             elseif name == 'Wee Joker' then
                 self.config.extra.chip_mod = 18
             elseif name == 'Odd Todd' then
@@ -1405,8 +1405,8 @@ function create_tcg_center(self)
             
             -- Mult
             elseif name == 'Green Joker' then
-                self.config.extra.hand_add = 4
-                self.config.extra.discard_sub = 4
+                self.config.extra.hand_add = 3
+                self.config.extra.discard_sub = 3
             elseif name == 'Misprint' then
                 self.config.extra.min = 00
                 self.config.extra.max = 40
