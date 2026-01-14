@@ -177,7 +177,250 @@ BalatroTCG.config_tab = function()
 	return ret
 end
 
-G.C.OPPONENT = HEX("AC3232")
+BalatroTCG.DeckBackgrounds = {
+    unknown = {
+        main = HEX("FFFFFF"),
+        special = HEX("999999"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("888888"),
+        UI_DARK = HEX("444444"),
+        
+        contrast = 0.7,
+    },
+
+    b_red = {
+        main = HEX("FFFFFF"),
+        tertiary = HEX("000000"),
+        special = HEX("fe5f55"),
+
+        UI = HEX("fe5f55"),
+        UI_DARK = HEX("400d0f"),
+        
+        contrast = 2,
+    },
+    b_blue= {
+        main = HEX("FFFFFF"),
+        special = HEX("009cfd"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("009cfd"),
+        UI_DARK = HEX("111540"),
+        
+        contrast = 2,
+    },
+    b_yellow= {
+        main = HEX("FFFFFF"),
+        special = HEX("fda200"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("fda200"),
+        UI_DARK = HEX("402c09"),
+        
+        contrast = 2,
+    },
+    b_green= {
+        main = HEX("FFFFFF"),
+        special = HEX("56a786"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("56a786"),
+        UI_DARK = HEX("094021"),
+        
+        contrast = 2,
+    },
+    b_black= {
+        main = HEX("bee9ee"),
+        special = HEX("4f6367"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("4f6367"),
+        UI_DARK = HEX("221c2e"),
+        
+        contrast = 2,
+    },
+    b_magic= {
+        main = HEX("ffe6bc"),
+        special = HEX("9074e1"),
+        tertiary = HEX("1a2021"),
+
+        UI = HEX("9074e1"),
+        UI_DARK = HEX("402c09"),
+        
+        contrast = 2,
+    },
+    b_nebula= {
+        special = HEX("6696a4"),
+        tertiary = HEX("66749c"),
+        main = HEX("3e1976"),
+
+        UI = HEX("6696a4"),
+        UI_DARK = HEX("3a314d"),
+        
+        contrast = 0.8,
+    },
+    b_ghost= {
+        main = HEX("d9c357"),
+        tertiary = HEX("7aa4f2"),
+        special = HEX("283379"),
+
+        UI = HEX("d9c357"),
+        UI_DARK = HEX("2e4061"),
+        
+        contrast = 1.2,
+    },
+    b_abandoned= {
+        main = HEX("faf0dc"),
+        special = HEX("da9a81"),
+        tertiary = HEX("322019"),
+
+        UI = HEX("da9a81"),
+        UI_DARK = HEX("322019"),
+        
+        contrast = 2,
+    },
+    b_checkered= {
+        main = HEX("000000"),
+        special = HEX("fe5f55"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("fe5f55"),
+        UI_DARK = HEX("002035"),
+        
+        contrast = 2,
+    },
+    b_zodiac= {
+        main = HEX("dec651"),
+        special = HEX("534e79"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("534e79"),
+        UI_DARK = HEX("402c09"),
+        
+        contrast = 2,
+    },
+    b_painted= {
+        main = HEX("8c2922"),
+        special = HEX("4a1a54"),
+        tertiary = HEX("ffd62b"),
+
+        UI = HEX("e290f2"),
+        UI_DARK = HEX("114831"),
+        
+        contrast = 2,
+    },
+    b_anaglyph= {
+        main = HEX("045d94"),
+        special = HEX("5c1b16"),
+        tertiary = HEX("FFFFFF"),
+
+        UI = HEX("fe5f55"),
+        UI_DARK = HEX("094c8f"),
+        
+        contrast = 2,
+    },
+    b_plasma= {
+        main = HEX("f7c7d1"),
+        tertiary = HEX("a3629c"),
+        special = HEX("0f1f4a"),
+
+        UI = HEX("d9869d"),
+        UI_DARK = HEX("2c3967"),
+        
+        contrast = 1,
+    },
+    b_erratic= {
+        main = HEX("4f6367"),
+        special = HEX("fe5f55"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("718e93"),
+        UI_DARK = HEX("470b08"),
+        
+        contrast = 2,
+    },
+    b_challenge= {
+        main = HEX("FFFFFF"),
+        special = HEX("c75985"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("db6596"),
+        UI_DARK = HEX("6b3246"),
+        
+        contrast = 2,
+    },
+
+    b_mp_violet= {
+        main = HEX("FFFFFF"),
+        special = HEX("a763d8"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("a763d8"),
+        UI_DARK = HEX("3b234d"),
+        
+        contrast = 2,
+    },
+    b_mp_indigo= {
+        main = HEX("FFFFFF"),
+        special = HEX("6749a4"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("6749a4"),
+        UI_DARK = HEX("3b234d"),
+        
+        contrast = 2,
+    },
+    b_mp_orange= {
+        main = HEX("FFFFFF"),
+        special = HEX("fc802b"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("fc802b"),
+        UI_DARK = HEX("422d1e"),
+        
+        contrast = 2,
+    },
+    b_mp_oracle= {
+        main = HEX("c6d1c5"),
+        special = HEX("c29032"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("c29032"),
+        UI_DARK = HEX("222d40"),
+        
+        contrast = 2,
+    },
+    b_mp_gradient= {
+        main = HEX("ffa5c9"),
+        special = HEX("b756b7"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("b756b7"),
+        UI_DARK = HEX("5e245e"),
+        
+        contrast = 2,
+    },
+    b_mp_heidelberg= {
+        main = HEX("c6dfdd"),
+        special = HEX("88beb0"),
+        tertiary = HEX("000000"),
+
+        UI = HEX("88beb0"),
+        UI_DARK = HEX("2c484a"),
+        
+        contrast = 2,
+    },
+    b_mp_cocktail= {
+        main = HEX("fec687"),
+        special = HEX("c14139"),
+        tertiary = HEX("121617"),
+
+        UI = HEX("c2889f"),
+        UI_DARK = HEX("244357"),
+        
+        contrast = 2,
+    },
+}
 
 local _start_up = Game.start_up
 function Game:start_up()
@@ -245,9 +488,10 @@ G.FUNCS.tcg_start_single = function(e)
 
     G.SETTINGS.paused = true
     reset_tcg_settings()
-
     G.E_MANAGER:clear_queue()
     G.FUNCS.wipe_on()
+    ease_background_colour_blind(G.STATE, 'Small Blind')
+
     G.E_MANAGER:add_event(Event({
         no_delete = true,
         func = function()
@@ -271,6 +515,8 @@ G.FUNCS.tcg_start_multi = function(e)
     G.SETTINGS.paused = true
     G.E_MANAGER:clear_queue()
     G.FUNCS.wipe_on()
+    ease_background_colour_blind(G.STATE, 'Small Blind')
+
     G.E_MANAGER:add_event(Event({
         no_delete = true,
         func = function()
@@ -278,6 +524,7 @@ G.FUNCS.tcg_start_multi = function(e)
         return true
         end
     }))
+    
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
         no_delete = true,

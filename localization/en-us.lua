@@ -34,8 +34,8 @@ return {
                 name="Challenge Deck",
                 text={
                     "{C:attention}0{} Joker slots, {C:attention}#1#{} Items",
-					"Items can have",
-                    "{C:attention}1{} duplicate",
+					"of any type,",
+                    "{C:attention}Items{} can be reused",
                 },
             },
             b_checkered_tcg={
@@ -172,7 +172,7 @@ return {
 			b_mp_violet_tcg = {
 				name = "Violet Deck",
 				text = {
-					"{C:attention}+#1#{} Vouchers",
+					"{C:attention}+#1#{} max Vouchers",
 				},
 			},
         },
@@ -823,6 +823,7 @@ return {
 			b_tcg_tcg_lobby = "TCG Lobby",
             
             b_tcg_build = "Build",
+            b_tcg_copy = "Copy",
             b_tcg_delete = "Delete",
             
             b_tcg_jokercount = "Joker Count",

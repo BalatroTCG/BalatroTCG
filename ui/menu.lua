@@ -114,44 +114,65 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
     local loc_args, loc_nodes = {}, {}
 
 	local key_override
-	if back_config.tcg_loc_vars and type(back_config.tcg_loc_vars) == 'function' then
-		local res = back_config:tcg_loc_vars() or {}
-		loc_args = res.vars or {}
-		key_override = res.key
-	elseif name_to_check == 'b_blue' then loc_args = {effect_config.hands - default.hands}
-	elseif name_to_check == 'b_red' then loc_args = {effect_config.discards - default.discards}
-	elseif name_to_check == 'b_yellow' then loc_args = {effect_config.dollars - default.dollars}
-	elseif name_to_check == 'b_green' then loc_args = { 2 }
-	elseif name_to_check == 'b_black' then loc_args = { 1, 1}
-	elseif name_to_check == 'b_magic' then  loc_args = { 1 }
-	elseif name_to_check == 'b_nebula' then loc_args = { 1 }
-	elseif name_to_check == 'b_ghost' then loc_args = { }
-	elseif name_to_check == 'b_abandoned' then 
-	elseif name_to_check == 'b_checkered' then
-	elseif name_to_check == 'b_zodiac' then loc_args = { localize{type = 'name_text', key = 'v_tarot_merchant', set = 'Voucher'}, localize{type = 'name_text', key = 'v_planet_merchant', set = 'Voucher'} }
-	elseif name_to_check == 'b_painted' then loc_args = { 2, -1 }
-	elseif name_to_check == 'b_anaglyph' then loc_args = {1, 3}
-	elseif name_to_check == 'b_plasma' then loc_args = { 50 }
-	elseif name_to_check == 'b_erratic' then loc_args = { 5 }
-	elseif name_to_check == 'b_challenge' then loc_args = { 30 }
 	
-	elseif name_to_check == 'b_mp_cocktail' then loc_args = { 2, 1 }
-	elseif name_to_check == 'b_mp_gradient' then loc_args = { }
-	elseif name_to_check == 'b_mp_heidelberg' then loc_args = { 2 }
-	elseif name_to_check == 'b_mp_indigo' then loc_args = {  }
-	elseif name_to_check == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, effect_config.dollars }
-	elseif name_to_check == 'b_mp_orange' then loc_args = { 2 }
-	elseif name_to_check == 'b_mp_violet' then loc_args = { 2, 50 }
-	end
 	if BalatroTCG.TabDecks[BalatroTCG.DeckIndex] == 'new' then
 		key_override = 'null'
 	end
-	localize{type = 'descriptions', key = key_override or (back_config.key .. '_tcg'), set = 'Back', nodes = loc_nodes, vars = loc_args}
+
+	localize{type = 'descriptions', key = key_override or (back_config.key), set = 'Back', nodes = loc_nodes, vars = loc_args}
     
+	
     return 
     {n=G.UIT.ROOT, config={align = "cm", minw = min_dims*5, minh = min_dims*2.5, id = self.name, colour = G.C.CLEAR}, nodes={
         desc_from_rows(loc_nodes, true, min_dims*5)
     }}
+end
+
+local localize_ref = localize
+
+function localize(args, misc_cat)
+    if args and not (type(args) == 'table') then
+        return localize_ref(args, misc_cat)
+    end
+
+    if args and BalatroTCG.UseTCG_UI and args.set == 'Back' and G.P_CENTERS[args.key] then
+		local loc_args = nil
+
+		local back_name = args.key
+
+		if G.P_CENTERS[back_name] and G.P_CENTERS[back_name].tcg_loc_vars and type(G.P_CENTERS[back_name].tcg_loc_vars) == 'function' then
+			local res = G.P_CENTERS[back_name]:tcg_loc_vars() or {}
+			loc_args = res.vars
+		elseif back_name == 'b_blue' then loc_args = { 1 }
+		elseif back_name == 'b_red' then loc_args = { 1 }
+		elseif back_name == 'b_yellow' then loc_args = { 25 }
+		elseif back_name == 'b_green' then loc_args = { 2 }
+		elseif back_name == 'b_black' then loc_args = { 1, 1 }
+		elseif back_name == 'b_magic' then  loc_args = { 1 }
+		elseif back_name == 'b_nebula' then loc_args = { 1 }
+		elseif back_name == 'b_ghost' then loc_args = { }
+		elseif back_name == 'b_abandoned' then 
+		elseif back_name == 'b_checkered' then
+		elseif back_name == 'b_zodiac' then loc_args = { localize{type = 'name_text', key = 'v_tarot_merchant', set = 'Voucher'}, localize{type = 'name_text', key = 'v_planet_merchant', set = 'Voucher'} }
+		elseif back_name == 'b_painted' then loc_args = { 2, -1 }
+		elseif back_name == 'b_anaglyph' then loc_args = {1, 3}
+		elseif back_name == 'b_plasma' then loc_args = { 50 }
+		elseif back_name == 'b_erratic' then loc_args = { 5 }
+		elseif back_name == 'b_challenge' then loc_args = { 30 }
+		
+		elseif back_name == 'b_mp_cocktail' then loc_args = { 2, 1 }
+		elseif back_name == 'b_mp_gradient' then loc_args = { }
+		elseif back_name == 'b_mp_heidelberg' then loc_args = { 2 }
+		elseif back_name == 'b_mp_indigo' then loc_args = {  }
+		elseif back_name == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, 75 }
+		elseif back_name == 'b_mp_orange' then loc_args = { 2 }
+		elseif back_name == 'b_mp_violet' then loc_args = { 4 }
+		end
+		
+        args.key = args.key .. '_tcg'
+		args.vars = loc_args or args.vars
+    end
+    return localize_ref(args, misc_cat)
 end
 
 function select_tcg_deck_ui(tab_type)
@@ -171,11 +192,9 @@ function select_tcg_deck_ui(tab_type)
 	BalatroTCG.TabDecks = {}
 	
 	if tab_type == 'build' or tab_type == 'build_multi' then
-		if not _RELEASE_MODE then
-			for k, v in ipairs(BalatroTCG.DefaultDecks) do
-				if v:has_decks() then
-					table.insert(BalatroTCG.TabDecks, v)
-				end
+		for k, v in ipairs(BalatroTCG.DefaultDecks) do
+			if v:has_decks() then
+				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 		for k, v in ipairs(BalatroTCG.CustomDecks) do
@@ -354,7 +373,7 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 				(values.build_tab) and
 				{ label = localize("b_tcgtab_deck"), chosen = false, tab_definition_function = function()
 					
-					return { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
+					local t = { n = G.UIT.ROOT, config = { minh = 1, minw = 1, align = 'tm', padding = 0.2, colour = G.C.CLEAR, }, nodes = {
 						
 						select_tcg_deck_ui(MP and MP.LOBBY and MP.LOBBY.code and 'build_multi' or 'build'),
 						
@@ -364,8 +383,18 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 									n = G.UIT.R,
 									label = { localize("b_tcg_build") },
 									colour = G.C.GREEN,
+									func = "tcg_build_check",
 									button = "tcg_start_build",
-									minw = 3,
+									minw = 2.5,
+								}),
+							}},
+							{n = G.UIT.C, config = { padding = 0.2, align = "cm", colour = G.C.CLEAR }, nodes = {
+								UIBox_button({
+									n = G.UIT.R,
+									label = { localize("b_tcg_copy") },
+									colour = G.C.BLUE,
+									button = "tcg_copy_build",
+									minw = 2.5,
 								}),
 							}},
 							{n = G.UIT.C, config = { padding = 0.2, align = "cm", colour = G.C.CLEAR }, nodes = {
@@ -375,11 +404,18 @@ function G.UIDEF.create_tcg_deck_selection(from_game_over)
 									colour = G.C.RED,
 									func = "tcg_delete_check",
 									button = "tcg_delete_deck",
-									minw = 3,
+									minw = 2.5,
 								})
 							}}
 						}}
 					}}
+					-- There has to be a better way to go about this
+					local text = t.nodes[2].nodes[1].nodes[1].nodes[1].nodes[1].nodes[1]
+					text.config.ref_table = BalatroTCG
+					text.config.ref_value = "BuildText"
+					text.config.text = nil
+					BalatroTCG.BuildText = localize('b_tcg_build')
+					return t
 				end} or nil,
 			}
 
@@ -510,19 +546,27 @@ end
 function G.FUNCS.tcg_delete_check(e)
 	local active = true
 
-	if BalatroTCG.DeckIndex >= #BalatroTCG.TabDecks then
+	if BalatroTCG.DeckIndex >= #BalatroTCG.TabDecks or BalatroTCG.TabDecks[BalatroTCG.DeckIndex].is_vanilla then
 		active = false
-	end
-	if not _RELEASE_MODE then
-		if BalatroTCG.DeckIndex <= #BalatroTCG.DefaultDecks then
-			active = false
-		end
 	end
 
     if active then 
         e.config.colour = G.C.RED
         e.config.button = 'tcg_delete_deck'
     else
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    end
+end
+
+function G.FUNCS.tcg_build_check(e)
+	local active = true
+
+	if not _RELEASE_MODE or BalatroTCG.DeckIndex >= #BalatroTCG.TabDecks or not BalatroTCG.TabDecks[BalatroTCG.DeckIndex].is_vanilla then
+        e.config.colour = G.C.GREEN
+        e.config.button = 'tcg_start_build'
+		BalatroTCG.BuildText = localize('b_tcg_build')
+	else
         e.config.colour = G.C.UI.BACKGROUND_INACTIVE
         e.config.button = nil
     end
@@ -716,24 +760,60 @@ function create_tcg_builder(type, callback)
 
 	local legal_status = BalatroTCG.BuildingDeck:is_legal()
 	local color = G.C.UI.TEXT_LIGHT
-    local loc_nodes = nil, {}
-	local loc_args = { type = 'text', key = "tcg_err_unknown", nodes = loc_nodes, vars = {}, shadow = true, default_col = color, scale = 1.5 }
+	local error_text = {}
 
 	if legal_status == 'Legal' then
-		loc_args.key = 'tcg_err_none'
+		error_text = { {n=G.UIT.R, config={}, nodes = localize{ type = 'text', key = 'tcg_err_none', vars = {}, shadow = true, default_col = G.C.UI.TEXT_LIGHT, scale = 1.5 } } }
 	else
-		loc_args.default_col = G.C.RED
+		local count = 0
 		for k, v in pairs(legal_status) do
-			loc_args.key = k
-			loc_args.vars = v
-			break
+			count = count + 1
+		end
+		local scale = math.min(1.5, 4 / math.min(count, 4))
+
+		count = 0
+		for k, v in pairs(legal_status) do
+			table.insert(error_text, {n=G.UIT.R, config={}, nodes = localize{ type = 'text', key = k, vars = v, shadow = true, default_col = G.C.RED, scale = scale } } )
+			
+			count = count + 1
+			if count >= 4 then
+				break
+			end
 		end
 	end
 
 	local t =  {
+		{n=G.UIT.R, config={align = "cm", w = 20, padding = 0.0}, nodes={
+			{n=G.UIT.C, config={align = "cm"}, nodes = {
+				{n=G.UIT.R, config={align = "cm",minh = 1.2, padding = 0.2}, nodes=error_text},
+			}},
+			{n=G.UIT.C, config={align = "cm", padding = 1.5}, nodes={}},
+			{n=G.UIT.C, config={align = "cm"}, nodes = {
+				{n=G.UIT.R, config={align = "cm"}, nodes = {
+					create_text_input({
+					w = 4, max_length = 24, prompt_text = localize('k_enter_name'),
+					ref_table = BalatroTCG.BuildingDeck, ref_value = 'name', keyboard_offset = 1,
+					callback = function()
+						BalatroTCG.BuildingDeck:sanitize()
+						save_decks()
+					end
+					}),
+				}},
+				{n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={}},
+				{n=G.UIT.R, config={align = "cm"}, nodes = {
+					{n=G.UIT.C, nodes = {
+						{n=G.UIT.O, config={align = "cm", object = DynaText({string = {{prefix = localize('$'), ref_table = BalatroTCG, ref_value = 'DeckCost'}}, font = G.LANGUAGES['en-us'].font, colours = { BalatroTCG.DeckCost >= 0 and G.C.MONEY or G.C.RED },shadow = true, rotate = true, scale = 0.5})}},
+					}},
+					{n=G.UIT.C, config={align = "cm", padding = 0.2}, nodes={}},
+					{n=G.UIT.C, nodes = {
+						{n=G.UIT.O, config={align = "cm", object = DynaText({string = {{prefix = '(' .. localize('$'), suffix = ')', ref_table = BalatroTCG.BuildingDeck, ref_value = 'cost'}}, font = G.LANGUAGES['en-us'].font, colours = { BalatroTCG.DeckCost >= 0 and G.C.MONEY or G.C.RED },shadow = true, rotate = true, scale = 0.35})}},
+					}},
+				}},
+			}},
+		}},
+		
 		{n=G.UIT.R, config={align = "cm", padding = 0.0}, nodes={
 			{n=G.UIT.C, nodes = {
-				{n=G.UIT.R, config={align = "cm",minh = 1.2, padding = 0.2}, nodes={{n=G.UIT.R, config={align = "cm"}, nodes=localize(loc_args) },}},
 				{n=G.UIT.R, config={align = "cm", r = 0.1, colour = G.C.BLACK, emboss = 0.05}, nodes=deck_tables}, 
 				{n=G.UIT.R, config={align = "cm"}, nodes={
 					create_option_cycle({options = joker_options, w = 4.5, cycle_shoulders = true, opt_callback = callback, current_option = G.tcg_addition_page, colour = G.C.RED, no_pips = true, focus_args = {snap_to = true, nav = 'wide'}})
@@ -742,23 +822,6 @@ function create_tcg_builder(type, callback)
 			{n=G.UIT.C, config={align = "cm", padding = 0.2}, nodes={}},
 			{n=G.UIT.C, nodes = {
 				
-				{n=G.UIT.R, config={align = "cm",minh = 1.2, padding = 0.2}, nodes={{n=G.UIT.R, config={align = "cm"}, nodes={
-					
-					{n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = BalatroTCG, ref_value = 'DeckCost'}}, font = G.LANGUAGES['en-us'].font, colours = { BalatroTCG.DeckCost >= 0 and G.C.MONEY or G.C.RED },shadow = true, rotate = true, scale = 0.45})}},
-					
-					{n=G.UIT.C, config={align = "cm",minh = 1, padding = 0.1}, nodes={{n=G.UIT.R, config={align = "cm"}, nodes={
-						
-						create_text_input({
-						w = 4, max_length = 24, prompt_text = localize('k_enter_name'),
-						ref_table = BalatroTCG.BuildingDeck, ref_value = 'name', keyboard_offset = 1,
-						callback = function()
-							BalatroTCG.BuildingDeck:sanitize()
-							save_decks()
-						end
-						}),
-
-					} },}},
-				}},}},
 				{n=G.UIT.R, config={align = "cm", r = 0.1, colour = G.C.BLACK, emboss = 0.05}, nodes=buildDeck}, 
 				{n=G.UIT.R, config={align = "cm"}, nodes={
 					create_option_cycle({options = deck_display, w = 4.5, cycle_shoulders = true, opt_callback = "your_collection_tcg_deck_page", current_option = G.tcg_deck_page, colour = G.C.RED, no_pips = true, focus_args = {snap_to = true, nav = 'wide'}})
@@ -772,13 +835,34 @@ end
 G.FUNCS.tcg_start_build = function(e)
 	G.SETTINGS.paused = true
 
-	save_decks()
-
 	BalatroTCG.BuildingDeck = BalatroTCG.TabDecks[BalatroTCG.DeckIndex]
 	
 	if BalatroTCG.BuildingDeck == 'new' then
 		BalatroTCG.BuildingDeck = get_new_tcg_deck()
 	end
+
+	save_decks()
+
+
+	G.FUNCS.overlay_menu{
+		definition = G.FUNCS.create_tcg_builder_menu()
+	}
+end
+
+G.FUNCS.tcg_copy_build = function(e)
+	G.SETTINGS.paused = true
+
+	local to_copy = BalatroTCG.TabDecks[BalatroTCG.DeckIndex]
+
+	if to_copy == 'new' then
+		BalatroTCG.BuildingDeck = get_new_tcg_deck()
+	else
+		BalatroTCG.BuildingDeck = BalatroTCG.Deck(copy_table(to_copy.backs), to_copy.name .. ' Copy', copy_table(to_copy.cards))
+		BalatroTCG.CustomDecks[#BalatroTCG.CustomDecks + 1] = BalatroTCG.BuildingDeck
+		BalatroTCG.DeckIndex = #BalatroTCG.TabDecks
+	end
+
+	save_decks()
 
 	G.FUNCS.overlay_menu{
 		definition = G.FUNCS.create_tcg_builder_menu()
@@ -948,12 +1032,12 @@ end
 G.FUNCS.your_collection_tcg_consumeables_page = function(args)
 	G.tcg_addition_page = args.cycle_config.current_option
 
+	G.in_delete_run = true
 	if not args or not args.cycle_config then return end
 	for j = 1, #G.your_collection do
 		for i = #G.your_collection[j].cards,1, -1 do
 			local c = G.your_collection[j]:remove_card(G.your_collection[j].cards[i])
 			c:remove()
-			c = nil
 		end
 	end
 	for i = 1, 5 do
@@ -966,17 +1050,18 @@ G.FUNCS.your_collection_tcg_consumeables_page = function(args)
 			G.your_collection[j]:emplace(card)
 		end
 	end
+	G.in_delete_run = false
 end
 
 G.FUNCS.your_collection_tcg_vouchers_page = function(args)
 	G.tcg_addition_page = args.cycle_config.current_option
 
+	G.in_delete_run = true
 	if not args or not args.cycle_config then return end
 	for j = 1, #G.your_collection do
 		for i = #G.your_collection[j].cards,1, -1 do
 			local c = G.your_collection[j]:remove_card(G.your_collection[j].cards[i])
 			c:remove()
-			c = nil
 		end
 	end
 	for i = 1, 4 do
@@ -989,11 +1074,13 @@ G.FUNCS.your_collection_tcg_vouchers_page = function(args)
 			G.your_collection[j]:emplace(card)
 		end
 	end
+	G.in_delete_run = false
 end
 
 G.FUNCS.your_collection_tcg_cards_page = function(args)
 	G.tcg_addition_page = args.cycle_config.current_option
 
+	G.in_delete_run = true
 	if not args or not args.cycle_config then return end
 	for j = 1, #G.your_collection do
 		for i = #G.your_collection[j].cards,1, -1 do
@@ -1012,11 +1099,13 @@ G.FUNCS.your_collection_tcg_cards_page = function(args)
 			G.your_collection[j]:emplace(card)
 		end
 	end
+	G.in_delete_run = false
 end
 
 G.FUNCS.your_collection_tcg_backs_page = function(args)
 	G.tcg_addition_page = args.cycle_config.current_option
 
+	G.in_delete_run = true
 	if not args or not args.cycle_config then return end
 	for j = 1, #G.your_collection do
 		for i = #G.your_collection[j].cards,1, -1 do
@@ -1041,6 +1130,8 @@ G.FUNCS.your_collection_tcg_backs_page = function(args)
 			G.your_collection[j]:emplace(card, nil, true)
 		end
 	end
+	
+	G.in_delete_run = false
 end
 
 SMODS.DrawStep({
@@ -1238,7 +1329,7 @@ function TCG_create_UIBox_HUD()
 		}},
 	}}
 	
-    contents.attack = 
+    contents.attack =
 	
 	{n=G.UIT.R, config={align = "cm",r=0.1, padding = 0,colour = G.C.DYN_UI.BOSS_MAIN, emboss = 0.05, id = 'row_attack'}, nodes={
 		{n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={

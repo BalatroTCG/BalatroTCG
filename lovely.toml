@@ -807,18 +807,6 @@ match_indent = true
 overwrite = true
 
 [[patches]]
-[patches.pattern]
-target = 'card.lua'
-pattern = "elseif name_to_check == 'Erratic Deck' then"
-position = "after"
-payload = '''
-elseif name_to_check == 'Challenge Deck' then key_override = res.key .. '_tcg'
-'''
-match_indent = true
-overwrite = true
-
-
-[[patches]]
 [patches.regex]
 target = 'back.lua'
 pattern = "name_to_check == 'Challenge Deck'"
@@ -964,7 +952,30 @@ pattern = '''if G.FUNCS.draw_from_deck_to_hand(nil) then'''
 position = "before"
 payload = '''
 BalatroTCG.MuteAudio = not (MP and MP.LOBBY and MP.LOBBY.code) and BalatroTCG.GameActive and not BalatroTCG.PlayerActive
-if BalatroTCG.GameActive and G.hand and #G.hand.cards > 0 then
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'game.lua'
+pattern = '''ease_background_colour_blind(G.STATES.DRAW_TO_HAND)'''
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    if not BalatroTCG.GameStarted then
+        ease_background_colour_blind(G.STATE, 'Small Blind')
+    else
+        local bg = BalatroTCG.DeckBackgrounds[BalatroTCG.Status_Current.back_key] or BalatroTCG.DeckBackgrounds.unknown
+
+        ease_background_colour{new_colour = bg.main, special_colour = bg.special, tertiary_colour = bg.tertiary, contrast = bg.contrast}
+        
+        ease_colour(G.C.DYN_UI.MAIN, BalatroTCG.DeckBackgrounds[BalatroTCG.Status_Current.back_key].UI)
+        ease_colour(G.C.DYN_UI.DARK, BalatroTCG.DeckBackgrounds[BalatroTCG.Status_Current.back_key].UI_DARK)
+    end
+
+else
+    ease_background_colour_blind(G.STATES.DRAW_TO_HAND)
 end
 '''
 match_indent = true
