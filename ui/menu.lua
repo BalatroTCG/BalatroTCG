@@ -1334,19 +1334,19 @@ function TCG_create_UIBox_HUD()
 	{n=G.UIT.R, config={align = "cm",r=0.1, padding = 0,colour = G.C.DYN_UI.BOSS_MAIN, emboss = 0.05, id = 'row_attack'}, nodes={
 		{n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
 			{n=G.UIT.C, config={align = "cm", minw = 1.3}, nodes={
-				{n=G.UIT.T, config={text = localize('b_tcg_attack'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
+				{n=G.UIT.T, config={text = localize('b_tcg_attack'), scale = 0.4, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
 			}},
-			{n=G.UIT.C, config={align = "cm", minw = 1.25, minh = 0.8, r = 0.1, colour = G.C.DYN_UI.BOSS_DARK}, nodes={
-				{n=G.UIT.T, config={ref_table = G.GAME, ref_value = 'chips_damage_text', lang = G.LANGUAGES['en-us'], scale = 0.85, colour = G.C.WHITE, id = 'damage_UI_count', func = 'chip_UI_damage', shadow = true}}
+			{n=G.UIT.C, config={align = "cm", minw = 1.75, minh = 0.65, r = 0.1, colour = G.C.DYN_UI.BOSS_DARK}, nodes={
+				{n=G.UIT.T, config={ref_table = G.GAME, ref_value = 'chips_damage_text', lang = G.LANGUAGES['en-us'], scale = 0.4, colour = G.C.WHITE, id = 'damage_UI_count', func = 'chip_UI_damage', shadow = true}}
 			}},
-			{n=G.UIT.C, config={align = "cm", minw = 1.0, minh = 1.0, r = 0.1}, nodes={
+			{n=G.UIT.C, config={align = "cm", minw = 1.0, minh = 0.65, r = 0.1}, nodes={
 				UIBox_button({
 					id = "add_attack",
 					func = "tcg_can_add_attack",
 					button = "tcg_add_attack",
 					colour = G.C.PURPLE,
-					minw = 1.5,
-					minh = 0.8,
+					minw = 1.2,
+					minh = 0.6,
 					label = { '+' },
 					scale = 0.8,
 					col = true,
@@ -1429,25 +1429,18 @@ function TCG_create_UIBox_HUD_blind()
 	local scale = 0.4
 
 	--{n=G.UIT.T, config={text = localize('k_round'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
-	return {n=G.UIT.ROOT, config={align = "cm", minw = 4.5, r = 0.1, colour = G.C.BLACK, emboss = 0.05, padding = 0.05, id = 'HUD_blind'}, nodes={
+	return {n=G.UIT.ROOT, config={align = "cm", minw = 1, r = 0.1, colour = G.C.BLACK, emboss = 0.05, padding = 0.05, id = 'HUD_blind'}, nodes={
+		{n=G.UIT.R, config={minw = 1},nodes={}},
 		{n=G.UIT.R, config={align = "cm", minw = 4.5, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.MAIN}, nodes={
 			{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff', padding = 0.15}, nodes={
 				{n=G.UIT.O, config={object = DynaText({string = localize('b_tcg_opponent'), shadow = true, rotate = true, silent = true, colours = {G.C.UI.TEXT_LIGHT}, float = true, scale = 0.8, y_offset = -4}),id = 'HUD_blind_name'}},
 			}},
 			
-			-- {n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.MONEY}, rotate = true, bump = true, silent = true, scale = 0}),id = 'dollars_to_be_earned'}},
-			-- {n=G.UIT.T, config={ref_table = blinds, ref_value = 'chip_text', scale = 0.0, colour = G.C.RED, id = 'HUD_blind_count' }},
-
-			-- {n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
-			-- 	{n=G.UIT.O, config={object = DynaText({string = {{ref_table = blinds, ref_value = 'loc_name'}}, shadow = true, rotate = true, silent = true, float = true, scale = 1.6*scale, y_offset = -4}),id = 'HUD_blind_name'}},
-			-- }},
-			-- {n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff'}, nodes={
-			-- 	{n=G.UIT.O, config={object = DynaText({string = {{ref_table = BalatroTCG.Player.status, ref_value = 'opponent_health', prefix = localize('$')}}, maxw = 1.35, colours = {G.C.MONEY}, font = G.LANGUAGES['en-us'].font, shadow = true,spacing = 2, bump = true, scale = 2.2*scale}), id = 'dollar_text_opponent'}}
-			-- }},
-			
 		}},
-		{n=G.UIT.R, config={align = "cm", minw = 3, minh = 0, r = 0.0, emboss = 0, colour = G.C.DYN_UI.DARK}, nodes={
-			{n=G.UIT.R, config={align = "cm", minw = 3}, nodes={
+		{n=G.UIT.R, config={align = "cm", minw = 3, minh = 1.75, r = 0.0, emboss = 0, colour = G.C.DYN_UI.DARK}, nodes={
+          	--{n=G.UIT.O, config={object = G.GAME.blind, draw_layer = 1}},
+			{n=G.UIT.C, config={align = "cm", minw = 2,r = 0.1, padding = 0.05, emboss = 0.05, colour = G.C.BLACK}, nodes={
+				--Required or game crashes
 				{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.RED}, rotate = true, bump = true, silent = true, scale = 0}), id = 'dollars_to_be_earned'}},
 				
 				{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff', padding = 0.01}, nodes={

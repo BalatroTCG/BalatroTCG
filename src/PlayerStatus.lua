@@ -171,17 +171,14 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.probabilities = copy_table(G.GAME.probabilities)
     self.status.consumeable_usage = copy_table(G.GAME.consumeable_usage)
     self.status.modifiers = {}
+    self.status.idol_card = {}
+    self.status.mail_card = {}
+    self.status.castle_card = {}
+    self.status.ancient_card = {}
 
     self.attacks = {}
 
-    G.consumeables = self.consumeables
-    G.jokers = self.jokers
-    G.discard = self.discard
-    G.deck = self.deck
-    G.hand = self.hand
-    G.play = self.play
-    G.vouchers = self.vouchers
-    G.graveyard = self.graveyard
+    self:set_card_areas()
 
     BalatroTCG.Status_Current = self
     
@@ -215,6 +212,11 @@ function TCG_PlayerStatus:pass_over()
     self.status.consumeable_usage = G.GAME.consumeable_usage
     self.status.used_vouchers = G.GAME.used_vouchers
 
+    self.status.idol_card = G.GAME.current_round.idol_card
+    self.status.mail_card = G.GAME.current_round.mail_card
+    self.status.ancient_card = G.GAME.current_round.ancient_card
+    self.status.castle_card = G.GAME.current_round.castle_card
+
     self.opponentJokers.config.highlighted_limit = 0
 
     self.visual_transfer = {
@@ -225,19 +227,20 @@ end
 function TCG_PlayerStatus:apply()
 
     BalatroTCG.CurrentPlayer = self
+
+    for k, v in ipairs(self.opponentDiscard.cards) do
+        v.area:remove_card(v)
+        v:remove()
+    end
     
-    G.GAME.hands = self.status.hand_upgrades
     
     G.GAME.round_resets.hands = self.params.hands
     G.GAME.round_resets.discards = self.params.discards
     G.GAME.starting_deck_size = self.starting_deck_size
-    G.GAME.last_tarot_planet = self.status.last_tarot_planet
-    G.GAME.probabilities = self.status.probabilities
-    G.GAME.consumeable_usage = self.status.consumeable_usage
     G.GAME.dollars = self.status.dollars
     G.GAME.bankrupt_at = self.status.bankrupt_at
-    G.GAME.used_vouchers = self.status.used_vouchers
-    G.GAME.modifiers = self.status.modifiers
+
+    self:set_card_areas()
     
     G.GAME.current_round.hands_left = (math.max(1, G.GAME.round_resets.hands))
     G.GAME.current_round.discards_left = math.max(0, G.GAME.round_resets.discards)
@@ -267,16 +270,6 @@ function TCG_PlayerStatus:apply()
 
     G.GAME.pseudorandom = self.seed
     
-    G.playing_cards = self.playing_cards
-
-    G.consumeables = self.consumeables
-    G.jokers = self.jokers
-    G.discard = self.discard
-    G.deck = self.deck
-    G.hand = self.hand
-    G.play = self.play
-    G.vouchers = self.vouchers
-    G.graveyard = self.graveyard
 
     self.opponentJokers.config.highlighted_limit = 1
     
@@ -427,6 +420,30 @@ function TCG_PlayerStatus:remove()
     self.vouchers = nil
 end
 
+function TCG_PlayerStatus:set_card_areas()
+    G.playing_cards = self.playing_cards
+    G.consumeables = self.consumeables
+    G.jokers = self.jokers
+    G.discard = self.discard
+    G.deck = self.deck
+    G.hand = self.hand
+    G.play = self.play
+    G.vouchers = self.vouchers
+    G.graveyard = self.graveyard
+
+    G.GAME.used_vouchers = self.status.used_vouchers
+    G.GAME.modifiers = self.status.modifiers
+    
+    G.GAME.current_round.idol_card = self.status.idol_card
+    G.GAME.current_round.mail_card = self.status.mail_card
+    G.GAME.current_round.ancient_card = self.status.ancient_card
+    G.GAME.current_round.castle_card = self.status.castle_card
+    G.GAME.last_tarot_planet = self.status.last_tarot_planet
+    G.GAME.probabilities = self.status.probabilities
+    G.GAME.consumeable_usage = self.status.consumeable_usage
+    G.GAME.hands = self.status.hand_upgrades
+end
+    
 function TCG_PlayerStatus:receive_message(message)
     
     if message.type == 'back' then

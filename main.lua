@@ -763,7 +763,7 @@ G.FUNCS.chip_UI_damage = function(e)
     local new_chips_text = number_format(G.GAME.chips_damage)
 
     if G.GAME.chips_damage_text ~= new_chips_text then
-        e.config.scale = math.min(0.8, scale_number(value, 1.1))
+        e.config.scale = math.min(0.7, scale_number(value, 1.1))
         G.GAME.chips_damage_text = new_chips_text
     end
 end

@@ -815,7 +815,6 @@ function binomial(n, k)
     return value
 end
 
-
 local Card_get_chip_mult_ref = Card.get_chip_mult
 function Card:get_chip_mult(context)
     context = context or { }
@@ -980,6 +979,9 @@ function Game:delete_run(args)
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
 
+    -- Another "why does this fix a bug that shouldn't be happening?"
+    G.jokers = nil
+
     game_delete_run_ref(self, args)
 
 
@@ -1113,6 +1115,20 @@ G.FUNCS.can_discard = function(e)
         e.config.button = 'discard_cards_from_highlighted'
     end
 
+end
+
+local generate_card_ui_ref = generate_card_ui
+function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
+    if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+        BalatroTCG.Player:set_card_areas()
+    end
+    
+    local value = generate_card_ui_ref(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
+
+    if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+        BalatroTCG.Status_Current:set_card_areas()
+    end
+    return value
 end
 
 function pick_from_areas(check, areas, seed)

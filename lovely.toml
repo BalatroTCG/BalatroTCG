@@ -220,7 +220,7 @@ if BalatroTCG.UseTCG_UI then
             center[k] = v
         end
         _c = center
-
+        
         _c.key = _c.key .. '_tcg'
     end
 
@@ -597,7 +597,9 @@ payload = '''
 local card
 if G.GAME.last_hand_played and BalatroTCG.GameActive then
     
-    local card = pick_from_areas(function (c) return c.ability.set == 'Planet' and c.ability.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard})
+    print(G.GAME.last_hand_played)
+    print("")
+    local card = pick_from_areas(function (c) if c.ability.set == 'Planet' then print(c.ability.hand_type) end; return c.ability.set == 'Planet' and c.ability.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard})
     
     if card then
 

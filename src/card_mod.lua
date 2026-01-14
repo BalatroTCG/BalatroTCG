@@ -1057,7 +1057,11 @@ function Card:set_ability(center, initial, delay_sprites)
         center = create_tcg_center(center)
     end
 
-    return set_ability_ref(self, center, initial, delay_sprites)
+    set_ability_ref(self, center, initial, delay_sprites)
+    
+    if BalatroTCG.UseTCG_UI then
+        self.config.center_key = center.key
+    end
 end
 
 -- This function is way too laggy but it's the only solution I have right now
