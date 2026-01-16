@@ -52,9 +52,23 @@ function Card:highlight(is_higlighted)
         end
     else
         Card_highlight_ref(self, is_higlighted)
+
+        if is_higlighted and self.area and (self.area == BalatroTCG.Player.opponentJokers or self.area == BalatroTCG.Player.opponentConsumeables) then
+            
+            for k, c in ipairs(BalatroTCG.Player.opponentJokers.cards) do
+                if c ~= self then
+                    c:highlight(false)
+                end
+            end
+            for k, c in ipairs(BalatroTCG.Player.opponentConsumeables.cards) do
+                if c ~= self then
+                    c:highlight(false)
+                end
+            end
+        end
     end
 
-	if self.mp_cocktail_select and self.tcg_deck_type then
+	if self.tcg_deck_type then
         if self.highlighted then
             for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do
                 if self.tcg_deck_type == v then goto skip end
@@ -111,7 +125,13 @@ end
 
 local hover_ref = Card.hover
 function Card:hover()
-	hover_ref(self)
+	if self.tcg_deck_type then
+		self.ability_UIBox_table = self:generate_UIBox_ability_table()
+		self.config.h_popup = G.UIDEF.card_h_popup(self)
+		self.config.h_popup_config = self:align_h_popup()
+		Node.hover(self)
+	end
+    hover_ref(self)
 end
 
 local Card_add_to_deck_ref = Card.add_to_deck
@@ -176,6 +196,7 @@ function Card:calculate_seal(context)
                     end
                     table.insert(status.playing_cards, card)
                     ::skip::
+                    G.GAME.consumeable_buffer = 0
                     return true
                 end)}))
             card_eval_status_text(self, 'extra', nil, nil, nil, {message = localize('k_plus_tarot'), colour = G.C.PURPLE})
@@ -184,6 +205,58 @@ function Card:calculate_seal(context)
     end
     return Card_calculate_seal(self, context)
 end
+
+local get_end_of_round_effect_ref = Card.get_end_of_round_effect
+function Card:get_end_of_round_effect(context)
+    if BalatroTCG.GameActive and self.seal == 'Blue' then
+        
+        local card = pick_from_areas(function (c) return c.ability.set == 'Planet' and c.ability.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard, G.hand})
+        
+
+        local status = BalatroTCG.Status_Current
+
+        if card and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit and not self.ability.extra_enhancement then
+
+            card.area:remove_card(card)
+
+            local ret = {}
+
+            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+
+            G.E_MANAGER:add_event(Event({
+                trigger = 'before',
+                delay = 0.0,
+                func = (function()
+                    
+                    card:start_materialize()
+                    status.consumeables:emplace(card)
+        
+                    for _, c in ipairs(G.playing_cards) do
+                        if c == card then
+                            goto skip
+                        end
+                    end
+                    table.insert(status.playing_cards, card)
+                    ::skip::
+
+                    G.GAME.consumeable_buffer = 0
+
+                    return true
+                end)}))
+
+            card_eval_status_text(self, 'extra', nil, nil, nil, {message = localize('k_plus_planet'), colour = G.C.SECONDARY_SET.Planet})
+
+            ret.effect = true
+
+            return ret
+        end
+        
+        return
+    end
+    return get_end_of_round_effect_ref(self, context)
+    
+end
+
 
 function G.UIDEF.tcg_add_to_deck(e)
     local use = nil
@@ -194,7 +267,7 @@ function G.UIDEF.tcg_add_to_deck(e)
         }}
         or 
         {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.GOLD, button = 'add_tcg_card'}, nodes={
-            {n=G.UIT.T, config={text = (localize('$') .. tostring(G.tcg_tab == 'Backs' and (deck_back_cost(e.original_id) + 15) or e.cost)),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
+            {n=G.UIT.T, config={text = (localize('$') .. tostring(G.tcg_tab == 'Backs' and (deck_back_cost(e.original_id)) or e.cost)),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
         }}
     }}
 
@@ -243,7 +316,7 @@ G.FUNCS.add_tcg_card = function(e)
                         BalatroTCG.BuildingDeck:sort()
                         BalatroTCG.BuildingDeck:set_cost()
 
-                        BalatroTCG.DeckCost = 125 - BalatroTCG.BuildingDeck.cost
+                        BalatroTCG.DeckCost = 110 - BalatroTCG.BuildingDeck.cost
 
                         save_decks()
 
@@ -631,6 +704,13 @@ G.FUNCS.playing_card_to_hand = function(e)
 end
 
 G.FUNCS.can_buy_tcg = function(e)
+
+    if not BalatroTCG.Status_Current:can_do_things() then
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+        return
+    end
+
     local v = e.config.ref_table
 
     local ignore = false
@@ -885,11 +965,6 @@ end
 
 local draw_card_ref = draw_card
 function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
-    if card and BalatroTCG.GameActive then
-        if card.ability.set == 'Joker' then
-            card:set_tcg_health(card.tcg_extra.max_health)
-        end
-    end
     draw_card_ref(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
 end
 
@@ -964,12 +1039,6 @@ function Game:delete_run(args)
     BalatroTCG.GameActive = false
     BalatroTCG.GameStarted = false
 
-    if BalatroTCG.Player then
-        BalatroTCG.Player:remove()
-        BalatroTCG.Opponent:remove()
-    end
-    BalatroTCG.Player = nil
-    BalatroTCG.Opponent = nil
 
     BalatroTCG.GraveyardView = false
     BalatroTCG.MuteAudio = false
@@ -979,10 +1048,18 @@ function Game:delete_run(args)
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
 
+
+    game_delete_run_ref(self, args)
+
     -- Another "why does this fix a bug that shouldn't be happening?"
     G.jokers = nil
 
-    game_delete_run_ref(self, args)
+    if BalatroTCG.Player then
+        BalatroTCG.Player:remove()
+        BalatroTCG.Opponent:remove()
+    end
+    BalatroTCG.Player = nil
+    BalatroTCG.Opponent = nil
 
 
     -- Not sure why I need to do this but oh well
@@ -1039,6 +1116,18 @@ function CardArea:emplace(card, location, stay_flipped)
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
         if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then
             BalatroTCG.Status_Current:setup_visuals(card, self)
+        end
+
+        if self == G.jokers or self == G.consumeables then
+            card:set_tcg_health(BalatroTCG.Status_Current.params.joker_health)
+        end
+        if self == G.deck or self == G.graveyard then
+            card:disable_tcg_health()
+            if card.ability.set == 'Joker' then
+                card:set_edition(nil, false)
+                card:set_perishable(false)
+                card:set_rental(false)
+            end
         end
 
         if card.ability.set == 'Planet' and (self == G.consumeables or self == G.jokers) then
@@ -1105,9 +1194,23 @@ G.FUNCS.start_setup_run = function(e)
     return start_setup_run_ref(e)
 end
 
+local G_FUNCS_can_play_ref = G.FUNCS.can_play
+G.FUNCS.can_play = function(e)
+    if BalatroTCG.GameActive and not BalatroTCG.Status_Current:can_do_things() then
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+        return
+    end
+    G_FUNCS_can_play_ref(e)
+end
 
 local G_FUNCS_can_discard_ref = G.FUNCS.can_discard
 G.FUNCS.can_discard = function(e)
+    if BalatroTCG.GameActive and not BalatroTCG.Status_Current:can_do_things() then
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+        return
+    end
     G_FUNCS_can_discard_ref(e)
 
     if G.deck and G.deck.cards[1] and G.GAME.modifiers.extra_discard and (G.GAME.modifiers.extra_discard < G.GAME.dollars - G.GAME.bankrupt_at) then
@@ -1122,6 +1225,14 @@ function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, h
     if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
         BalatroTCG.Player:set_card_areas()
     end
+
+    -- if card and card.tcg_extra.has_health and not card.ability.eternal then
+    --     print("")
+    --     print(card.tcg_extra.health_amount)
+    --     specific_vars = specific_vars or {}
+    --     specific_vars.health_amount = card.tcg_extra.health_amount
+    --     badges[#badges + 1] = 'tcg_health'
+    -- end
     
     local value = generate_card_ui_ref(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
 
@@ -1129,6 +1240,37 @@ function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, h
         BalatroTCG.Status_Current:set_card_areas()
     end
     return value
+end
+
+local generate_card_ui_ref = generate_card_ui
+function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
+	if card and card.tcg_deck_type then
+		_c = G.P_CENTERS[card.tcg_deck_type]
+		local ret = generate_card_ui_ref(
+			_c,
+			full_UI_table,
+			specific_vars,
+			"Back",
+			badges,
+			hide_desc,
+			main_start,
+			main_end,
+			card
+		)
+        localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
+		return ret
+	end
+	return generate_card_ui_ref(
+		_c,
+		full_UI_table,
+		specific_vars,
+		card_type,
+		badges,
+		hide_desc,
+		main_start,
+		main_end,
+		card
+	)
 end
 
 function pick_from_areas(check, areas, seed)

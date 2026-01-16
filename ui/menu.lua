@@ -131,12 +131,13 @@ end
 local localize_ref = localize
 
 function localize(args, misc_cat)
-    if args and not (type(args) == 'table') then
+    if not args or not (type(args) == 'table') then
         return localize_ref(args, misc_cat)
     end
 
     if args and BalatroTCG.UseTCG_UI and args.set == 'Back' and G.P_CENTERS[args.key] then
 		local loc_args = nil
+
 
 		local back_name = args.key
 
@@ -164,7 +165,7 @@ function localize(args, misc_cat)
 		elseif back_name == 'b_mp_gradient' then loc_args = { }
 		elseif back_name == 'b_mp_heidelberg' then loc_args = { 2 }
 		elseif back_name == 'b_mp_indigo' then loc_args = {  }
-		elseif back_name == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, 75 }
+		elseif back_name == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, 90 }
 		elseif back_name == 'b_mp_orange' then loc_args = { 2 }
 		elseif back_name == 'b_mp_violet' then loc_args = { 4 }
 		end
@@ -496,6 +497,7 @@ function G.FUNCS.set_betting(e)
 		G.FUNCS.overlay_menu({
 			definition = G.UIDEF.waiting_for_opponent(),
 		})
+        BalatroTCG.Player:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
 	else
 
 		local ai_bet = pseudorandom(generate_starting_seed(), BalatroTCG.AI.bet_min, BalatroTCG.AI.bet_max)
@@ -595,8 +597,9 @@ end
 
 G.FUNCS.select_tcg_deck_mp = function(e)
 	BalatroTCG.SelectedDeck = BalatroTCG.TabDecks[BalatroTCG.DeckIndex]
-	MP.ACTIONS.lobby_options()
 
+	MP.ACTIONS.update_player_usernames()
+	
 end
 
 function create_tcg_builder(type, callback)
@@ -973,7 +976,6 @@ G.FUNCS.create_tcg_builder_cocktail = function(e)
 		G.cocktail_select[row]:emplace(card)
 		card.sprite_facing = "back"
 		card.facing = "back"
-		card.mp_cocktail_select = v
 		card.tcg_deck_type = v
 		
 		for k, vv in ipairs(BalatroTCG.BuildingDeck.backs) do
@@ -1566,6 +1568,9 @@ function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 		
 		MP.LOBBY.config.tcg_balanced = true
 		MP.LOBBY.config.health_pool = 100
+		MP.LOBBY.config.joker_health = 10
+		MP.LOBBY.config.default_hands = 2
+		MP.LOBBY.config.default_discards = 2
 
 		MP.LOBBY.config.money_leak = true
 		MP.LOBBY.config.money_leak_start = 10
@@ -1598,18 +1603,71 @@ function MP.UI.create_tcg_lobby_options_tab()
 			colour = G.C.BLACK,
 		},
 		nodes = {
-			create_lobby_option_cycle(
-				"money_pool_option",
-				"b_opts_tcg_health",
-				0.85,
-				{ 50, 60, 75, 100, 125, 150 },
-				MP.UTILS.get_array_index_by_value(
-					{ 50, 60, 75, 100, 125, 150 },
-					MP.LOBBY.config.health_pool
-				),
-				"change_health_pool"
-			),
-			create_lobby_option_toggle("tcg_balanced", "b_opts_tcg_balanced", "tcg_balanced"),
+			{
+				n = G.UIT.R,
+				nodes = {
+					{
+						n = G.UIT.C,
+						nodes = {
+							create_lobby_option_cycle(
+								"money_pool_option",
+								"b_opts_tcg_health",
+								0.85,
+								{ 50, 60, 75, 100, 125, 150, 200, 300 },
+								MP.UTILS.get_array_index_by_value(
+									{ 50, 60, 75, 100, 125, 150, 200, 300 },
+									MP.LOBBY.config.health_pool
+								),
+								"change_health_pool"
+							),
+							create_lobby_option_cycle(
+								"joker_health_option",
+								"b_opts_tcg_joker_health",
+								0.85,
+								{ 5, 10, 20, 25, 30, 40, 50 },
+								MP.UTILS.get_array_index_by_value(
+									{ 5, 10, 20, 25, 30, 40, 50 },
+									MP.LOBBY.config.joker_health
+								),
+								"change_joker_health"
+							),
+						}
+					},
+					{
+						n = G.UIT.C,
+						nodes = {
+							create_lobby_option_cycle(
+								"hands_option",
+								"b_opts_tcg_hands",
+								0.85,
+								{ 1, 2, 3, 4, 5 },
+								MP.UTILS.get_array_index_by_value(
+								{ 1, 2, 3, 4, 5 },
+									MP.LOBBY.config.default_hands
+								),
+								"change_tcg_hands"
+							),
+							create_lobby_option_cycle(
+								"discards_option",
+								"b_opts_tcg_discards",
+								0.85,
+								{ 0, 1, 2, 3, 4, 5 },
+								MP.UTILS.get_array_index_by_value(
+								{ 0, 1, 2, 3, 4, 5 },
+									MP.LOBBY.config.default_discards
+								),
+								"change_tcg_discards"
+							),
+						}
+					},
+				}
+			},
+			{
+				n = G.UIT.R,
+				nodes = {
+					create_lobby_option_toggle("tcg_balanced", "b_opts_tcg_balanced", "tcg_balanced"),
+				}
+			}
 		},
 	}
 end
@@ -1722,9 +1780,9 @@ function MP.UI.create_tcg_ending_options_tab()
 						"round_limit",
 						"b_opts_tcg_round_limit",
 						0.85,
-						{ 5, 8, 10, 12, 15, 20, 25, 30 },
+						{ 1, 5, 8, 10, 12, 15, 20, 25, 30 },
 						MP.UTILS.get_array_index_by_value(
-							{ 5, 8, 10, 12, 15, 20, 25, 30 },
+							{ 1, 5, 8, 10, 12, 15, 20, 25, 30 },
 							MP.LOBBY.config.round_limit
 						),
 						"change_round_limit"
@@ -1746,8 +1804,20 @@ function MP.UI.create_tcg_ending_options_tab()
 	}
 end
 
+G.FUNCS.change_tcg_hands = function(args)
+	MP.LOBBY.config.default_hands = args.to_val
+	MP.ACTIONS.lobby_options()
+end
+G.FUNCS.change_tcg_discards = function(args)
+	MP.LOBBY.config.default_discards = args.to_val
+	MP.ACTIONS.lobby_options()
+end
 G.FUNCS.change_health_pool = function(args)
 	MP.LOBBY.config.health_pool = args.to_val
+	MP.ACTIONS.lobby_options()
+end
+G.FUNCS.change_joker_health = function(args)
+	MP.LOBBY.config.joker_health = args.to_val
 	MP.ACTIONS.lobby_options()
 end
 G.FUNCS.change_money_leak_start = function(args)

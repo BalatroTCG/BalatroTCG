@@ -175,24 +175,61 @@ function Card:use_consumeable(area, copier)
                     }))
                     delay(0.6)
                 end
-            elseif self.ability.name == 'Ankh' and not BalatroTCG.Settings.Unbalance then
+            elseif self.ability.name == 'Ankh' then
 
                 local copyable_jokers = {}
                 for i, v in ipairs(G.jokers.cards) do
-                    if not G.jokers.cards[i].edition or G.jokers.cards[i].edition.type ~= "mp_phantom" then copyable_jokers[#copyable_jokers + 1] = v end
+                    if v.ability.set == 'Joker' and not v.edition or v.edition.type ~= "mp_phantom" then copyable_jokers[#copyable_jokers + 1] = v end
+                end
+                for i, v in ipairs(G.consumeables.cards) do
+                    if v.ability.set == 'Joker' and not v.edition or v.edition.type ~= "mp_phantom" then copyable_jokers[#copyable_jokers + 1] = v end
                 end
                 local chosen_joker = pseudorandom_element(copyable_jokers, pseudoseed('ankh_choice'))
                 
+                if BalatroTCG.Settings.Unbalance then
+                    local deletable_jokers = {}
+                    for k, v in pairs(G.jokers.cards) do
+                        if v.ability.set == 'Joker' and not SMODS.is_eternal(v, self) then deletable_jokers[#deletable_jokers + 1] = v end
+                    end
+                    for k, v in pairs(G.consumeables.cards) do
+                        if v.ability.set == 'Joker' and not SMODS.is_eternal(v, self) then deletable_jokers[#deletable_jokers + 1] = v end
+                    end
+                    G.E_MANAGER:add_event(Event({trigger = 'before', delay = 0.75, func = function()
+                        for k, v in pairs(deletable_jokers) do
+                            if v ~= chosen_joker then 
+                            v.getting_sliced = true
+                                v:start_dissolve(nil, _first_dissolve)
+                                _first_dissolve = true
+                            end
+                        end
+                        return true end }))
+                end
                 G.E_MANAGER:add_event(Event({trigger = 'before', delay = 0.4, func = function()
                     local card = copy_card(chosen_joker, nil, nil, nil, chosen_joker.edition and chosen_joker.edition.negative)
                     card:start_materialize()
                     card:add_to_deck()
-                    card:set_rental(true)
+                    card.tcg_extra.virtual = true
+                    if not BalatroTCG.Settings.Unbalance then
+                        card:set_rental(true)
+                    end
+
                     if card.edition and card.edition.negative then
                         card:set_edition(nil, true)
                     end
                     G.jokers:emplace(card)
                     return true end }))
+            elseif self.ability.name == 'Hex' and not BalatroTCG.Settings.Unbalance then
+
+                local card = pseudorandom_element(self.eligible_editionless_jokers, pseudoseed('hex'))
+                
+                if card then
+                    G.E_MANAGER:add_event(Event({trigger = 'before', delay = 0.4, func = function()
+
+                        card:set_perishable(true)
+                        card:set_edition({polychrome = true}, true)
+
+                        return true end }))
+                end
                 
             elseif self.ability.name == 'The Emperor' then
                 
@@ -226,20 +263,9 @@ function Card:use_consumeable(area, copier)
                 
                 local rightmost = G.hand.highlighted[1]
                 local leftmost = G.hand.highlighted[1]
-                
-                leftmost.children.front:remove()
-                leftmost.children.front = nil
-                
-                for i=1, #G.hand.highlighted do
-                    if G.hand.highlighted[i].T.x < leftmost.T.x then leftmost = G.hand.highlighted[i] end
-                    if G.hand.highlighted[i].T.x > rightmost.T.x then rightmost = G.hand.highlighted[i] end
-                end
 
                 use_consumeable_ref(self, area, copier)
-
-                leftmost.ability.set = rightmost.ability.set
-                leftmost.consumable = rightmost.consumable
-
+                
                 if leftmost.children.use_button then
                     leftmost.children.use_button:remove()
                     leftmost.children.use_button = nil
@@ -247,8 +273,6 @@ function Card:use_consumeable(area, copier)
                 leftmost.tcg_extra.has_health = nil
                 leftmost.tcg_extra.health_amount = nil
                 leftmost.tcg_extra.max_health = nil
-
-                leftmost:set_sprites()
                 
             elseif self.ability.name == 'The High Priestess' then
 
@@ -869,7 +893,7 @@ function Card:calculate_joker(context)
                                 }
                             end
                         else
-                            self.ability.x_mult = self.ability.x_mult * self.ability.extra
+                            self.ability.x_mult = math.ceil((self.ability.x_mult * self.ability.extra) * 10) / 10
                         end
                         return nil
                     end
@@ -1055,6 +1079,9 @@ local set_ability_ref = Card.set_ability
 function Card:set_ability(center, initial, delay_sprites)
     if BalatroTCG.UseTCG_UI then
         center = create_tcg_center(center)
+        if not BalatroTCG.Settings.Unbalance then
+            center.use_original_desc = nil
+        end
     end
 
     set_ability_ref(self, center, initial, delay_sprites)
@@ -1124,13 +1151,18 @@ function create_tcg_center(self)
             if name == 'Gold Card' then
 
             elseif name == 'Lucky Card' then
-                --self.config.p_dollars = 10
                 self.config.p_dollars = 10
+                self.use_original_desc = true
             elseif name == 'Glass Card' then
-                
-
+                self.use_original_desc = true
             elseif name == 'Steel Card' then
                 --self.config.h_x_mult = 1.25
+            end
+        else
+            if name == 'Lucky Card' then
+                self.use_original_desc = true
+            elseif name == 'Glass Card' then
+                self.use_original_desc = true
             end
         end
     elseif self.set == 'Voucher' then
@@ -1309,25 +1341,13 @@ function create_tcg_center(self)
                         end
                     end
                 end
-            elseif name == 'The Wheel of Fortune' then
-                self.tcg_calculate = function(self, context)
-                    if context.updating then
-                        self.eligible_strength_jokers = EMPTY(self.eligible_strength_jokers)
-                        for k, v in pairs(G.jokers.cards) do
-                            if v.ability.set == 'Joker' and (not v.edition) then
-                                table.insert(self.eligible_strength_jokers, v)
-                            end
-                        end
-                    end
-                end
-            --     if G.GAME.used_vouchers['v_hone'] then v.ability.extra = 2 end
             end
         end
     elseif self.set == 'Spectral' then
         if name == 'The Soul' or name == 'Wraith' then
             
-        elseif not BalatroTCG.Settings.Unbalance and (name == 'Ankh' or name == 'Immolate') then
-            
+        elseif BalatroTCG.Settings.Unbalance and (name == 'Hex' or name == 'Ankh' or name == 'Immolate') then
+            self.use_original_desc = true
         end
         
     elseif self.set == 'Planet' then
@@ -1367,8 +1387,8 @@ function create_tcg_center(self)
                 self.config.extra.chips = 4
                 self.config.extra.mult = 10
             elseif name == 'Scholar' then
-                self.config.extra.chips = 100
-                self.config.extra.mult = 10
+                self.config.extra.chips = 50
+                self.config.extra.mult = 5
 
             -- Chips
             elseif name == 'Banner' then
@@ -1384,14 +1404,14 @@ function create_tcg_center(self)
             elseif name == 'Runner' then
                 self.config.extra.chip_mod = 40
             elseif name == 'Ice Cream' then
-                self.config.extra.chips = 200
-                self.config.extra.chip_mod = 40
+                self.config.extra.chips = 250
+                self.config.extra.chip_mod = 25
             elseif name == 'Hiker' then
                 self.config.extra = 12
             elseif name == 'Square Joker' then
                 self.config.extra.chip_mod = 8
             elseif name == 'Bull' then
-                self.config.extra = 6
+                self.config.extra = 5
             elseif name == 'Blue Joker' then
                 self.config.extra = 3
             elseif name == 'Scary Face' then
@@ -1425,8 +1445,8 @@ function create_tcg_center(self)
             elseif name == 'Erosion' then
                 self.config.extra = 6
             elseif name == 'Popcorn' then
-                self.config.mult = 30
-                self.config.extra = 5
+                self.config.mult = 60
+                self.config.extra = 20
             elseif name == 'Fibonacci' then
                 self.config.extra = 13
             elseif name == 'Fortune Teller' then
@@ -1438,7 +1458,7 @@ function create_tcg_center(self)
             elseif name == 'Ceremonial Dagger' then
                 self.config.extra = {
                     mult = 0,
-                    growth = 3,
+                    growth = 4,
                 }
 
             -- XMult
@@ -1463,6 +1483,8 @@ function create_tcg_center(self)
                 self.config.extra = 0.5
             elseif name == 'Obelisk' then
                 self.config.extra = 1.5
+            elseif name == 'Card Sharp' then
+                self.config.extra.Xmult = 4
                 
             elseif name == 'Ramen' then
                 self.config.x_mult = 4
@@ -1472,31 +1494,31 @@ function create_tcg_center(self)
             elseif name == 'Lucky Cat' then
                 self.config.extra = 1.5
             elseif name == "Driver's License" then
-                self.config.extra = 10
+                self.config.extra = 15
             elseif name == 'Hit the Road' then
                 self.config.extra = 2
             elseif name == 'Flower Pot' then
                 self.config.extra = 10
             elseif name == 'The Duo' then
-                self.config.x_mult = 3
-            elseif name == 'The Trio' then
                 self.config.x_mult = 4
+            elseif name == 'The Trio' then
+                self.config.x_mult = 6
             elseif name == 'The Family' then
-                self.config.x_mult = 5
+                self.config.x_mult = 8
             elseif name == 'The Order' then
-                self.config.x_mult = 10
+                self.config.x_mult = 12
             elseif name == 'The Tribe' then
-                self.config.x_mult = 3
+                self.config.x_mult = 4
             elseif name == 'Caino' then
-                self.config.extra = 5
+                self.config.extra = 3.5
             elseif name == 'Baseball Card' then
                 self.config.extra = 2
             elseif name == 'Glass Joker' then
                 self.config.extra = 1.0
             elseif name == 'Yorick' then
-                self.config.extra.xmult = 2.5
+                self.config.extra.xmult = 3
             elseif name == 'Seeing Double' then
-                self.config.extra = 3
+                self.config.extra = 4
 
             -- Trigger XMult
             elseif name == 'Bloodstone' then
@@ -2260,20 +2282,26 @@ function TCG_Override_Desc(self, _c, loc_vars)
 end
 
 function Card:set_tcg_max_health(_amount)
-
     self.tcg_extra.has_health = true
     self.tcg_extra.health_amount = _amount
     self.tcg_extra.max_health = _amount
 end
 function Card:set_tcg_health(_amount) 
-    if not self.ability.eternal then
+    if not self.tcg_extra.has_health then
+        self:set_tcg_max_health(BalatroTCG.Status_Current.params.joker_health)
+    elseif not self.ability.eternal then
         if _amount <= 0 then
             self:start_dissolve()
         else
             self.tcg_extra.has_health = true
-            self.tcg_extra.health_amount = math.min(_amount, self.tcg_extra.max_health or 25)
+            self.tcg_extra.health_amount = math.min(_amount, self.tcg_extra.max_health)
         end
     end
+end
+function Card:disable_tcg_health()
+    self.tcg_extra.has_health = nil
+    self.tcg_extra.health_amount = nil
+    self.tcg_extra.max_health = nil
 end
 function Card:remove_tcg_health(_amount) 
     if not self.ability.eternal then

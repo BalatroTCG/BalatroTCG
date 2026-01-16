@@ -120,9 +120,6 @@ function TCG_PlayerStatus:init(deck, player)
         local _card = deck:card_from_control_ex(self.deck, self.back_key, v)
         self.deck:emplace(_card)
         table.insert(self.playing_cards, _card)
-        if _card.ability.set == 'Joker' then
-            _card:set_tcg_max_health(self.params.joker_health)
-        end
         
     end
     
@@ -175,6 +172,7 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.mail_card = {}
     self.status.castle_card = {}
     self.status.ancient_card = {}
+    self.status.discount = self.params.discount
 
     self.attacks = {}
 
@@ -218,6 +216,8 @@ function TCG_PlayerStatus:pass_over()
     self.status.castle_card = G.GAME.current_round.castle_card
 
     self.opponentJokers.config.highlighted_limit = 0
+    self.opponentConsumeables.config.highlighted_limit = 0
+    self.status.discount = G.GAME.discount_percent
 
     self.visual_transfer = {
         index = '',
@@ -229,6 +229,10 @@ function TCG_PlayerStatus:apply()
     BalatroTCG.CurrentPlayer = self
 
     for k, v in ipairs(self.opponentDiscard.cards) do
+        v.area:remove_card(v)
+        v:remove()
+    end
+    for k, v in ipairs(self.opponentPlay.cards) do
         v.area:remove_card(v)
         v:remove()
     end
@@ -259,7 +263,7 @@ function TCG_PlayerStatus:apply()
         G.GAME.viewed_back = Back(G.P_CENTERS[self.back_key])
     end
 
-    G.GAME.discount_percent = self.params.discount
+    G.GAME.discount_percent = self.status.discount
     
     for k, v in pairs(G.GAME.hands) do 
         v.played_this_round = 0
@@ -272,6 +276,7 @@ function TCG_PlayerStatus:apply()
     
 
     self.opponentJokers.config.highlighted_limit = 1
+    --self.opponentConsumeables.config.highlighted_limit = 1
     
     G.deck:shuffle('nr' .. self.status.round)
     SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind })
@@ -292,9 +297,9 @@ function TCG_PlayerStatus:apply()
                             goto skip
                         end
                     end
-                    G.GAME.consumeable_buffer = 0
                     table.insert(G.playing_cards, card)
                     ::skip::
+                    G.GAME.consumeable_buffer = 0
                     play_sound('timpani')
                     voucher:juice_up(0.3, 0.4)
                     return true
@@ -447,6 +452,7 @@ end
 function TCG_PlayerStatus:receive_message(message)
     
     if message.type == 'back' then
+        print(message.back)
         self.Other.back_key = message.back
         
     elseif message.type == 'startTurn' or message.type == 'attack' then
@@ -473,7 +479,11 @@ function TCG_PlayerStatus:receive_message(message)
         local highlighted_cards = {}
 
         for str in string.gmatch(message.highlighted, "(%d+),") do
-            highlighted_cards[#self.opponentHand.cards - tonumber(str) + 1] = true
+            if BalatroTCG.config.FlipOpponent then
+                highlighted_cards[tonumber(str)] = true
+            else
+                highlighted_cards[#self.opponentHand.cards - tonumber(str) + 1] = true
+            end
         end
 
         for i, card in ipairs(self.opponentHand.cards) do
@@ -559,7 +569,9 @@ function TCG_PlayerStatus:receive_message(message)
                         to:emplace(card, nil, true)
                     else
                         local card = Card(to.T.x, to.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
-                        card:flip()
+                        card.sprite_facing = 'back'
+		                card.facing = 'back'
+                        
                         card.states.drag.can = false
                         to:emplace(card, nil, true)
                         to:align_cards()
@@ -815,6 +827,12 @@ function TCG_PlayerStatus:send_status()
     end
 end
 
+function TCG_PlayerStatus:can_do_things()
+
+    return (not BalatroTCG.Settings.EndingRound or self.status.round <= BalatroTCG.Settings.RoundEnd) and
+        (#self.attacks <= 0)
+end
+
 function TCG_PlayerStatus:add_protection(protect)
     self.temp_safety[#self.temp_safety + 1] = protect
 end
@@ -825,13 +843,24 @@ function TCG_PlayerStatus:take_attacks()
         self.can_reroll = true
     end
 
+    if #self.attacks <= 0 then
+        if BalatroTCG.Settings.EndingRound and self.status.round > BalatroTCG.Settings.RoundEnd then
+            
+            local self_wins = false
+            if BalatroTCG.Settings.WinCondition == 'Lowest Money' then
+                self_wins = self.status.dollars < self.status.opponent_health
+            elseif BalatroTCG.Settings.WinCondition == 'Highest Money' then
+                self_wins = self.status.dollars > self.status.opponent_health
+            -- TARGET: New TCG win conditions
+            end
+
+            end_tcg_game(self.is_player == self_wins)
+        end
+    end
+
     for k, att in pairs(self.attacks) do
         
-        if att.triggering then goto continue end
-
-        att.triggering = true
-        attacks = true
-        
+        table.remove(self.attacks, k)
         G.E_MANAGER:add_event(Event({
             
             trigger = 'immediate',
@@ -868,6 +897,7 @@ function TCG_PlayerStatus:take_attacks()
                         end
                     end
                 end
+                att.index = att.index or 0
                 return_table = tableMerge(return_table, self.temp_safety)
                 self.temp_safety = {}
         
@@ -951,6 +981,12 @@ function TCG_PlayerStatus:take_attacks()
                                 joker = j
                             end
                         end
+                        for _, j in ipairs(self.consumeables.cards) do
+                            att.index = att.index - 1
+                            if att.index == 0 then
+                                joker = j
+                            end
+                        end
                     end
 
                     if at_player then
@@ -997,6 +1033,7 @@ function TCG_PlayerStatus:take_attacks()
     end
 
 end
+
 
 function TCG_PlayerStatus:send_message(message)
     if MP and MP.LOBBY and MP.LOBBY.code then
@@ -1091,23 +1128,32 @@ function TCG_PlayerStatus:set_screen_positions()
         self.jokers.T.x = self.hand.T.x - 0.1
         self.jokers.T.y = 0.5
 
-        self.opponentJokers.T.x = self.jokers.T.x
-        self.opponentJokers.T.y = self.jokers.T.y - 3.25
-        
         self.consumeables.T.x = self.jokers.T.x + self.jokers.T.w + 0.2
         self.consumeables.T.y = self.jokers.T.y
-
+        
         self.deck.T.x = G.TILE_W - self.deck.T.w - 0.5
-        self.deck.T.y = G.TILE_H - self.deck.T.h
-
+        self.deck.T.y = G.TILE_H - self.deck.T.h - 0.25
+        
         self.discard.T.x = self.jokers.T.x + self.jokers.T.w/2 + 0.3 + 15
         self.discard.T.y = 4.2
-
+        
         self.vouchers.T.x = self.deck.T.x - 1
-        self.vouchers.T.y = self.deck.T.y + 2.75
+        self.vouchers.T.y = G.TILE_H + 0.25
+        
+        if BalatroTCG.config.FlipOpponent then
+            self.opponentJokers.T.x = self.jokers.T.x
+            self.opponentJokers.T.y = self.jokers.T.y - 3.25
 
-        self.opponentConsumeables.T.x = self.opponentJokers.T.x + self.opponentJokers.T.w + 0.2
-        self.opponentConsumeables.T.y = self.opponentJokers.T.y - 5
+            self.opponentConsumeables.T.x = self.opponentJokers.T.x + self.opponentJokers.T.w + 0.2
+            self.opponentConsumeables.T.y = self.opponentJokers.T.y
+        else
+            self.opponentConsumeables.T.x = self.jokers.T.x
+            self.opponentConsumeables.T.y = self.jokers.T.y
+
+            self.opponentJokers.T.x = self.opponentConsumeables.T.x + self.opponentConsumeables.T.w+ 0.2
+            self.opponentJokers.T.y = self.opponentConsumeables.T.y
+
+        end
 
         self.opponentHand.T.x = self.opponentJokers.T.x
         self.opponentHand.T.y = self.opponentJokers.T.y - 5

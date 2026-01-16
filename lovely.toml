@@ -214,7 +214,7 @@ payload = '''
 if BalatroTCG.UseTCG_UI then
     
 
-    if G.localization.descriptions[_c.set] and G.localization.descriptions[_c.set][_c.key .. '_tcg'] then
+    if not _c.use_original_desc and G.localization.descriptions[_c.set] and G.localization.descriptions[_c.set][_c.key .. '_tcg'] then
         local center = {}
         for k, v in pairs(_c) do
             center[k] = v
@@ -407,6 +407,19 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = '=[SMODS _ "src/utils.lua"]'
+pattern = "card.lucky_trigger = nil"
+position = "at"
+payload = '''
+if not BalatroTCG.GameActive or BalatroTCG.Settings.Unbalance then
+    card.lucky_trigger = nil
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
 pattern = "if SMODS.no_resolve then SMODS.no_resolve = nil end"
 position = "before"
 payload = '''
@@ -590,44 +603,6 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'card.lua'
-pattern = '''if G.GAME.last_hand_played then'''
-position = "at"
-payload = '''
-local card
-if G.GAME.last_hand_played and BalatroTCG.GameActive then
-    
-    print(G.GAME.last_hand_played)
-    print("")
-    local card = pick_from_areas(function (c) if c.ability.set == 'Planet' then print(c.ability.hand_type) end; return c.ability.set == 'Planet' and c.ability.hand_type == G.GAME.last_hand_played end, {G.deck, G.discard, G.graveyard})
-    
-    if card then
-
-        local status = BalatroTCG.Status_Current
-        
-        card.area:remove_card(card)
-        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-            card:start_materialize()
-            status.consumeables:emplace(card)
-
-            for _, c in ipairs(G.playing_cards) do
-                if c == card then
-                    goto skip
-                end
-            end
-            table.insert(status.playing_cards, card)
-            ::skip::
-            return true
-        end
-        }))
-    end
-elseif G.GAME.last_hand_played then
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
 target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
 pattern = '''elseif parsedAction.action == "disconnected" then'''
 position = "before"
@@ -639,7 +614,7 @@ elseif parsedAction.action == "tcgStartTurn" then
     parsedAction.type = 'startTurn'
     BalatroTCG.Player:receive_message(parsedAction)
 elseif parsedAction.action == "startGame" and BalatroTCG.MP_Lobby then
-    G.FUNCS.tcg_start_multi({ starting = parsedAction.starting })
+    G.FUNCS.tcg_start_multi({ starting = parsedAction.starting, seed = parsedAction.seed })
 elseif parsedAction.action == "tcg_compatible" then
     BalatroTCG.MultiCompat = true
 elseif parsedAction.action == "tcgStartGame" then
@@ -697,6 +672,18 @@ payload = '''
     if parsedAction.type == 'tcg' then
         BalatroTCG.MP_Lobby = true
     end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "objects/decks/ZZ_cocktail.lua"]'
+pattern = '''localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })'''
+position = "after"
+payload = '''
+else
+    localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
 '''
 match_indent = true
 overwrite = true
@@ -897,7 +884,8 @@ target = 'functions/common_events.lua'
 pattern = '''if v == 'eternal' then info_queue[#info_queue+1] = {key = 'eternal', set = 'Other'} end'''
 position = "after"
 payload = '''
-if v == 'tcg_health' then info_queue[#info_queue+1] = {key = 'tcg_joker_health', set = 'Other', vars = {25, specific_vars.health_amount or -20}} end
+print(specific_vars.health_amount)
+if v == 'tcg_health' then info_queue[#info_queue+1] = {key = 'tcg_health', set = 'Other', vars = {specific_vars.health_amount or -20}} end
 '''
 match_indent = true
 overwrite = true
@@ -910,6 +898,10 @@ position = "after"
 payload = '''
 if other.tcg_extra then
     new_card.tcg_extra = copy_table(other.tcg_extra)
+    new_card.ability.set = other.ability.set
+    new_card.consumable = other.consumable
+
+    new_card:set_sprites()
 end
 '''
 match_indent = true
@@ -921,20 +913,6 @@ target = 'functions/common_events.lua'
 pattern = '''if MP.GAME.ce_cache == false then'''
 position = "after"
 payload = '''if MP.GAME.ce_cache == false and not BalatroTCG.GameActive'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = 'card.lua'
-pattern = '''if self.ability.eternal then badges[#badges + 1] = 'eternal' end'''
-position = "after"
-payload = '''
-if self.tcg_extra.has_health and not self.ability.eternal then
-    loc_vars = loc_vars or {}; loc_vars.health_amount = self.tcg_extra.health_amount
-    badges[#badges + 1] = 'tcg_health'
-end
-'''
 match_indent = true
 overwrite = true
 
@@ -990,7 +968,7 @@ pattern = '''if self.STATE == self.STATES.SELECTING_HAND then'''
 position = "at"
 payload = '''
 if G.hand and self.STATE == self.STATES.SELECTING_HAND then
-    if BalatroTCG.GameActive then
+    if BalatroTCG.GameStarted then
         BalatroTCG.Status_Current:take_attacks()
     end
 '''

@@ -5,7 +5,7 @@ return {
                 name="Abandoned Deck",
                 text={
                     "No {C:attention}Face Cards{} at start,",
-                    "has {C:attention}50{} card limit",
+                    "{C:attention}50{} deck size",
                 },
             },
             b_anaglyph_tcg={
@@ -148,8 +148,8 @@ return {
 			b_mp_indigo_tcg = {
 				name = "Indigo Deck",
 				text = {
-					"Discarding {C:attention}Items{}",
-					"destroys them",
+                    "{C:attention}70{} deck size",
+                    "Items have higher limits",
 				},
 			},
 			b_mp_oracle_tcg = {
@@ -571,12 +571,37 @@ return {
             },
         },
         Other={
-            tcg_joker_health={
+            tcg_health={
                 name="Health",
                 text={
                     "Destroyed when losing",
                     "all it's health",
-                    "{C:inactive}({C:attention}#2#{C:inactive} remaining)",
+                    "{C:inactive}({C:attention}#1#{C:inactive} remaining)",
+                },
+            },
+            blue_seal_tcg={
+                name="Blue Seal",
+                text={
+                    "Draws the {C:planet}Planet{} card",
+                    "for final played {C:attention}poker hand{}",
+                    "of round if {C:attention}held{} in hand",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            gold_seal_tcg={
+                name="Gold Seal",
+                text={
+                    "Earn {C:money}$3{} when this",
+                    "card is played",
+                    "and scores",
+                },
+            },
+            purple_seal_tcg={
+                name="Purple Seal",
+                text={
+                    "Draws a {C:tarot}Tarot{} card",
+                    "when {C:attention}discarded",
+                    "{C:inactive}(Must have room)",
                 },
             },
         },
@@ -610,6 +635,14 @@ return {
                 text={
                     "Destroys {C:attention}5{} random",
                     "cards in hand,"
+                },
+            },
+            c_hex_tcg={
+                name="Hex",
+                text={
+                    "Add {C:dark_edition}Polychrome{}",
+                    "and {C:attention}perishable{} to a",
+                    "random {C:attention}Joker{}",
                 },
             },
         },
@@ -842,6 +875,7 @@ return {
             
 			b_tcg_opponent = "Opponent",
 			b_tcg_healthopponent = "Health",
+			b_tcg_healthopponent = "Health",
 			b_tcg_return = "Return",
 
 			b_tcg_attack = "Attack",
@@ -851,8 +885,12 @@ return {
 
 			k_lobby_deck = "Deck Limitations",
 
+			b_opts_tcg_flip = "Mirror Opponent",
 			b_opts_tcg_balanced = "Use Balance Patches",
+			b_opts_tcg_hands = "Default Hands",
+			b_opts_tcg_discards = "Default Discards",
 			b_opts_tcg_health = "Starting Health",
+			b_opts_tcg_joker_health = "Joker Health",
 
 			b_opts_tcg_money_leak = "Enable Overtime Penalty",
 			b_opts_tcg_money_leak_desc = "Enable losing money per round after a set round number",
@@ -877,6 +915,9 @@ return {
 
 			k_tcg_bet = "Spend $ to go first?",
 			k_tcg_waiting = "Waiting for opponent...",
+            labels={
+                tcg_health="Health"
+            }
 
 		},
         v_text = {

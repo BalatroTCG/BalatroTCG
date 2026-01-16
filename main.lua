@@ -65,6 +65,9 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 
 -- TODO:
 -- Implement rest of vouchers
+-- Negative crashes
+-- Hallucination bug
+-- Wrestler waits one turn first
 
 
 -- Receiving actions:
@@ -165,10 +168,16 @@ BalatroTCG.config_tab = function()
 				},
 				nodes = {
 					create_toggle({
-						id = "fantoms_preview_integration_toggle",
+						id = "balance_option",
 						label = localize("b_opts_tcg_balanced"),
 						ref_table = BalatroTCG.config,
 						ref_value = "Balance",
+					}),
+					create_toggle({
+						id = "flip_opponent_option",
+						label = localize("b_opts_tcg_flip"),
+						ref_table = BalatroTCG.config,
+						ref_value = "FlipOpponent",
 					}),
 				},
 			},
@@ -432,6 +441,9 @@ function reset_tcg_settings()
     BalatroTCG.Settings = {
         Unbalance = not BalatroTCG.config.Balance,
         StartingMoney = 100,
+        DefaultHands = 2,
+        DefaultDiscards = 2,
+        JokerHealth = 10,
         MoneyLeak = true,
         MoneyLeakStart = 10,
         MoneyLeakIncrease = 2,
@@ -451,6 +463,9 @@ function set_tcg_mp_settings()
     BalatroTCG.Settings = {
         Unbalance = not MP.LOBBY.config.tcg_balanced,
         StartingMoney = MP.LOBBY.config.health_pool,
+        DefaultHands = MP.LOBBY.config.default_hands,
+        DefaultDiscards = MP.LOBBY.config.default_discards,
+        JokerHealth = MP.LOBBY.config.joker_health,
         MoneyLeak = MP.LOBBY.config.money_leak,
         MoneyLeakStart = MP.LOBBY.config.money_leak_start,
         MoneyLeakIncrease = MP.LOBBY.config.money_leak_increase,
@@ -524,12 +539,14 @@ G.FUNCS.tcg_start_multi = function(e)
         return true
         end
     }))
+
+    print(e.seed)
     
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
         no_delete = true,
         func = function()
-        G:start_tcg_game({ online = true, seed = e.seed, starting = e.starting == "true" })
+        G:start_tcg_game({ online = true, seed = e.seed })
         return true
         end
     }))
@@ -548,6 +565,9 @@ function Game:start_tcg_game(args)
     BalatroTCG.GameActive = true
     BalatroTCG.UseTCG_UI = true
 
+    if MP then
+        G.GAME.modifiers.mp_cocktail = {}
+    end
     self:prep_stage(G.STAGES.RUN, G.STATES.NEW_ROUND)
     
     G.STAGE = G.STAGES.RUN
@@ -563,6 +583,25 @@ function Game:start_tcg_game(args)
     self.GAME.STOP_USE = 0
     self.GAME.selected_back = Back(G.P_CENTERS.b_red)
 
+    self.GAME.hands = {
+        ["Flush Five"] =        {order = 1, mult = 16,  chips = 160, s_mult = 16,  s_chips = 160, level = 1, l_mult = 2,  l_chips = 50, played = 0, played_this_round = 0, example = {{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true}}},
+        ["Flush House"] =       {order = 2, mult = 14,  chips = 140, s_mult = 14,  s_chips = 140, level = 1, l_mult = 3,  l_chips = 40, played = 0, played_this_round = 0, example = {{'D_7', true},{'D_7', true},{'D_7', true},{'D_4', true},{'D_4', true}}},
+        ["Five of a Kind"] =    {order = 3, mult = 12,  chips = 120, s_mult = 12,  s_chips = 120, level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, example = {{'S_A', true},{'H_A', true},{'H_A', true},{'C_A', true},{'D_A', true}}},
+        ["Straight Flush"] =    {order = 4, mult = 8,   chips = 100, s_mult = 8,   s_chips = 100, level = 1, l_mult = 10, l_chips = 80, played = 0, played_this_round = 0, example = {{'S_Q', true},{'S_J', true},{'S_T', true},{'S_9', true},{'S_8', true}}},
+        ["Four of a Kind"] =    {order = 5, mult = 7,   chips = 60,  s_mult = 7,   s_chips = 60,  level = 1, l_mult = 4,  l_chips = 50, played = 0, played_this_round = 0, example = {{'S_J', true},{'H_J', true},{'C_J', true},{'D_J', true},{'C_3', false}}},
+        ["Full House"] =        {order = 6, mult = 4,   chips = 40,  s_mult = 4,   s_chips = 40,  level = 1, l_mult = 3,  l_chips = 35, played = 0, played_this_round = 0, example = {{'H_K', true},{'C_K', true},{'D_K', true},{'S_2', true},{'D_2', true}}},
+        ["Flush"] =             {order = 7, mult = 4,   chips = 35,  s_mult = 4,   s_chips = 35,  level = 1, l_mult = 2,  l_chips = 25, played = 0, played_this_round = 0, example = {{'H_A', true},{'H_K', true},{'H_T', true},{'H_5', true},{'H_4', true}}},
+        ["Straight"] =          {order = 8, mult = 4,   chips = 30,  s_mult = 4,   s_chips = 30,  level = 1, l_mult = 6,  l_chips = 50, played = 0, played_this_round = 0, example = {{'D_J', true},{'C_T', true},{'C_9', true},{'S_8', true},{'H_7', true}}},
+        ["Three of a Kind"] =   {order = 9, mult = 3,   chips = 30,  s_mult = 3,   s_chips = 30,  level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, example = {{'S_T', true},{'C_T', true},{'D_T', true},{'H_6', false},{'D_5', false}}},
+        ["Two Pair"] =          {order = 10,mult = 2,   chips = 20,  s_mult = 2,   s_chips = 20,  level = 1, l_mult = 1,  l_chips = 50, played = 0, played_this_round = 0, example = {{'H_A', true},{'D_A', true},{'C_Q', false},{'H_4', true},{'C_4', true}}},
+        ["Pair"] =              {order = 11,mult = 2,   chips = 10,  s_mult = 2,   s_chips = 10,  level = 1, l_mult = 0,  l_chips = 30, played = 0, played_this_round = 0, example = {{'S_K', false},{'S_9', true},{'D_9', true},{'H_6', false},{'D_3', false}}},
+        ["High Card"] =         {order = 12,mult = 1,   chips = 5,   s_mult = 1,   s_chips = 5,   level = 1, l_mult = 2,  l_chips = 00, played = 0, played_this_round = 0, example = {{'S_A', true},{'D_Q', false},{'D_9', false},{'C_4', false},{'D_3', false}}},
+    }
+
+    for k, v in pairs(self.GAME.hands) do
+        v.visible = true
+    end
+
     
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
@@ -575,11 +614,13 @@ function Game:start_tcg_game(args)
     BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
     local playerDeck = BalatroTCG.SelectedDeck
     if playerDeck == 'random' then playerDeck = BalatroTCG.TabDecks[pseudorandom('asdf', 1, #BalatroTCG.TabDecks)] end
-    
-    local opponentDeck = BalatroTCG.DefaultDecks[pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks)]
+
+    local opponentDeck
 
     if args.online then
         opponentDeck = get_new_tcg_deck()
+    else
+        opponentDeck = BalatroTCG.DefaultDecks[pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks)]
     end
 
 
@@ -769,7 +810,8 @@ G.FUNCS.chip_UI_damage = function(e)
 end
 
 function end_tcg_round()
-    
+
+
     
     for k, voucher in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
         if voucher.ability.name == 'Seed Money' and not BalatroTCG.Status_Current.status.used_vouchers['v_money_tree'] then
@@ -788,9 +830,27 @@ function end_tcg_round()
     
     if damage > 0 then
         table.sort(BalatroTCG.Status_Current.opponentJokers.cards, function(a,b) return a.T.x < b.T.x end)
-        for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
-            if joker.highlighted then
-                index = i
+        if BalatroTCG.config.FlipOpponent then
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+                if joker.highlighted then
+                    index = i
+                end
+            end
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+                if joker.highlighted then
+                    index = i + #BalatroTCG.Status_Current.opponentJokers
+                end
+            end
+        else
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+                if joker.highlighted then
+                    index = (#BalatroTCG.Status_Current.opponentJokers.cards - i) + 1
+                end
+            end
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+                if joker.highlighted then
+                    index = (#BalatroTCG.Status_Current.opponentConsumeables.cards - i) + 1 + #BalatroTCG.Status_Current.opponentJokers
+                end
             end
         end
     end
@@ -799,7 +859,6 @@ function end_tcg_round()
     
 
     if BalatroTCG.MP_Lobby then
-        BalatroTCG.Status_Current:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
 
         Client.send({action = "tcgEndTurn", damage = damage, index = index })
     else
@@ -894,6 +953,9 @@ function end_tcg_round()
                 for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
                     joker:highlight(false)
                 end
+                for _, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+                    joker:highlight(false)
+                end
                 
                 
                 G.E_MANAGER:add_event(Event({
@@ -986,6 +1048,8 @@ if MP then
 end
 
 function end_tcg_game(win)
+    if not BalatroTCG.GameStarted then return end
+
     BalatroTCG.GameStarted = false
     
     G.E_MANAGER:add_event(Event({

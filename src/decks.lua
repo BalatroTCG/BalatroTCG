@@ -1797,6 +1797,8 @@ function deck_back_cost(name)
             return 10
         elseif name == 'b_challenge' then
             return 5
+        elseif name == 'b_mp_indigo' then
+            return 5
         else
             return 0
         end
@@ -1808,7 +1810,7 @@ function tcg_base_cost(set, name, base_cost)
     if BalatroTCG.Settings.Unbalance then return base_cost end
 
     if set == 'Planet' then
-        return base_cost - 1
+        --return base_cost - 1
     elseif set == 'Spectral' then
         return base_cost + 1
     elseif set == 'Joker' then
@@ -1833,7 +1835,7 @@ function tcg_base_cost(set, name, base_cost)
 end
 
 function BalatroTCG.Deck:set_cost()
-    self.cost = deck_back_cost(self.backs) + 15
+    self.cost = deck_back_cost(self.backs)
 
     for i, card in ipairs(self.cards) do
         if card.type ~= 'p' then
@@ -1843,7 +1845,7 @@ function BalatroTCG.Deck:set_cost()
         end
     end
     
-    BalatroTCG.DeckCost = 125 - self.cost
+    BalatroTCG.DeckCost = 110 - self.cost
 end
 
 function tcg_get_limitations(backname)
@@ -1851,9 +1853,9 @@ function tcg_get_limitations(backname)
     local limits = {
         deck_size = 60,
         max_jokers = 15,
-        max_tarots = 15,
-        max_planets = 15,
-        max_spectrals = 15,
+        max_tarots = 20,
+        max_planets = 20,
+        max_spectrals = 20,
         max_vouchers = 2,
         max_consumables = 20,
         max_uncommons = 3,
@@ -1971,6 +1973,14 @@ function tcg_get_limitations(backname)
         limits.max_rares = 2
         limits.max_uncommons = 0
     elseif backname == 'b_mp_indigo' then
+        limits.deck_size = 70
+        limits.max_consumables = 30
+        limits.max_tarots = 30
+        limits.max_planets = 30
+        limits.max_spectrals = 30
+        limits.max_vouchers = 3
+        limits.max_rares = 2
+        limits.max_uncommons = 4
     elseif backname == 'b_mp_oracle' then
     elseif backname == 'b_mp_orange' then
     elseif backname == 'b_mp_violet' then
@@ -1983,14 +1993,14 @@ end
 function get_TCG_params(back)
     local ret = {
         max_budget = 1e308,
-        dollars = 100,
+        dollars = BalatroTCG.Settings.StartingMoney,
         hand_size = 8,
-        discards = 2,
-        hands = 2,
+        discards = BalatroTCG.Settings.DefaultDiscards,
+        hands = BalatroTCG.Settings.DefaultHands,
         joker_slots = 5,
         consumable_slots = 2,
         discount = 0,
-        joker_health = 25,
+        joker_health = BalatroTCG.Settings.JokerHealth,
         destroy_planets = false,
         destroy_tarots = true,
         destroy_spectrals = true,
@@ -2061,7 +2071,13 @@ function get_TCG_params(back)
             ret.joker_slots = ret.joker_slots + 1
             ret.hand_size = ret.hand_size - 1
         elseif back == 'b_magic' then
+            ret.starting_vouchers = {
+                "v_crystal_ball",
+            }
         elseif back == 'b_nebula' then
+            ret.starting_vouchers = {
+                "v_telescope",
+            }
         elseif back == 'b_ghost' then
         elseif back == 'b_abandoned' then
         elseif back == 'b_checkered' then
@@ -2089,7 +2105,7 @@ function get_TCG_params(back)
             ret.starting_vouchers = {
                 "v_clearance_sale",
             }
-            ret.dollars = ret.dollars * 0.75
+            ret.dollars = ret.dollars * 0.90
             ret.max_budget = ret.dollars
         elseif back == 'b_mp_orange' then
         elseif back == 'b_mp_violet' then
@@ -2239,8 +2255,8 @@ function BalatroTCG.Deck:is_legal()
     end
     
     self:set_cost()
-    if BalatroTCG.Settings.DeckLimitations.Money and self.cost > 125 then
-        errors['tcg_err_cost'] = { 125 }
+    if BalatroTCG.Settings.DeckLimitations.Money and self.cost > 110 then
+        errors['tcg_err_cost'] = { 110 }
     end
     if BalatroTCG.Settings.DeckLimitations.BackCounts and #self.backs > (limits.deck_count or 1) then
         errors['tcg_err_deck_count'] = { (#self.backs - 1), ((limits.deck_count or 1) - 1) }
@@ -2357,7 +2373,8 @@ function Back:init(selected_back)
                     ease_discard(1)
                 end
             end
-        elseif selected_back.name == 'b_mp_indigo' then
+        elseif selected_back.name == 'empty' then
+            -- This used to be indigo but I wanted to keep the effect around just in case another deck wants this
             self.calculate_deck = function(context)
                 if context.discard and not context.other_card:is_playing_card() then
                     if context.other_card.use_button then
@@ -2371,12 +2388,42 @@ function Back:init(selected_back)
                     }
                 end
             end
-        elseif selected_back.name == 'b_mp_orange' then
+        elseif selected_back.name == 'Magic Deck' then
             self.calculate_deck = function(context)
                 if context.setting_blind and context.status.status.round == 1 then
                     for i = 1, 2 do
                         
                         local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+                        if card then
+                            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                            card.area:remove_card(card)
+                            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+                                card:start_materialize()
+                                G.consumeables:emplace(card)
+
+                                for _, c in ipairs(G.playing_cards) do
+                                    if c == card then
+                                        goto skip
+                                    end
+                                end
+                                table.insert(G.playing_cards, card)
+                                ::skip::
+                                G.GAME.consumeable_buffer = 0
+                                play_sound('timpani')
+                                return true
+                            end
+                            }))
+                        end
+
+                    end
+                end
+            end
+        elseif selected_back.name == 'Ghost Deck' then
+            self.calculate_deck = function(context)
+                if context.setting_blind and context.status.status.round == 1 then
+                    for i = 1, 1 do
+                        
+                        local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})
                         if card then
                             G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                             card.area:remove_card(card)
