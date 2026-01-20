@@ -615,7 +615,6 @@ function SMODS.calculate_card_areas(_type, context, return_table, args)
         end
 
         SMODS.current_evaluated_object = nil
-        return flags
     end
 
     return calculate_card_areas_ref(_type, context, return_table, args)

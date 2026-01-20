@@ -1825,16 +1825,17 @@ function create_tcg_center(self)
             end
         elseif name == 'Bloodstone' then
             if BalatroTCG.Settings.Unbalance then
+                
                 self.config.extra = {
                     Xmult = 1.5,
                     num = 1,
-                    denom = 2
+                    odds = 2
                 }
             else
                 self.config.extra = {
                     Xmult = 1.5,
                     num = 2,
-                    denom = 1
+                    odds = 1
                 }
             end
             
@@ -1844,7 +1845,7 @@ function create_tcg_center(self)
                 if context.individual and context.cardarea == G.play then
                     
                     local suit = self:get_ability_suit("Hearts")
-                    if context.other_card:is_suit(suit) and SMODS.pseudorandom_probability(self, 'bloodstone', self.ability.extra.num, self.ability.extra.denom) then
+                    if context.other_card:is_suit(suit) and SMODS.pseudorandom_probability(self, 'bloodstone', self.ability.extra.num, self.ability.extra.odds) then
                         
                         return {
                             x_mult = self.ability.extra.Xmult,
@@ -1855,7 +1856,7 @@ function create_tcg_center(self)
                     end
                 elseif not context.blueprint and context.cardarea == G.jokers and context.after then
                     if not BalatroTCG.Settings.Unbalance then
-                        self.ability.extra.denom = self.ability.extra.denom + 1
+                        self.ability.extra.odds = self.ability.extra.odds + 1
                         return {
                             message = localize('k_bleeding'),
                             colour = G.C.RED
@@ -1893,6 +1894,39 @@ function create_tcg_center(self)
         
 
 
+        elseif name == 'DNA' then
+            
+            self.use_original_desc = true
+            
+            self.tcg_calculate = function(self, context)
+                
+                if context.before and #context.full_hand == 1 and context.full_hand[1]:is_playing_card() and (not BalatroTCG.Settings.Unbalance or G.GAME.current_round.hands_played == 0) then
+                    G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                    local _card = copy_card(context.full_hand[1], nil, nil, G.playing_card)
+                    _card:add_to_deck()
+                    G.deck.config.card_limit = G.deck.config.card_limit + 1
+                    table.insert(G.playing_cards, _card)
+                    if BalatroTCG.Settings.Unbalance then
+                        G.hand:emplace(_card)
+                        _card.states.visible = nil
+
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                _card:start_materialize()
+                                return true
+                            end
+                        })) 
+                    else
+                        G.discard:emplace(_card)
+                    end
+                    return {
+                        message = localize('k_copied_ex'),
+                        colour = G.C.CHIPS,
+                        card = self,
+                        playing_cards_created = {_card}
+                    }
+                end
+            end
         elseif name == 'Vagabond' then
             if not BalatroTCG.Settings.Unbalance then
                 self.eternal_compat = false

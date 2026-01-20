@@ -208,6 +208,14 @@ return {
                     "{C:inactive}(Currently {X:mult,C:white} X#3# {C:inactive} Mult)",
                 },
             },
+            j_dna_tcg={
+                name="DNA",
+                text={
+                    "If {C:attention}played hand{}",
+                    "has only {C:attention}1{} card, add a",
+                    "permanent copy to deck",
+                },
+            },
             j_bloodstone_tcg={
                 name="Bloodstone",
                 text={
