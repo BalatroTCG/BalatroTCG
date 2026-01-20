@@ -64,10 +64,7 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 ]]
 
 -- TODO:
--- Implement rest of vouchers
--- Negative crashes
--- Hallucination bug
--- Wrestler waits one turn first
+-- Luckies give 1 in 6 for $20
 
 
 -- Receiving actions:
@@ -129,18 +126,6 @@ BalatroTCG.load_dir("ui")
 BalatroTCG.load_dir("src")
 
 BalatroTCG.config_tab = function()
-	local blind_anim = AnimatedSprite(
-		0,
-		0,
-		1.4,
-		1.4,
-		G.ANIMATION_ATLAS["mp_player_blind_col"],
-		G.P_BLINDS[MP.UTILS.blind_col_numtokey(MP.LOBBY.blind_col)].pos
-	)
-	blind_anim:define_draw_steps({
-		{ shader = "dissolve", shadow_height = 0.05 },
-		{ shader = "dissolve" },
-	})
 
 	-- MP.PREVIEW.text = SMODS.Mods["tcgb"].config.preview.text or ""
 	-- MP.PREVIEW.button = SMODS.Mods["tcgb"].config.preview.button or ""
@@ -161,8 +146,7 @@ BalatroTCG.config_tab = function()
 					align = "cm",
 					on_demand_tooltip = {
 						text = {
-							localize("k_preview_integration_desc"),
-							localize("k_preview_credit"),
+							localize("k_tcg_balance_desc"),
 						},
 					},
 				},
@@ -173,6 +157,20 @@ BalatroTCG.config_tab = function()
 						ref_table = BalatroTCG.config,
 						ref_value = "Balance",
 					}),
+				},
+			},
+			{
+				n = G.UIT.R,
+				config = {
+					padding = 0,
+					align = "cm",
+					on_demand_tooltip = {
+						text = {
+							localize("k_opponent_mirror_desc"),
+						},
+					},
+				},
+				nodes = {
 					create_toggle({
 						id = "flip_opponent_option",
 						label = localize("b_opts_tcg_flip"),
@@ -186,6 +184,15 @@ BalatroTCG.config_tab = function()
 	return ret
 end
 
+SMODS.Atlas({
+	key = "player_blinds",
+	path = "player_blinds.png",
+	atlas_table = "ANIMATION_ATLAS",
+	frames = 21,
+	px = 34,
+	py = 34,
+})
+
 BalatroTCG.DeckBackgrounds = {
     unknown = {
         main = HEX("FFFFFF"),
@@ -196,6 +203,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("444444"),
         
         contrast = 0.7,
+        
+        pos = {x = 0, y = 0},
     },
 
     b_red = {
@@ -207,6 +216,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("400d0f"),
         
         contrast = 2,
+
+        pos = {x = 0, y = 1},
     },
     b_blue= {
         main = HEX("FFFFFF"),
@@ -217,6 +228,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("111540"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 2},
     },
     b_yellow= {
         main = HEX("FFFFFF"),
@@ -227,6 +240,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("402c09"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 3},
     },
     b_green= {
         main = HEX("FFFFFF"),
@@ -237,6 +252,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("094021"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 4},
     },
     b_black= {
         main = HEX("bee9ee"),
@@ -247,6 +264,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("221c2e"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 5},
     },
     b_magic= {
         main = HEX("ffe6bc"),
@@ -257,6 +276,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("402c09"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 6},
     },
     b_nebula= {
         special = HEX("6696a4"),
@@ -267,6 +288,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("3a314d"),
         
         contrast = 0.8,
+        
+        pos = {x = 0, y = 7},
     },
     b_ghost= {
         main = HEX("d9c357"),
@@ -277,6 +300,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("2e4061"),
         
         contrast = 1.2,
+        
+        pos = {x = 0, y = 8},
     },
     b_abandoned= {
         main = HEX("faf0dc"),
@@ -287,6 +312,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("322019"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 9},
     },
     b_checkered= {
         main = HEX("000000"),
@@ -297,6 +324,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("002035"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 10},
     },
     b_zodiac= {
         main = HEX("dec651"),
@@ -307,6 +336,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("402c09"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 11},
     },
     b_painted= {
         main = HEX("8c2922"),
@@ -317,6 +348,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("114831"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 12},
     },
     b_anaglyph= {
         main = HEX("045d94"),
@@ -327,6 +360,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("094c8f"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 13},
     },
     b_plasma= {
         main = HEX("f7c7d1"),
@@ -337,6 +372,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("2c3967"),
         
         contrast = 1,
+        
+        pos = {x = 0, y = 14},
     },
     b_erratic= {
         main = HEX("4f6367"),
@@ -347,6 +384,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("470b08"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 15},
     },
     b_challenge= {
         main = HEX("FFFFFF"),
@@ -357,6 +396,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("6b3246"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 16},
     },
 
     b_mp_violet= {
@@ -368,6 +409,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("3b234d"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 17},
     },
     b_mp_indigo= {
         main = HEX("FFFFFF"),
@@ -378,6 +421,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("3b234d"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 18},
     },
     b_mp_orange= {
         main = HEX("FFFFFF"),
@@ -388,6 +433,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("422d1e"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 19},
     },
     b_mp_oracle= {
         main = HEX("c6d1c5"),
@@ -398,6 +445,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("222d40"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 20},
     },
     b_mp_gradient= {
         main = HEX("ffa5c9"),
@@ -408,6 +457,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("5e245e"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 21},
     },
     b_mp_heidelberg= {
         main = HEX("c6dfdd"),
@@ -418,6 +469,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("2c484a"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 22},
     },
     b_mp_cocktail= {
         main = HEX("fec687"),
@@ -428,6 +481,8 @@ BalatroTCG.DeckBackgrounds = {
         UI_DARK = HEX("244357"),
         
         contrast = 2,
+        
+        pos = {x = 0, y = 23},
     },
 }
 
@@ -448,6 +503,7 @@ function reset_tcg_settings()
         MoneyLeakStart = 10,
         MoneyLeakIncrease = 2,
         EndingRound = true,
+        SquareDamage = true,
         RoundEnd = 15,
         WinCondition = "Lowest Money",
         DeckLimitations = {
@@ -583,24 +639,7 @@ function Game:start_tcg_game(args)
     self.GAME.STOP_USE = 0
     self.GAME.selected_back = Back(G.P_CENTERS.b_red)
 
-    self.GAME.hands = {
-        ["Flush Five"] =        {order = 1, mult = 16,  chips = 160, s_mult = 16,  s_chips = 160, level = 1, l_mult = 2,  l_chips = 50, played = 0, played_this_round = 0, example = {{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true}}},
-        ["Flush House"] =       {order = 2, mult = 14,  chips = 140, s_mult = 14,  s_chips = 140, level = 1, l_mult = 3,  l_chips = 40, played = 0, played_this_round = 0, example = {{'D_7', true},{'D_7', true},{'D_7', true},{'D_4', true},{'D_4', true}}},
-        ["Five of a Kind"] =    {order = 3, mult = 12,  chips = 120, s_mult = 12,  s_chips = 120, level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, example = {{'S_A', true},{'H_A', true},{'H_A', true},{'C_A', true},{'D_A', true}}},
-        ["Straight Flush"] =    {order = 4, mult = 8,   chips = 100, s_mult = 8,   s_chips = 100, level = 1, l_mult = 10, l_chips = 80, played = 0, played_this_round = 0, example = {{'S_Q', true},{'S_J', true},{'S_T', true},{'S_9', true},{'S_8', true}}},
-        ["Four of a Kind"] =    {order = 5, mult = 7,   chips = 60,  s_mult = 7,   s_chips = 60,  level = 1, l_mult = 4,  l_chips = 50, played = 0, played_this_round = 0, example = {{'S_J', true},{'H_J', true},{'C_J', true},{'D_J', true},{'C_3', false}}},
-        ["Full House"] =        {order = 6, mult = 4,   chips = 40,  s_mult = 4,   s_chips = 40,  level = 1, l_mult = 3,  l_chips = 35, played = 0, played_this_round = 0, example = {{'H_K', true},{'C_K', true},{'D_K', true},{'S_2', true},{'D_2', true}}},
-        ["Flush"] =             {order = 7, mult = 4,   chips = 35,  s_mult = 4,   s_chips = 35,  level = 1, l_mult = 2,  l_chips = 25, played = 0, played_this_round = 0, example = {{'H_A', true},{'H_K', true},{'H_T', true},{'H_5', true},{'H_4', true}}},
-        ["Straight"] =          {order = 8, mult = 4,   chips = 30,  s_mult = 4,   s_chips = 30,  level = 1, l_mult = 6,  l_chips = 50, played = 0, played_this_round = 0, example = {{'D_J', true},{'C_T', true},{'C_9', true},{'S_8', true},{'H_7', true}}},
-        ["Three of a Kind"] =   {order = 9, mult = 3,   chips = 30,  s_mult = 3,   s_chips = 30,  level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, example = {{'S_T', true},{'C_T', true},{'D_T', true},{'H_6', false},{'D_5', false}}},
-        ["Two Pair"] =          {order = 10,mult = 2,   chips = 20,  s_mult = 2,   s_chips = 20,  level = 1, l_mult = 1,  l_chips = 50, played = 0, played_this_round = 0, example = {{'H_A', true},{'D_A', true},{'C_Q', false},{'H_4', true},{'C_4', true}}},
-        ["Pair"] =              {order = 11,mult = 2,   chips = 10,  s_mult = 2,   s_chips = 10,  level = 1, l_mult = 0,  l_chips = 30, played = 0, played_this_round = 0, example = {{'S_K', false},{'S_9', true},{'D_9', true},{'H_6', false},{'D_3', false}}},
-        ["High Card"] =         {order = 12,mult = 1,   chips = 5,   s_mult = 1,   s_chips = 5,   level = 1, l_mult = 2,  l_chips = 00, played = 0, played_this_round = 0, example = {{'S_A', true},{'D_Q', false},{'D_9', false},{'C_4', false},{'D_3', false}}},
-    }
 
-    for k, v in pairs(self.GAME.hands) do
-        v.visible = true
-    end
 
     
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
@@ -615,12 +654,22 @@ function Game:start_tcg_game(args)
     local playerDeck = BalatroTCG.SelectedDeck
     if playerDeck == 'random' then playerDeck = BalatroTCG.TabDecks[pseudorandom('asdf', 1, #BalatroTCG.TabDecks)] end
 
+    
+    self.GAME.hands["High Card"].visible = true
+    
+    for k, v in ipairs(playerDeck.cards) do
+        if v.type == 'c' and G.P_CENTERS[v.c].set == 'Planet' then
+            self.GAME.hands[G.P_CENTERS[v.c].config.hand_type].visible = true
+        end
+    end
+
     local opponentDeck
 
     if args.online then
         opponentDeck = get_new_tcg_deck()
     else
         opponentDeck = BalatroTCG.DefaultDecks[pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks)]
+        --opponentDeck = BalatroTCG.DefaultDecks[1]
     end
 
 
@@ -784,7 +833,13 @@ function TCG_GetDamage(value)
     
     if value > 0 then
         value = math.log10(value)
-        value = value * value
+
+        if BalatroTCG.Settings.SquareDamage then
+            value = value * value
+        else
+            value = math.pow(2, value - 1)
+        end
+            
         local value = math.floor(value)
 
         for k, v in ipairs(BalatroTCG.Status_Current.backs) do
@@ -949,7 +1004,7 @@ function end_tcg_round()
                 end
                 BalatroTCG.Status_Current:send_message({ type = 'jokers', jokers = #BalatroTCG.Status_Current.jokers.cards })
                 BalatroTCG.Status_Current:send_message({ type = "health", health = BalatroTCG.Status_Current.status.dollars })
-
+                
                 for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
                     joker:highlight(false)
                 end

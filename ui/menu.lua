@@ -149,8 +149,8 @@ function localize(args, misc_cat)
 		elseif back_name == 'b_yellow' then loc_args = { 25 }
 		elseif back_name == 'b_green' then loc_args = { 2 }
 		elseif back_name == 'b_black' then loc_args = { 1, 1 }
-		elseif back_name == 'b_magic' then  loc_args = { 1 }
-		elseif back_name == 'b_nebula' then loc_args = { 1 }
+		elseif back_name == 'b_magic' then  loc_args = { localize{type = 'name_text', key = 'v_crystal_ball', set = 'Voucher'} }
+		elseif back_name == 'b_nebula' then loc_args = { localize{type = 'name_text', key = 'v_telescope', set = 'Voucher'} }
 		elseif back_name == 'b_ghost' then loc_args = { }
 		elseif back_name == 'b_abandoned' then 
 		elseif back_name == 'b_checkered' then
@@ -164,7 +164,7 @@ function localize(args, misc_cat)
 		elseif back_name == 'b_mp_cocktail' then loc_args = { 2, 1 }
 		elseif back_name == 'b_mp_gradient' then loc_args = { }
 		elseif back_name == 'b_mp_heidelberg' then loc_args = { 2 }
-		elseif back_name == 'b_mp_indigo' then loc_args = {  }
+		elseif back_name == 'b_mp_indigo' then loc_args = { 70, 1 }
 		elseif back_name == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, 90 }
 		elseif back_name == 'b_mp_orange' then loc_args = { 2 }
 		elseif back_name == 'b_mp_violet' then loc_args = { 4 }
@@ -491,13 +491,15 @@ function G.FUNCS.set_bet_amount(e)
 end
 
 function G.FUNCS.set_betting(e)
-
+	
+	
+	BalatroTCG.Player:send_backs()
+	
 	if MP and MP.LOBBY and MP.LOBBY.code then
 		Client.send({action = "tcgBet", bet = BalatroTCG.BetAmount })
 		G.FUNCS.overlay_menu({
 			definition = G.UIDEF.waiting_for_opponent(),
 		})
-        BalatroTCG.Player:send_message({ type = 'back', back = BalatroTCG.Player.back_key })
 	else
 
 		local ai_bet = pseudorandom(generate_starting_seed(), BalatroTCG.AI.bet_min, BalatroTCG.AI.bet_max)
@@ -575,12 +577,6 @@ function G.FUNCS.tcg_build_check(e)
 end
 
 function G.FUNCS.lobby_choose_tcg_deck()
-
-	-- G.SETTINGS.paused = true
-	-- G.FUNCS.overlay_menu{
-	-- 	definition = G.UIDEF.run_setup((e.config.id == 'from_game_over' or e.config.id == 'from_game_won' or e.config.id == 'challenge_list') and e.config.id),
-	-- }
-	-- if (e.config.id == 'from_game_over' or e.config.id == 'from_game_won') then G.OVERLAY_MENU.config.no_esc =true end
 
 	G.SETTINGS.paused = true
 	
@@ -682,7 +678,7 @@ function create_tcg_builder(type, callback)
 				v.original_id = v.key
 				G.CARD_POOL[#G.CARD_POOL + 1] = v
 				if v.key == 'v_overstock_norm' or v.key == 'v_overstock_plus' then
-					v.tcg_broken = true
+					--v.tcg_broken = true
 				end
 			end
 		end
@@ -943,15 +939,15 @@ end
 G.FUNCS.create_tcg_builder_cocktail = function(e)
 	
 	-- boilerplate robbed from cryptid's decaying corpse
-	if G.cocktail_select then
-		for i = 1, #G.cocktail_select do
-			G.cocktail_select[i]:remove()
-			G.cocktail_select[i] = nil
+	if G.cocktail_tcg_select then
+		for i = 1, #G.cocktail_tcg_select do
+			G.cocktail_tcg_select[i]:remove()
+			G.cocktail_tcg_select[i] = nil
 		end
 	end
-	G.cocktail_select = {}
+	G.cocktail_tcg_select = {}
 	for i = 1, 2 do
-		G.cocktail_select[i] = CardArea(
+		G.cocktail_tcg_select[i] = CardArea(
 			G.ROOM.T.x + 0.2 * G.ROOM.T.w / 1.5,
 			G.ROOM.T.h,
 			5.3 * G.CARD_W,
@@ -960,6 +956,7 @@ G.FUNCS.create_tcg_builder_cocktail = function(e)
 		)
 	end
 	local decks = MP.get_cocktail_decks()
+
 	local cfg = SMODS.Mods["Multiplayer"].config
 	for i, v in ipairs(decks) do
 		local row = math.floor((((i - 1) / #decks) * 2) + 1)
@@ -973,26 +970,26 @@ G.FUNCS.create_tcg_builder_cocktail = function(e)
 			G.P_CENTERS.c_base,
 			{ playing_card = i, tcg_back = v }
 		)
-		G.cocktail_select[row]:emplace(card)
+		G.cocktail_tcg_select[row]:emplace(card)
 		card.sprite_facing = "back"
 		card.facing = "back"
 		card.tcg_deck_type = v
 		
 		for k, vv in ipairs(BalatroTCG.BuildingDeck.backs) do
 			if v == vv then
-				card.highlighted = true
+				card:highlight(true)
 			end
 		end
 	end
-	G.GAME.viewed_back = G.P_CENTERS["b_mp_cocktail"]
+	--G.GAME.viewed_back = G.P_CENTERS["b_mp_cocktail"]
 	MP.show_cocktail_decks = MP.cocktail_cfg_readpos("show") ~= "H" and true or false
 	deck_tables = {}
-	for i = 1, #G.cocktail_select do
+	for i = 1, #G.cocktail_tcg_select do
 		deck_tables[i] = {
 			n = G.UIT.R,
 			config = { align = "cm", padding = 0, no_fill = true },
 			nodes = {
-				{ n = G.UIT.O, config = { object = G.cocktail_select[i] } },
+				{ n = G.UIT.O, config = { object = G.cocktail_tcg_select[i] } },
 			},
 		}
 	end
@@ -1015,20 +1012,31 @@ G.FUNCS.create_tcg_builder_cocktail = function(e)
 					},
 				},
 			},
-			{
-				n = G.UIT.R,
-				config = { align = "cl", padding = 0 },
-				nodes = {
-					{
-						n = G.UIT.T,
-						config = { text = localize("k_cocktail_rightclick"), scale = 0.32, colour = G.C.WHITE },
-					},
-				},
-			},
 		},
 	})
 	
 	return t
+end
+
+-- Just stealing a ton of stuff from multiplayer (sorry)
+local r_cursor_press_ref = Controller.queue_R_cursor_press
+function Controller:queue_R_cursor_press(x, y)
+	local ret = r_cursor_press_ref(self, x, y)
+	if G.cocktail_tcg_select and G.cocktail_tcg_select[1].cards then -- bruh
+		local highlight = false
+
+		for i = 1, #G.cocktail_tcg_select do
+			for j = 1, #G.cocktail_tcg_select[i].cards do
+				G.cocktail_tcg_select[i].cards[j].highlighted = highlight
+				G.cocktail_tcg_select[i].cards[j].mp_cocktail_forced = false
+			end
+		end
+
+		play_sound("cardSlide2", nil, 0.3)
+		BalatroTCG.BuildingDeck.backs = { 'b_mp_cocktail' }
+		
+	end
+	return ret
 end
 
 G.FUNCS.your_collection_tcg_consumeables_page = function(args)
@@ -1430,6 +1438,7 @@ end
 function TCG_create_UIBox_HUD_blind()
 	local scale = 0.4
 
+
 	--{n=G.UIT.T, config={text = localize('k_round'), scale = 0.42, colour = G.C.UI.TEXT_LIGHT, shadow = true}}
 	return {n=G.UIT.ROOT, config={align = "cm", minw = 1, r = 0.1, colour = G.C.BLACK, emboss = 0.05, padding = 0.05, id = 'HUD_blind'}, nodes={
 		{n=G.UIT.R, config={minw = 1},nodes={}},
@@ -1441,8 +1450,10 @@ function TCG_create_UIBox_HUD_blind()
 		}},
 		{n=G.UIT.R, config={align = "cm", minw = 3, minh = 1.75, r = 0.0, emboss = 0, colour = G.C.DYN_UI.DARK}, nodes={
           	--{n=G.UIT.O, config={object = G.GAME.blind, draw_layer = 1}},
+			{n=G.UIT.O, config={object = BalatroTCG.Opponent, draw_layer = 1}},
 			{n=G.UIT.C, config={align = "cm", minw = 2,r = 0.1, padding = 0.05, emboss = 0.05, colour = G.C.BLACK}, nodes={
 				--Required or game crashes
+
 				{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME.current_round, ref_value = 'dollars_to_be_earned'}}, colours = {G.C.RED}, rotate = true, bump = true, silent = true, scale = 0}), id = 'dollars_to_be_earned'}},
 				
 				{n=G.UIT.R, config={align = "cm", id = 'HUD_blind_debuff', padding = 0.01}, nodes={
@@ -1516,7 +1527,7 @@ end
 
 function MP.UI.create_tcg_mp_button(text_scale)
 
-	BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
+	BalatroTCG.SelectedDeck = type(BalatroTCG.SelectedDeck) == 'table' and BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
 
 	return UIBox_button({
 		id = "lobby_choose_tcg_deck",

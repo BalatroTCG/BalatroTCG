@@ -14,6 +14,12 @@ G.FUNCS.play_cards_from_highlighted = function(e)
     play_cards_from_highlighted_ref(e)
 end
 
+local can_highlight_ref = CardArea.can_highlight
+function CardArea:can_highlight(card)
+	if card.tcg_deck_type then return true end
+	return can_highlight_ref(self, card)
+end
+
 local Card_highlight_ref = Card.highlight
 function Card:highlight(is_higlighted)
 
@@ -53,7 +59,7 @@ function Card:highlight(is_higlighted)
     else
         Card_highlight_ref(self, is_higlighted)
 
-        if is_higlighted and self.area and (self.area == BalatroTCG.Player.opponentJokers or self.area == BalatroTCG.Player.opponentConsumeables) then
+        if BalatroTCG.GameActive and is_higlighted and self.area and (self.area == BalatroTCG.Player.opponentJokers or self.area == BalatroTCG.Player.opponentConsumeables) then
             
             for k, c in ipairs(BalatroTCG.Player.opponentJokers.cards) do
                 if c ~= self then
@@ -168,6 +174,30 @@ function Game:save_settings()
     Game_save_settings_ref(self)
 
     --G.SETTINGS.GAMESPEED = temp
+end
+
+local init_game_object_ref = Game.init_game_object
+function Game:init_game_object(...)
+    local output = init_game_object_ref(self, ...)
+
+    if BalatroTCG.UseTCG_UI then
+        output.hands = {
+            ["Flush Five"] =        {order = 1, mult = 16,  chips = 160, s_mult = 16,  s_chips = 160, level = 1, l_mult = 2,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true}}},
+            ["Flush House"] =       {order = 2, mult = 14,  chips = 140, s_mult = 14,  s_chips = 140, level = 1, l_mult = 3,  l_chips = 40, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'D_7', true},{'D_7', true},{'D_7', true},{'D_4', true},{'D_4', true}}},
+            ["Five of a Kind"] =    {order = 3, mult = 12,  chips = 120, s_mult = 12,  s_chips = 120, level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_A', true},{'H_A', true},{'H_A', true},{'C_A', true},{'D_A', true}}},
+            ["Straight Flush"] =    {order = 4, mult = 8,   chips = 100, s_mult = 8,   s_chips = 100, level = 1, l_mult = 10, l_chips = 80, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_Q', true},{'S_J', true},{'S_T', true},{'S_9', true},{'S_8', true}}},
+            ["Four of a Kind"] =    {order = 5, mult = 7,   chips = 60,  s_mult = 7,   s_chips = 60,  level = 1, l_mult = 4,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_J', true},{'H_J', true},{'C_J', true},{'D_J', true},{'C_3', false}}},
+            ["Full House"] =        {order = 6, mult = 4,   chips = 40,  s_mult = 4,   s_chips = 40,  level = 1, l_mult = 3,  l_chips = 35, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'H_K', true},{'C_K', true},{'D_K', true},{'S_2', true},{'D_2', true}}},
+            ["Flush"] =             {order = 7, mult = 4,   chips = 35,  s_mult = 4,   s_chips = 35,  level = 1, l_mult = 2,  l_chips = 25, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'H_A', true},{'H_K', true},{'H_T', true},{'H_5', true},{'H_4', true}}},
+            ["Straight"] =          {order = 8, mult = 4,   chips = 30,  s_mult = 4,   s_chips = 30,  level = 1, l_mult = 6,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'D_J', true},{'C_T', true},{'C_9', true},{'S_8', true},{'H_7', true}}},
+            ["Three of a Kind"] =   {order = 9, mult = 3,   chips = 30,  s_mult = 3,   s_chips = 30,  level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_T', true},{'C_T', true},{'D_T', true},{'H_6', false},{'D_5', false}}},
+            ["Two Pair"] =          {order = 10,mult = 2,   chips = 20,  s_mult = 2,   s_chips = 20,  level = 1, l_mult = 1,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'H_A', true},{'D_A', true},{'C_Q', false},{'H_4', true},{'C_4', true}}},
+            ["Pair"] =              {order = 11,mult = 2,   chips = 10,  s_mult = 2,   s_chips = 10,  level = 1, l_mult = 0,  l_chips = 30, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_K', false},{'S_9', true},{'D_9', true},{'H_6', false},{'D_3', false}}},
+            ["High Card"] =         {order = 12,mult = 1,   chips = 5,   s_mult = 1,   s_chips = 5,   level = 1, l_mult = 2,  l_chips = 00, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_A', true},{'D_Q', false},{'D_9', false},{'C_4', false},{'D_3', false}}},
+        }
+    end
+
+    return output
 end
 
 local Card_calculate_seal = Card.calculate_seal
@@ -311,7 +341,9 @@ G.FUNCS.add_tcg_card = function(e)
                 if G.tcg_tab == 'Backs' then
                     if c.original_id == 'b_mp_cocktail' then
 
-                        BalatroTCG.BuildingDeck.backs = { c.original_id }
+                        if BalatroTCG.BuildingDeck.backs[1] ~= 'b_mp_cocktail' then
+                            BalatroTCG.BuildingDeck.backs = { c.original_id, BalatroTCG.BuildingDeck.backs[1] }
+                        end
 
                         BalatroTCG.BuildingDeck:sort()
                         BalatroTCG.BuildingDeck:set_cost()
@@ -448,14 +480,19 @@ local can_use_consumeable_ref = Card.can_use_consumeable
 function Card:can_use_consumeable(any_state, skip_check)
     local value = can_use_consumeable_ref(self, any_state, skip_check)
 
+    if self.ability.name == 'Wraith' then return true end
+
     if not BalatroTCG.GameActive then
         return value
     end
 
-    if self.ability.name == 'Wraith' then return true end
 
     if value then
-        if self.ability.name == 'Cryptid' then
+        if self.ability.name == 'The Fool' and G.GAME.last_tarot_planet == 'c_hermit' then
+            if BalatroTCG.Settings.Unbalance then return true end
+            return false
+
+        elseif self.ability.name == 'Cryptid' then
             if BalatroTCG.Settings.Unbalance then return true end
 
             if not G.hand.highlighted[1]:is_playing_card() then return false end
@@ -559,7 +596,7 @@ local calculate_card_areas_ref = SMODS.calculate_card_areas
 function SMODS.calculate_card_areas(_type, context, return_table, args)
     local flags = {}
 
-    if BalatroTCG.Status_Current and _type == 'tcg_deck' then
+    if BalatroTCG.Status_Current then
         for k, object in ipairs(BalatroTCG.Status_Current.backs) do
             if not object.calculate_deck then goto continue end
 
@@ -593,12 +630,11 @@ function Back:trigger_effect(args)
         if not args then return end
 
         for k, object in ipairs(BalatroTCG.Status_Current.backs) do
-            if not object.calculate_deck then goto continue end
-
-            local flags = {}
+            if not object.calculate_deck then goto continue end -- Find a better system for this
 
             SMODS.current_evaluated_object = object
             local effects = object.calculate_deck(args)
+            
             if effects then
                 for k, v in pairs(effects) do
                     args[k] = v
@@ -724,6 +760,10 @@ G.FUNCS.can_buy_tcg = function(e)
         end
     end
 
+    if v.ability.set == 'Voucher' and G.GAME.used_vouchers[v.config.center_key] then
+        ignore = true
+    end
+
     if ignore or (
         (v.config.center.no_pool_flag and G.GAME.pool_flags[v.config.center.no_pool_flag]) or
         (v.config.center.yes_pool_flag and not G.GAME.pool_flags[v.config.center.yes_pool_flag]) or
@@ -746,6 +786,34 @@ G.FUNCS.can_buy_tcg = function(e)
       else
         e.UIBox.alignment.offset.y = 0
       end
+    end
+end
+
+local check_for_buy_space_ref = G.FUNCS.check_for_buy_space
+
+G.FUNCS.check_for_buy_space = function(card)
+    if BalatroTCG.GameActive then
+        local location = (card.ability.consumeable or card.ability.set == 'Enhanced' or card.ability.set == 'Default') and G.consumeables or G.jokers
+        local alt_location = nil
+
+        if G.GAME.modifiers.consumeable_in_jokers and (location == G.consumeables) then 
+            alt_location = G.jokers
+        elseif G.GAME.modifiers.joker_in_consumeables and (location ~= G.consumeables) then 
+            alt_location = G.consumeables
+        end
+        --TARGET: Tcg item locations
+
+        if #location.cards < location.config.card_limit + ((card.edition and card.edition.negative) and 1 or 0) then
+
+        elseif alt_location and #alt_location.cards < alt_location.config.card_limit + ((card.edition and card.edition.negative) and 1 or 0) then
+
+        else
+            alert_no_space(card, location)
+            return false
+        end
+        return true
+    else
+        return check_for_buy_space_ref(card)
     end
 end
 
@@ -1110,8 +1178,26 @@ function create_UIBox_options()
     return create_UIBox_options_ref()
 end
 
+-- I'm scared this will break something
+local emplace_Index = 0
+
 local CardArea_emplace_ref = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
+    emplace_Index = emplace_Index + 1
+    
+    if emplace_Index == 1 and #self.cards >= self.config.card_limit + ((card.edition and card.edition.negative) and 1 or 0) then
+    
+        if self == G.consumeables and G.GAME.modifiers.consumeable_in_jokers then
+            G.jokers:emplace(card, 0, stay_flipped)
+            emplace_Index = emplace_Index - 1
+            return
+        elseif self == G.jokers and G.GAME.modifiers.joker_in_consumeables then
+            G.consumeables:emplace(card, 0, stay_flipped)
+            emplace_Index = emplace_Index - 1
+            return
+        end
+
+    end
 
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
         if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then
@@ -1147,6 +1233,8 @@ function CardArea:emplace(card, location, stay_flipped)
     local ret = CardArea_emplace_ref(self, card, location, stay_flipped)
 
     if BalatroTCG.GameStarted and BalatroTCG.Opponent.hard_set then BalatroTCG.Opponent:hard_set() end
+
+    emplace_Index = emplace_Index - 1
 
     return ret
 end
@@ -1220,26 +1308,41 @@ G.FUNCS.can_discard = function(e)
 
 end
 
-local generate_card_ui_ref = generate_card_ui
-function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
-    if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
-        BalatroTCG.Player:set_card_areas()
-    end
+-- local generate_card_ui_ref = generate_card_ui
+-- function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
+--     if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+--         BalatroTCG.Player:set_card_areas()
+--     end
 
-    -- if card and card.tcg_extra.has_health and not card.ability.eternal then
-    --     print("")
-    --     print(card.tcg_extra.health_amount)
-    --     specific_vars = specific_vars or {}
-    --     specific_vars.health_amount = card.tcg_extra.health_amount
-    --     badges[#badges + 1] = 'tcg_health'
-    -- end
+--     -- if card and card.tcg_extra.has_health and not card.ability.eternal then
+--     --     print("")
+--     --     print(card.tcg_extra.health_amount)
+--     --     specific_vars = specific_vars or {}
+--     --     specific_vars.health_amount = card.tcg_extra.health_amount
+--     --     badges[#badges + 1] = 'tcg_health'
+--     -- end
     
-    local value = generate_card_ui_ref(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
+--     local value = generate_card_ui_ref(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
 
-    if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
-        BalatroTCG.Status_Current:set_card_areas()
+--     if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+--         BalatroTCG.Status_Current:set_card_areas()
+--     end
+--     return value
+-- end
+
+local EventManager_add_event_ref = EventManager.add_event
+function EventManager:add_event(event, queue, front)
+    if self.instant_events then
+        local results = G.ARGS.event_manager_update
+        results.blocking, results.completed, results.time_done, results.pause_skip = false, false, false, false
+
+        -- this is a really bad idea I can feel it
+        while not results.completed do
+            event:handle(results)
+        end
+    else
+        return EventManager_add_event_ref(self, event, queue, front)
     end
-    return value
 end
 
 local generate_card_ui_ref = generate_card_ui
@@ -1280,7 +1383,9 @@ function pick_from_areas(check, areas, seed)
 
         for _, c in ipairs(areas[i].cards) do
             if check(c) then
-                cards[#cards + 1] = c
+                if BalatroTCG.Settings.Unbalance or areas[i] ~= G.graveyard or c.ability.name ~= 'The Hermit' then
+                    cards[#cards + 1] = c
+                end
             end
         end
     end

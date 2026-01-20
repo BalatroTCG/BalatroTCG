@@ -1,23 +1,26 @@
 
 --Class
-TCG_PlayerStatus = Object:extend()
+TCG_PlayerStatus = Moveable:extend()
 
 function TCG_PlayerStatus:init(deck, player)
+    Moveable.init(self, -10, -20, 2, 1)
+
+    self.children = {}
+    self.config = {}
+    self.tilt_var = {mx = 0, my = 0, amt = 0}
+    self.ambient_tilt = 0.3
+    --self.zoom = true
+    self.states.collide.can = true
+    self.shadow_height = 0
+    
+
+    G.E_MANAGER.instant_events = true
 
     self.is_player = player
 
-    local backs = {}
+    self:set_backs(deck.backs)
     
-    for k, v in ipairs(deck.backs) do
-       backs[#backs + 1] = Back(G.P_CENTERS[v]) 
-    end
-    G.GAME.selected_back_key = deck.backs[1]
-
     local params = get_TCG_params(deck.backs)
-    
-    
-    self.backs = backs
-    self.back_key = deck.backs[1]
     self.params = params
     
     local CAI = {
@@ -167,12 +170,12 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.hand_upgrades = copy_table(G.GAME.hands)
     self.status.probabilities = copy_table(G.GAME.probabilities)
     self.status.consumeable_usage = copy_table(G.GAME.consumeable_usage)
+    self.status.consumeable_usage_total = copy_table(G.GAME.consumeable_usage_total)
     self.status.modifiers = {}
     self.status.idol_card = {}
     self.status.mail_card = {}
     self.status.castle_card = {}
     self.status.ancient_card = {}
-    self.status.discount = self.params.discount
 
     self.attacks = {}
 
@@ -195,6 +198,126 @@ function TCG_PlayerStatus:init(deck, player)
     G.play = nil
     G.vouchers = nil
     G.graveyard = nil
+    
+    self.status.discount = G.GAME.discount_percent
+    
+    G.E_MANAGER.instant_events = nil
+end
+
+function TCG_PlayerStatus:send_backs()
+    local backs = ''
+    for k, v in pairs(self.backs) do
+        for k2, v2 in pairs(G.P_CENTERS) do
+            if v2.name == v.name then
+                backs = backs .. k2 .. ';'
+            end
+        end
+    end
+    self:send_message({ type = 'backs', backs = backs })
+end
+
+function TCG_PlayerStatus:set_backs(backs)
+    
+    for k, v in ipairs(self.children) do
+        v:remove()
+    end
+    self.children = {}
+
+    self.backs = {}
+    self.back_key = backs[1]
+    
+    self.states.collide.can = true
+    self.states.drag.can = true
+
+    --G.GAME.selected_back_key = backs[1]
+
+    for k, v in ipairs(backs) do
+        self.backs[#self.backs + 1] = Back(G.P_CENTERS[v])
+
+        if not player then
+            local data = BalatroTCG.DeckBackgrounds[v] or BalatroTCG.DeckBackgrounds.unknown
+
+            local sprite = AnimatedSprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ANIMATION_ATLAS['tcgb_player_blinds'], data.pos)
+            
+            sprite.states = self.states
+            sprite.states.visible = true
+            
+            if k == 1 then
+                sprite.states.drag.can = true
+            end
+
+            self.children[k] = sprite
+        end
+    end
+end
+
+function TCG_PlayerStatus:draw()
+
+    self.tilt_var = self.tilt_var or {}
+    self.tilt_var.mx, self.tilt_var.my =G.CONTROLLER.cursor_position.x,G.CONTROLLER.cursor_position.y
+
+    for k, v in pairs(self.children) do
+        if k == 1 then
+            v.role.draw_major = self
+            v.VT.scale = 0.8
+            v:draw_shader('dissolve', 0.1)
+            v:draw_shader('dissolve')
+        else
+            v.VT.scale = 0.5
+            v:draw()
+        end
+    end
+
+    add_to_drawhash(self)
+end
+
+function TCG_PlayerStatus:align()
+    
+    local x, y, r = 0, 0, 0
+
+    for k, v in pairs(self.children) do
+        if k == 1 then
+            if not v.states.drag.is then
+                v.T.r = 0.02*math.sin(2*G.TIMERS.REAL+self.T.x)
+
+                v.T.y = self.T.y + 0.03*math.sin(0.666*G.TIMERS.REAL+self.T.x) - 0.4
+
+                self.shadow_height = 0.1 - (0.04 + 0.03*math.sin(0.666*G.TIMERS.REAL+self.T.x))
+
+                v.T.x = self.T.x + 0.03*math.sin(0.436*G.TIMERS.REAL+self.T.x) - 0.1
+                
+            end
+            x, y, r = v.T.x, v.T.y, v.T.r
+        else
+            local angle = (k - 1.5) * 6.262 / (#self.children - 1) - r
+            v.T.x = x - math.sin(angle)
+            v.T.y = y - math.cos(angle)
+            v.T.r = r
+        end
+    end
+end
+
+function TCG_PlayerStatus:move(dt)
+    Moveable.move(self, dt)
+    self:align()
+end
+
+function TCG_PlayerStatus:hover()
+    if not G.CONTROLLER.dragging.target or G.CONTROLLER.using_touch then 
+        if not self.hovering  and self.states.visible and self.children[1].states.visible then
+            self.hovering = true
+            self.hover_tilt = 2
+            self.children[1]:juice_up(0.05, 0.02)
+            play_sound('chips1', math.random()*0.1 + 0.55, 0.12)
+            Node.hover(self)
+        end
+    end
+end
+
+function TCG_PlayerStatus:stop_hover()
+    self.hovering = false
+    self.hover_tilt = 0
+    Node.stop_hover(self)
 end
 
 function TCG_PlayerStatus:pass_over()
@@ -208,6 +331,7 @@ function TCG_PlayerStatus:pass_over()
     self.probabilities = G.GAME.probabilities
     self.status.hand_upgrades = G.GAME.hands
     self.status.consumeable_usage = G.GAME.consumeable_usage
+    self.params.consumeable_usage_total = G.GAME.consumeable_usage_total
     self.status.used_vouchers = G.GAME.used_vouchers
 
     self.status.idol_card = G.GAME.current_round.idol_card
@@ -278,7 +402,18 @@ function TCG_PlayerStatus:apply()
     self.opponentJokers.config.highlighted_limit = 1
     --self.opponentConsumeables.config.highlighted_limit = 1
     
-    G.deck:shuffle('nr' .. self.status.round)
+    local shuffle = true
+    
+    -- more hard coding I want to avoid
+    for k, v in ipairs(self.backs) do
+        if v.name == 'b_mp_indigo' and self.status.round > 1 then
+            shuffle = false
+        end
+    end
+
+    if shuffle then
+        G.deck:shuffle('nr' .. self.status.round)
+    end
     SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind })
 
     for k, voucher in ipairs(self.vouchers.cards) do
@@ -404,15 +539,17 @@ function TCG_PlayerStatus:apply()
 end
 
 function TCG_PlayerStatus:remove()
-    self.jokers:remove()
-    self.consumeables:remove()
-    self.discard:remove()
-    self.deck:remove()
-    self.hand:remove()
-    self.play:remove()
-    self.graveyard:remove()
-    self.opponentJokers:remove()
-    self.vouchers:remove()
+    if self.jokers then
+        self.jokers:remove()
+        self.consumeables:remove()
+        self.discard:remove()
+        self.deck:remove()
+        self.hand:remove()
+        self.play:remove()
+        self.graveyard:remove()
+        self.opponentJokers:remove()
+        self.vouchers:remove()
+    end
     
     self.jokers = nil
     self.consumeables = nil
@@ -446,20 +583,31 @@ function TCG_PlayerStatus:set_card_areas()
     G.GAME.last_tarot_planet = self.status.last_tarot_planet
     G.GAME.probabilities = self.status.probabilities
     G.GAME.consumeable_usage = self.status.consumeable_usage
+    G.GAME.consumeable_usage_total = self.params.consumeable_usage_total
     G.GAME.hands = self.status.hand_upgrades
 end
     
 function TCG_PlayerStatus:receive_message(message)
     
     if message.type == 'back' then
-        print(message.back)
-        self.Other.back_key = message.back
+        
+        self.Other:set_backs({ message.back })
+
+    elseif message.type == 'backs' then
+
+        local backs = splitlines(message.backs, ';')
+        self.Other:set_backs(backs)
         
     elseif message.type == 'startTurn' or message.type == 'attack' then
         
+        if message.type == 'startTurn' then
+
+        end
+
         self.attacks[#self.attacks + 1] = {
             damage = tonumber(message.damage),
             index = tonumber(message.index),
+            trampleIndex = 0,
         }
         
     elseif message.type == 'win_game' then
@@ -518,6 +666,15 @@ function TCG_PlayerStatus:receive_message(message)
             local indices = splitlines(message.index, ',')
             local bases = splitlines(message.card_base, ',')
             local sets = splitlines(message.card_set, ',')
+
+            -- There's never a situation where some cards are removed from play
+            if from == self.opponentPlay then
+                indices = {}
+
+                for i, c in ipairs(self.opponentPlay.cards) do
+                    indices[i] = i
+                end
+            end
 
             for i = 1, #indices do
                 G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.05, func = function() 
@@ -598,17 +755,6 @@ function TCG_PlayerStatus:receive_message(message)
         --         card:flip()
         --         card.states.drag.can = false
         --         self.opponentJokers:emplace(card, nil, true)
-        --     end
-
-        --     if #self.opponentJokers.cards > 1 then 
-        --         G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.2, func = function() 
-        --             G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); return true end })) 
-        --             delay(0.05)
-        --             G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); return true end })) 
-        --             delay(0.05)
-        --             G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); return true end })) 
-        --             delay(0.05)
-        --         return true end })) 
         --     end
 
         --     self.opponentJokers:align_cards()
@@ -890,7 +1036,7 @@ function TCG_PlayerStatus:take_attacks()
                 if self.jokers then
                     table.sort(self.jokers.cards, function(a,b) return a.T.x < b.T.x end)
                     for _, joker in ipairs(self.jokers.cards) do
-                        local value = joker:calculate_joker({tcg_take_damage = true, damage = att.damage })
+                        local value = joker:calculate_joker({tcg_take_damage = true, damage = att.damage, trampleIndex = att.trampleIndex })
                         if value then
                             value.activator = joker
                             return_table[#return_table + 1] = value
@@ -1006,18 +1152,32 @@ function TCG_PlayerStatus:take_attacks()
                         local damage = G.GAME.chips_damage
 
                         self:damage(damage)
-                    else
                         
-                        self:add_play_stats('joker_damage', G.GAME.chips_damage, self.status.round)
+                        G.GAME.chips_damage = 0
+                    else
 
-                        joker:remove_tcg_health(G.GAME.chips_damage)
+                        local attacked = math.min(joker.tcg_extra.health_amount, G.GAME.chips_damage)
+
+                        G.GAME.chips_damage = G.GAME.chips_damage - attacked
+                        
+                        self:add_play_stats('joker_damage', attacked, self.status.round)
+
+                        if G.GAME.chips_damage > 0 then
+                            self.attacks[#self.attacks + 1] = {
+                                damage = G.GAME.chips_damage,
+                                index = 0,
+                                trampleIndex = att.trampleIndex + 1
+                            }
+                        end
+
+                        joker:remove_tcg_health(attacked)
                         if self.is_player then
                             play_sound('glass'..math.random(1, 6), math.random()*0.2 + 0.9,0.5)
                         end
                         joker:juice_up(0.3, 0.5)
+                        
                     end
 
-                    G.GAME.chips_damage = 0
                     return true
                 end
                 }))

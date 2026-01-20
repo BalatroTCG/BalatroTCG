@@ -11,7 +11,8 @@ return {
             b_anaglyph_tcg={
                 name="Anaglyph Deck",
                 text={
-                    "Gain {C:blue}+#1#{} hand and",
+                    "Gain a temporary",
+                    "{C:blue}+#1#{} hand and",
 					"{C:red}+#1#{} discard",
                     "every {C:attention}#2#{} rounds",
                 },
@@ -57,8 +58,8 @@ return {
             b_ghost_tcg={
                 name="Ghost Deck",
                 text={
-                    "{C:spectral}Spectral{} cards can have",
-                    "{C:attention}1{} duplicate",
+                    "Start game with {C:attention}1",
+                    "random {C:spectral}Spectral{} card",
                 },
             },
             b_green_tcg={
@@ -71,13 +72,16 @@ return {
             b_magic_tcg={
                 name="Magic Deck",
                 text={
-                    "{C:tarot}Tarot{} cards can have",
-                    "{C:attention}1{} duplicate",
+                    "Start game with the",
+                    "{C:tarot,T:v_crystal_ball}#1#{} voucher and",
+                    "{C:attention}2{} random {C:Tarot}Tarot{} cards",
                 },
             },
             b_nebula_tcg={
                 name="Nebula Deck",
                 text={
+                    "Start run with the",
+                    "{C:planet,T:v_telescope}#1#{} voucher",
                     "{C:planet}Planet{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
@@ -148,8 +152,8 @@ return {
 			b_mp_indigo_tcg = {
 				name = "Indigo Deck",
 				text = {
-                    "{C:attention}70{} deck size",
-                    "Items have higher limits",
+                    "{C:attention}#1#{} deck size",
+                    "{C:attention}+#2#{} copies to any item"
 				},
 			},
 			b_mp_oracle_tcg = {
@@ -164,9 +168,8 @@ return {
 			b_mp_orange_tcg = {
 				name = "Orange Deck",
 				text = {
-					"Start game with",
-					"{C:attention}#1#{} random Tarots",
-					"in your consumables",
+					"Discarding playing cards on",
+					"round {C:attention}1{} destroys them",
 				},
 			},
 			b_mp_violet_tcg = {
@@ -205,6 +208,15 @@ return {
                     "{C:inactive}(Currently {X:mult,C:white} X#3# {C:inactive} Mult)",
                 },
             },
+            j_bloodstone_tcg={
+                name="Bloodstone",
+                text={
+                    "{C:green}#1# in #2#{} chance for",
+                    "{C:hearts}Hearts{} to give",
+                    "{X:mult,C:white} X#3# {} Mult when scored",
+                    "Decrease {C:green}chance{} per hand"
+                },
+            },
             j_vagabond_tcg={
                 name="Vagabond",
                 text={
@@ -234,9 +246,8 @@ return {
             j_ticket_tcg={
                 name="Golden Ticket",
                 text={
-                    "Played {C:attention}Gold{} cards",
-                    "earn {C:money}$#1#{} when scored,",
-                    "removes {C:attention}Enhancement{} after"
+                    "{C:attention}Gold{} cards earn {C:money}$#1#{}",
+                    "when held in hand",
                 },
             },
             j_acrobat_tcg={
@@ -408,7 +419,8 @@ return {
                 name="Diet Cola",
                 text={
                     "Sell this card to",
-                    "gain {C:blue}+1{} hand and",
+                    "gain a temporary",
+                    "{C:blue}+1{} hand and",
                     "{C:red}+1{} discard"
                 },
             },
@@ -553,9 +565,6 @@ return {
                     "card in your possession",
                     "at start of {C:attention}Round{},",
                 },
-                unlock={
-                    "{E:1,s:1.3}?????",
-                },
             },
             j_cartomancer_tcg={
                 name="Cartomancer",
@@ -564,9 +573,14 @@ return {
                     "at start of {C:attention}Round{},",
                     "{C:inactive}(Must have room)",
                 },
-                unlock={
-                    "Discover every",
-                    "{E:1,C:tarot}Tarot{} card",
+            },
+            j_triboulet_tcg={
+                name="Triboulet",
+                text={
+                    "{C:attention}Kings{} and {C:attention}Queens{}",
+                    "score {X:mult,C:white} X#1# {} Mult,",
+                    "{C:green}#2# in #3#{} to break",
+                    "when scored"
                 },
             },
         },
@@ -647,6 +661,14 @@ return {
             },
         },
         Tarot={
+            c_hermit_tcg={
+                name="The Hermit",
+                text={
+                    "Doubles money",
+                    "Cannot return from graveyard",
+                    "{C:inactive}(Max of {C:money}$#1#{C:inactive})",
+                },
+            },
             c_emperor_tcg={
                 name="The Emperor",
                 text={
@@ -860,6 +882,8 @@ return {
             b_tcg_delete = "Delete",
             
             b_tcg_jokercount = "Joker Count",
+
+            k_bleeding = "Bleeding",
             
             b_tcg_add = "Add",
             b_tcg_remove = "Remove",
@@ -882,6 +906,9 @@ return {
 			b_tcg_graveyard = "Graveyard",
 			b_tcg_buy = "Buy $",
 			b_tcg_bet = "Bet",
+
+			k_tcg_balance_desc = "Enable TCG Balance patches",
+			k_opponent_mirror_desc = "Mirror the opponent's display",
 
 			k_lobby_deck = "Deck Limitations",
 

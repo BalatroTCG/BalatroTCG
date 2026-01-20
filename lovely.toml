@@ -339,7 +339,7 @@ pattern = '''
         end'''
 position = "at"
 payload = '''
-local amount = BalatroTCG.GameActive and not BalatroTCG.Settings.Unbalance and 10 or 15
+local amount = BalatroTCG.GameActive and not BalatroTCG.Settings.Unbalance and 6 or 15
 if context.tcg_predict then
     ret = ret + self.ability.p_dollars / amount
 else
@@ -884,8 +884,20 @@ target = 'functions/common_events.lua'
 pattern = '''if v == 'eternal' then info_queue[#info_queue+1] = {key = 'eternal', set = 'Other'} end'''
 position = "after"
 payload = '''
-print(specific_vars.health_amount)
 if v == 'tcg_health' then info_queue[#info_queue+1] = {key = 'tcg_health', set = 'Other', vars = {specific_vars.health_amount or -20}} end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''local colour = (not fool_c or fool_c.name == 'The Fool') and G.C.RED or G.C.GREEN'''
+position = "after"
+payload = '''
+if BalatroTCG.GameActive and not BalatroTCG.Settings.Unbalance and fool_c and fool_c.name == 'The Hermit' then
+    colour = G.C.RED
+end
 '''
 match_indent = true
 overwrite = true
@@ -950,8 +962,8 @@ if BalatroTCG.GameActive then
 
         ease_background_colour{new_colour = bg.main, special_colour = bg.special, tertiary_colour = bg.tertiary, contrast = bg.contrast}
         
-        ease_colour(G.C.DYN_UI.MAIN, BalatroTCG.DeckBackgrounds[BalatroTCG.Status_Current.back_key].UI)
-        ease_colour(G.C.DYN_UI.DARK, BalatroTCG.DeckBackgrounds[BalatroTCG.Status_Current.back_key].UI_DARK)
+        ease_colour(G.C.DYN_UI.MAIN, BalatroTCG.DeckBackgrounds[BalatroTCG.Opponent.back_key].UI)
+        ease_colour(G.C.DYN_UI.DARK, BalatroTCG.DeckBackgrounds[BalatroTCG.Opponent.back_key].UI_DARK)
     end
 
 else

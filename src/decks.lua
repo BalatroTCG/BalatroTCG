@@ -441,14 +441,14 @@ BalatroTCG.DefaultDecks = {
         
         { type = 'j', c = 'j_vagabond' },
         
-        { type = 'c', c = 'c_devil' },
-        { type = 'c', c = 'c_devil' },
         { type = 'c', c = 'c_chariot' },
-        { type = 'c', c = 'c_chariot' },
-        { type = 'c', c = 'c_death' },
-        { type = 'c', c = 'c_death' },
         { type = 'c', c = 'c_fool' },
-        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_judgement' },
+        { type = 'c', c = 'c_tower' },
         
         { type = 'c', c = 'c_pluto' },
         { type = 'c', c = 'c_uranus' },
@@ -470,6 +470,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'S' },
         { type = 'p', r = '8', s = 'S' },
         { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
 
         { type = 'p', r = 'A', s = 'H' },
         { type = 'p', r = 'K', s = 'H' },
@@ -479,6 +480,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'H' },
         { type = 'p', r = '8', s = 'H' },
         { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
         
         { type = 'p', r = 'A', s = 'C' },
         { type = 'p', r = 'K', s = 'C' },
@@ -488,6 +490,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'C' },
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
         
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
@@ -497,6 +500,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'D' },
         { type = 'p', r = '8', s = 'D' },
         { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
         
         { type = 'j', c = 'j_green_joker' },
         { type = 'j', c = 'j_sly' },
@@ -517,15 +521,11 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_death' },
         { type = 'c', c = 'c_strength' },
         { type = 'c', c = 'c_fool' },
-        { type = 'c', c = 'c_moon' },
         
         { type = 'c', c = 'c_pluto' },
         { type = 'c', c = 'c_uranus' },
         { type = 'c', c = 'c_jupiter' },
         { type = 'c', c = 'c_mercury' },
-        { type = 'c', c = 'c_venus' },
-        { type = 'c', c = 'c_mars' },
-        { type = 'c', c = 'c_mars' },
         
         { type = 'c', c = 'c_aura' },
         { type = 'c', c = 'c_immolate' },
@@ -592,17 +592,17 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_death' },
         { type = 'c', c = 'c_strength' },
         { type = 'c', c = 'c_fool' },
-        { type = 'c', c = 'c_moon' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_hanged_man' },
         
         { type = 'c', c = 'c_pluto' },
         { type = 'c', c = 'c_uranus' },
         { type = 'c', c = 'c_jupiter' },
         
         { type = 'c', c = 'c_ectoplasm' },
-        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_medium' },
         { type = 'c', c = 'c_cryptid' },
         { type = 'c', c = 'c_soul' },
-        { type = 'c', c = 'c_ankh' },
         { type = 'c', c = 'c_ankh' },
 
     }),
@@ -1798,7 +1798,7 @@ function deck_back_cost(name)
         elseif name == 'b_challenge' then
             return 5
         elseif name == 'b_mp_indigo' then
-            return 5
+            return 0
         else
             return 0
         end
@@ -1813,6 +1813,52 @@ function tcg_base_cost(set, name, base_cost)
         --return base_cost - 1
     elseif set == 'Spectral' then
         return base_cost + 1
+    elseif set == 'Voucher' then
+        
+        if name == 'Reroll Surplus' then
+            return 5
+        elseif name == 'Reroll Glut' then
+            return 5
+        elseif name == 'Crystal Ball' then
+            return 8
+        elseif name == 'Seed Money' then
+            return 2
+        elseif name == 'Hone' then
+            return 8
+        elseif name == 'Glow Up' then
+            return 12
+        elseif name == 'Overstock' then
+            return 6
+        elseif name == 'Overstock Plus' then
+            return 12
+        elseif name == 'Omen Globe' then
+        elseif name == 'Telescope' then
+            return 6
+        elseif name == 'Tarot Merchant' then
+            return 8
+        elseif name == 'Tarot Tycoon' then
+            return 12
+        elseif name == 'Planet Merchant' then
+            return 8
+        elseif name == 'Planet Tycoon' then
+            return 12
+        elseif name == 'Magic Trick' then
+            return 5
+        elseif name == 'Illusion' then
+            return 10
+        elseif name == 'Grabber' then
+            return 9
+        elseif name == 'Wasteful' then
+            return 7
+        elseif name == 'Nacho Tong' then
+            return 9
+        elseif name == 'Recyclomancy' then
+            return 7
+        elseif name == 'Hieroglyph' then
+        elseif name == 'Petroglyph' then
+        elseif name == "Director's Cut" then
+        elseif name == 'Retcon' then
+        end
     elseif set == 'Joker' then
         if name == 'Joker' then
             return 1
@@ -1821,13 +1867,19 @@ function tcg_base_cost(set, name, base_cost)
         elseif name == 'Jolly Joker' or name == 'Zany Joker' or name == 'Mad Joker' or name == 'Crazy Joker' or name == 'Droll Joker' or name == 'Sly Joker' or name == 'Wily Joker' or name == 'Clever Joker' or name == 'Devious Joker' or name == 'Crafty Joker' then
             return base_cost - 1
         elseif name == 'Brainstorm' then
-            return 8
+            return 9
         elseif name == 'Oops! All 6s' then
-            return 7
+            return 6
         elseif name == 'Credit Card' then
             return 3
         elseif name == 'Mail-In Rebate' then
             return 5
+        elseif name == 'The Duo' then
+            return 6
+        elseif name == 'The Trio' then
+            return 7
+        elseif name == 'The Tribe' then
+            return 6
         end
     end
 
@@ -1858,7 +1910,7 @@ function tcg_get_limitations(backname)
         max_spectrals = 20,
         max_vouchers = 2,
         max_consumables = 20,
-        max_uncommons = 3,
+        max_uncommons = 4,
         max_rares = 1,
         no_faces = false,
         checkered_suits = false,
@@ -1868,7 +1920,9 @@ function tcg_get_limitations(backname)
         consumeable_copies = 0,
         planet_copies = 0,
         tarot_copies = 0,
+        voucher_copies = 0,
         spectral_copies = 0,
+        joker_copies = 0,
         deck_count = 1,
         -- TARGET: Set default TCG deck limitations
     }
@@ -1888,6 +1942,8 @@ function tcg_get_limitations(backname)
             limits.consumeable_copies = math.max(limits.consumeable_copies + (values.consumeable_copies - default.consumeable_copies), 0)
             limits.planet_copies = math.max(limits.planet_copies + (values.planet_copies - default.planet_copies), 0)
             limits.tarot_copies = math.max(limits.tarot_copies + (values.tarot_copies - default.tarot_copies), 0)
+            limits.voucher_copies = math.max(limits.voucher_copies + (values.voucher_copies - default.voucher_copies), 0)
+            limits.joker_copies = math.max(limits.joker_copies + (values.joker_copies - default.joker_copies), 0)
             limits.spectral_copies = math.max(limits.spectral_copies + (values.spectral_copies - default.spectral_copies), 0)
 
             limits.deck_count = math.max(limits.deck_count + (values.deck_count - default.deck_count), 1)
@@ -1946,11 +2002,10 @@ function tcg_get_limitations(backname)
     if back.tcg_limitations then
         back:tcg_limitations(limits)
     elseif backname == 'b_magic' then
-        limits.tarot_copies = 1
+        --limits.tarot_copies = 1
     elseif backname == 'b_nebula' then
         limits.planet_copies = 1
     elseif backname == 'b_ghost' then
-        limits.spectral_copies = 1
     elseif backname == 'b_abandoned' then
         limits.no_faces = true
         limits.deck_size = 50
@@ -1974,15 +2029,14 @@ function tcg_get_limitations(backname)
         limits.max_uncommons = 0
     elseif backname == 'b_mp_indigo' then
         limits.deck_size = 70
-        limits.max_consumables = 30
-        limits.max_tarots = 30
-        limits.max_planets = 30
-        limits.max_spectrals = 30
-        limits.max_vouchers = 3
-        limits.max_rares = 2
-        limits.max_uncommons = 4
+        limits.tarot_copies = 1
+        limits.planet_copies = 1
+        limits.spectral_copies = 1
+        limits.joker_copies = 1
+        limits.voucher_copies = 1
     elseif backname == 'b_mp_oracle' then
     elseif backname == 'b_mp_orange' then
+        limits.tarot_copies = 2
     elseif backname == 'b_mp_violet' then
         limits.max_vouchers = limits.max_vouchers + 4
     end
@@ -2001,7 +2055,7 @@ function get_TCG_params(back)
         consumable_slots = 2,
         discount = 0,
         joker_health = BalatroTCG.Settings.JokerHealth,
-        destroy_planets = false,
+        destroy_planets = true,
         destroy_tarots = true,
         destroy_spectrals = true,
         starting_vouchers = {}
@@ -2026,7 +2080,7 @@ function get_TCG_params(back)
             ret.consumable_slots = math.max(ret.consumable_slots + (values.consumable_slots - default.consumable_slots), 0)
             ret.joker_health = math.max(ret.joker_health + (values.joker_health - default.joker_health), 1)
 
-            ret.destroy_planets = ret.destroy_planets or values.destroy_planets
+            ret.destroy_planets = ret.destroy_planets and values.destroy_planets
             ret.destroy_tarots = ret.destroy_tarots and values.destroy_tarots
             ret.destroy_spectrals = ret.destroy_spectrals and values.destroy_spectrals
 
@@ -2066,7 +2120,7 @@ function get_TCG_params(back)
             ret.hands = ret.hands + 1
         elseif back == 'b_yellow' then
             ret.dollars = ret.dollars + 25
-        elseif back == 'Green Deck' then
+        elseif back == 'b_green' then
         elseif back == 'b_black' then
             ret.joker_slots = ret.joker_slots + 1
             ret.hand_size = ret.hand_size - 1
@@ -2229,6 +2283,7 @@ function BalatroTCG.Deck:is_legal()
     end
 
     for i, count in pairs(jokers) do
+        count = count - limits.joker_copies
         if count > 1 then
             stats.total_copies = stats.total_copies + (count - 1)
         end
@@ -2247,6 +2302,8 @@ function BalatroTCG.Deck:is_legal()
                 count = count - limits.spectral_copies
             elseif ctype == 'Tarot' and limits.tarot_copies > 0 then
                 count = count - limits.tarot_copies
+            elseif ctype == 'Voucher' and limits.voucher_copies > 0 then
+                count = count - limits.voucher_copies
             end
             if count > 1 then
                 stats.total_copies = stats.total_copies + (count - 1)
@@ -2373,18 +2430,17 @@ function Back:init(selected_back)
                     ease_discard(1)
                 end
             end
-        elseif selected_back.name == 'empty' then
-            -- This used to be indigo but I wanted to keep the effect around just in case another deck wants this
+        elseif selected_back.name == 'b_mp_orange' then
             self.calculate_deck = function(context)
-                if context.discard and not context.other_card:is_playing_card() then
+                if context.discard and context.other_card:is_playing_card() and BalatroTCG.Status_Current.status.round == 1 then
                     if context.other_card.use_button then
                         context.other_card.use_button:remove()
                         context.other_card.use_button = nil
                     end
                     return {
-                        delay = 0.45, 
+                        delay = 0.45,
                         remove = true,
-                        card = self
+                        card = G.deck.cards[1],
                     }
                 end
             end
