@@ -125,6 +125,24 @@ end
 BalatroTCG.load_dir("ui")
 BalatroTCG.load_dir("src")
 
+SMODS.Atlas({
+	key = "sticker_health",
+	path = "sticker_health.png",
+	px = 71,
+	py = 95,
+})
+
+SMODS.Sticker{
+    key = "sticker_health",
+    atlas = "sticker_health",
+    badge_colour = HEX 'c75985',
+	default_compat = false,
+	needs_enable_flag = true,
+    loc_vars = function(self, info_queue, card)
+        return {vars = {card.ability.tcgb_health_amount or -50, card.ability.tcgb_max_health or BalatroTCG.Status_Current.params.joker_health}}
+    end,
+}
+
 BalatroTCG.config_tab = function()
 
 	-- MP.PREVIEW.text = SMODS.Mods["tcgb"].config.preview.text or ""
@@ -498,7 +516,7 @@ function reset_tcg_settings()
         StartingMoney = 100,
         DefaultHands = 2,
         DefaultDiscards = 2,
-        JokerHealth = 10,
+        JokerHealth = 15,
         MoneyLeak = true,
         MoneyLeakStart = 10,
         MoneyLeakIncrease = 2,
@@ -893,7 +911,7 @@ function end_tcg_round()
             end
             for i, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
                 if joker.highlighted then
-                    index = i + #BalatroTCG.Status_Current.opponentJokers
+                    index = i + #BalatroTCG.Status_Current.opponentJokers.cards
                 end
             end
         else
@@ -904,7 +922,7 @@ function end_tcg_round()
             end
             for i, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
                 if joker.highlighted then
-                    index = (#BalatroTCG.Status_Current.opponentConsumeables.cards - i) + 1 + #BalatroTCG.Status_Current.opponentJokers
+                    index = (#BalatroTCG.Status_Current.opponentConsumeables.cards - i) + 1 + #BalatroTCG.Status_Current.opponentJokers.cards
                 end
             end
         end

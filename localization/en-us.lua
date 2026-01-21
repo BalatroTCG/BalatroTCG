@@ -376,7 +376,8 @@ return {
                 name="Matador",
                 text={
                     "Redirect all damage",
-                    "to this {C:attention}Joker"
+                    "to the {C:attention}Joker{}",
+                    "on the {C:attention}left{} or {C:attention}right"
                 },
             },
             j_chicot_tcg={
@@ -593,19 +594,19 @@ return {
             },
         },
         Other={
-            tcg_health={
+            tcgb_sticker_health={
                 name="Health",
                 text={
                     "Destroyed when losing",
                     "all it's health",
-                    "{C:inactive}({C:attention}#1#{C:inactive} remaining)",
+                    "{C:inactive}({C:attention}#1#/#2#{C:inactive} remaining)",
                 },
             },
             blue_seal_tcg={
                 name="Blue Seal",
                 text={
                     "Draws the {C:planet}Planet{} card",
-                    "for final played {C:attention}poker hand{}",
+                    "for final played {C:attention}poker hand{} from full deck",
                     "of round if {C:attention}held{} in hand",
                     "{C:inactive}(Must have room)",
                 },
@@ -955,6 +956,9 @@ return {
             }
 
 		},
+        labels = {
+            tcgb_sticker_health = "Health",
+        },
         v_text = {
             tcg_err_none={
                 "No errors found",

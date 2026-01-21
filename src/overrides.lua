@@ -59,14 +59,14 @@ function Card:highlight(is_higlighted)
     else
         Card_highlight_ref(self, is_higlighted)
 
-        if BalatroTCG.GameActive and is_higlighted and self.area and (self.area == BalatroTCG.Player.opponentJokers or self.area == BalatroTCG.Player.opponentConsumeables) then
+        if BalatroTCG.GameActive and is_higlighted and self.area and (self.area == BalatroTCG.Status_Current.opponentJokers or self.area == BalatroTCG.Status_Current.opponentConsumeables) then
             
-            for k, c in ipairs(BalatroTCG.Player.opponentJokers.cards) do
+            for k, c in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
                 if c ~= self then
                     c:highlight(false)
                 end
             end
-            for k, c in ipairs(BalatroTCG.Player.opponentConsumeables.cards) do
+            for k, c in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
                 if c ~= self then
                     c:highlight(false)
                 end
@@ -628,32 +628,31 @@ function Back:trigger_effect(args)
     if BalatroTCG.GameActive then
         if not args then return end
 
-        for k, object in ipairs(BalatroTCG.Status_Current.backs) do
-            if not object.calculate_deck then goto continue end -- Find a better system for this
+        if args.context == 'final_scoring_step' then
 
-            SMODS.current_evaluated_object = object
-            local effects = object.calculate_deck(args)
-            
-            if effects then
-                for k, v in pairs(effects) do
-                    args[k] = v
+            for k, object in ipairs(BalatroTCG.Status_Current.backs) do
+                if not object.calculate_deck then goto continue end -- Find a better system for this
+
+                SMODS.current_evaluated_object = object
+                local effects = object.calculate_deck(args)
+                
+                if effects then
+                    for k, v in pairs(effects) do
+                        args[k] = v
+                    end
                 end
+
+                ::continue::
+
             end
 
-            ::continue::
+            SMODS.current_evaluated_object = nil
 
-        end
-
-        SMODS.current_evaluated_object = nil
-
-        if args.context == 'final_scoring_step' then
             return args.chips, args.mult
         end
 
-        return
-    else
-        return Back_trigger_effect_ref(self, args)
     end
+    return Back_trigger_effect_ref(self, args)
 end
 
 G.FUNCS.playing_card_to_consumables = function(e)
@@ -1114,6 +1113,8 @@ function Game:delete_run(args)
     BalatroTCG.SavedSpeed = nil
     BalatroTCG.Status_Current = nil
     BalatroTCG.Status_Other = nil
+    
+    reset_tcg_centers()
 
 
     game_delete_run_ref(self, args)
@@ -1312,14 +1313,28 @@ end
 --     if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
 --         BalatroTCG.Player:set_card_areas()
 --     end
+    
+-- 	if card and card.tcg_deck_type then
+-- 		_c = G.P_CENTERS[card.tcg_deck_type]
+--         card_type = "Back"
+-- 		local ret = generate_card_ui_ref(
+-- 			_c,
+-- 			full_UI_table,
+-- 			specific_vars,
+-- 			"Back",
+-- 			badges,
+-- 			hide_desc,
+-- 			main_start,
+-- 			main_end,
+-- 			card
+-- 		)
+--         localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
+--         if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+--             BalatroTCG.Status_Current:set_card_areas()
+--         end
 
---     -- if card and card.tcg_extra.has_health and not card.ability.eternal then
---     --     print("")
---     --     print(card.tcg_extra.health_amount)
---     --     specific_vars = specific_vars or {}
---     --     specific_vars.health_amount = card.tcg_extra.health_amount
---     --     badges[#badges + 1] = 'tcg_health'
---     -- end
+-- 		return ret
+-- 	end
     
 --     local value = generate_card_ui_ref(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
 
@@ -1342,37 +1357,6 @@ function EventManager:add_event(event, queue, front)
     else
         return EventManager_add_event_ref(self, event, queue, front)
     end
-end
-
-local generate_card_ui_ref = generate_card_ui
-function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
-	if card and card.tcg_deck_type then
-		_c = G.P_CENTERS[card.tcg_deck_type]
-		local ret = generate_card_ui_ref(
-			_c,
-			full_UI_table,
-			specific_vars,
-			"Back",
-			badges,
-			hide_desc,
-			main_start,
-			main_end,
-			card
-		)
-        localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
-		return ret
-	end
-	return generate_card_ui_ref(
-		_c,
-		full_UI_table,
-		specific_vars,
-		card_type,
-		badges,
-		hide_desc,
-		main_start,
-		main_end,
-		card
-	)
 end
 
 function pick_from_areas(check, areas, seed)

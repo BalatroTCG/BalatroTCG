@@ -13,6 +13,8 @@ function G.FUNCS.play_options(e)
 	G.SETTINGS.paused = true
 	
     BalatroTCG.UseTCG_UI = false
+	
+	reset_tcg_centers()
 
 	G.FUNCS.overlay_menu({
 		definition = G.UIDEF.override_main_menu_play_button(),
@@ -1579,7 +1581,7 @@ function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 		
 		MP.LOBBY.config.tcg_balanced = true
 		MP.LOBBY.config.health_pool = 100
-		MP.LOBBY.config.joker_health = 10
+		MP.LOBBY.config.joker_health = 15
 		MP.LOBBY.config.default_hands = 2
 		MP.LOBBY.config.default_discards = 2
 
@@ -1637,7 +1639,7 @@ function MP.UI.create_tcg_lobby_options_tab()
 								0.85,
 								{ 5, 10, 20, 25, 30, 40, 50 },
 								MP.UTILS.get_array_index_by_value(
-									{ 5, 10, 20, 25, 30, 40, 50 },
+									{ 5, 10, 15, 20, 25, 30, 40, 50 },
 									MP.LOBBY.config.joker_health
 								),
 								"change_joker_health"

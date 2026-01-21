@@ -2446,7 +2446,11 @@ function Back:init(selected_back)
             end
         elseif selected_back.name == 'Magic Deck' then
             self.calculate_deck = function(context)
-                if context.setting_blind and context.status.status.round == 1 then
+                if context.setting_blind and not context.cardarea and context.status.status.round == 1 then
+                    for k, v in pairs(context) do
+                        print(k)
+                    end
+                    print("")
                     for i = 1, 2 do
                         
                         local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
@@ -2476,7 +2480,7 @@ function Back:init(selected_back)
             end
         elseif selected_back.name == 'Ghost Deck' then
             self.calculate_deck = function(context)
-                if context.setting_blind and context.status.status.round == 1 then
+                if context.setting_blind and not context.cardarea and context.status.status.round == 1 then
                     for i = 1, 1 do
                         
                         local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})

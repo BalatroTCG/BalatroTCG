@@ -38,6 +38,7 @@ function TCG_PlayerStatus:init(deck, player)
         consumeable_H = 0.95*G.CARD_H
     }
 
+
     self.consumeables = CardArea(
         0, 0,
         CAI.consumeable_W,
@@ -183,11 +184,6 @@ function TCG_PlayerStatus:init(deck, player)
 
     BalatroTCG.Status_Current = self
     
-    for k, v in ipairs(params.starting_vouchers) do
-        local voucher = Card(-100, -100, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[v])
-        voucher:apply_to_run()
-        self.status.used_vouchers[v] = true
-    end
     
     -- This is to fix a bug where the screen goes black.  Someone explain this to me please
     G.consumeables = nil
@@ -350,6 +346,7 @@ end
 
 function TCG_PlayerStatus:apply()
 
+
     BalatroTCG.CurrentPlayer = self
 
     for k, v in ipairs(self.opponentDiscard.cards) do
@@ -369,6 +366,14 @@ function TCG_PlayerStatus:apply()
     G.GAME.bankrupt_at = self.status.bankrupt_at
 
     self:set_card_areas()
+    
+    if self.status.round == 1 then
+        for k, v in ipairs(self.params.starting_vouchers) do
+            local voucher = Card(-100, -100, G.CARD_W, G.CARD_H, nil, G.P_CENTERS[v])
+            voucher:apply_to_run()
+            self.status.used_vouchers[v] = true
+        end
+    end
     
     G.GAME.current_round.hands_left = (math.max(1, G.GAME.round_resets.hands))
     G.GAME.current_round.discards_left = math.max(0, G.GAME.round_resets.discards)
@@ -400,7 +405,7 @@ function TCG_PlayerStatus:apply()
     
 
     self.opponentJokers.config.highlighted_limit = 1
-    --self.opponentConsumeables.config.highlighted_limit = 1
+    self.opponentConsumeables.config.highlighted_limit = 1
     
     local shuffle = true
     
@@ -1156,7 +1161,7 @@ function TCG_PlayerStatus:take_attacks()
                         G.GAME.chips_damage = 0
                     else
 
-                        local attacked = math.min(joker.tcg_extra.health_amount, G.GAME.chips_damage)
+                        local attacked = math.min(joker.ability.tcgb_health_amount or 0, G.GAME.chips_damage)
 
                         G.GAME.chips_damage = G.GAME.chips_damage - attacked
                         

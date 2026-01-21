@@ -207,8 +207,8 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'functions/common_events.lua'
-pattern = '''local desc_nodes = (not full_UI_table.name and full_UI_table.main) or full_UI_table.info'''
-position = "before"
+pattern = '''function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)'''
+position = "after"
 payload = '''
 
 if BalatroTCG.UseTCG_UI then

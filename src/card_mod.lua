@@ -273,8 +273,8 @@ function Card:use_consumeable(area, copier)
                     leftmost.children.use_button = nil
                 end
                 leftmost.tcg_extra.has_health = nil
-                leftmost.tcg_extra.health_amount = nil
-                leftmost.tcg_extra.max_health = nil
+                leftmost.ability.tcgb_health_amount = nil
+                leftmost.ability.tcgb_max_health = nil
                 
             elseif self.ability.name == 'The High Priestess' then
 
@@ -484,7 +484,7 @@ function Card:calculate_joker(context)
                     for k, v in ipairs(G.jokers.cards) do
                         self:juice_up(0.3, 0.4)
                         play_sound('tarot1')
-                        v:set_tcg_health((v.tcg_extra.health_amount or 0) + self.ability.extra)
+                        v:set_tcg_health((v.ability.tcgb_health_amount or 0) + self.ability.extra)
                         delay(0.4)
                     end
                     return true end
@@ -1075,11 +1075,18 @@ end
 
 BalatroTCG.ModifiedCenters = {}
 
+function reset_tcg_centers()
+    for k, v in pairs(BalatroTCG.ModifiedCenters) do
+        G.P_CENTERS[k] = v
+    end
+
+end
+
 function create_tcg_center(self)
 
-    if self.key == 'c_base' then return G.P_CENTERS.c_base end
+    if self.key == 'c_base' then return self end
 
-    if BalatroTCG.ModifiedCenters[self.key] then return BalatroTCG.ModifiedCenters[self.key] end
+    if BalatroTCG.ModifiedCenters[self.key] then return self end
 
     local center = {}
     for k, v in pairs(self) do
@@ -1139,9 +1146,11 @@ function create_tcg_center(self)
             --     end
             -- end
         elseif name == 'Crystal Ball' then
-            -- self.redeem = function(self, card)
-            --     G.consumeables.config.card_limit = G.consumeables.config.card_limit + 1
-            -- end
+            self.redeem = function(self, card)
+                print(G.consumeables.config.card_limit)
+                G.consumeables.config.card_limit = G.consumeables.config.card_limit + 1
+                
+            end
         elseif name == 'Seed Money' then
             self.config.extra = 1
             
@@ -2353,7 +2362,8 @@ function create_tcg_center(self)
         
     end
 
-    BalatroTCG.ModifiedCenters[self.key] = self
+    BalatroTCG.ModifiedCenters[self.key] = G.P_CENTERS[k]
+    G.P_CENTERS[self.key] = self
 
     return self
 end
@@ -2441,34 +2451,34 @@ function TCG_Override_Desc(self, _c, loc_vars)
 end
 
 function Card:set_tcg_max_health(_amount)
-    self.tcg_extra.has_health = true
-    self.tcg_extra.health_amount = _amount
-    self.tcg_extra.max_health = _amount
+    self.ability.tcgb_sticker_health = true
+    self.ability.tcgb_health_amount = _amount
+    self.ability.tcgb_max_health = _amount
 end
 function Card:set_tcg_health(_amount) 
-    if not self.tcg_extra.has_health then
+    if not self.ability.tcgb_sticker_health then
         self:set_tcg_max_health(BalatroTCG.Status_Current.params.joker_health)
     elseif not self.ability.eternal then
         if _amount <= 0 then
             self:start_dissolve()
         else
-            self.tcg_extra.has_health = true
-            self.tcg_extra.health_amount = math.min(_amount, self.tcg_extra.max_health)
+            self.ability.tcgb_sticker_health = true
+            self.ability.tcgb_health_amount = math.min(_amount, self.ability.tcgb_max_health)
         end
     end
 end
 function Card:disable_tcg_health()
-    self.tcg_extra.has_health = nil
-    self.tcg_extra.health_amount = nil
-    self.tcg_extra.max_health = nil
+    self.ability.tcgb_sticker_health = nil
+    self.ability.tcgb_health_amount = nil
+    self.ability.tcgb_max_health = nil
 end
 function Card:remove_tcg_health(_amount) 
     if not self.ability.eternal then
-        self.tcg_extra.health_amount = (self.tcg_extra.health_amount or 0)
-        if self.tcg_extra.health_amount - _amount <= 0 then
+        self.ability.tcgb_health_amount = (self.ability.tcgb_health_amount or 0)
+        if self.ability.tcgb_health_amount - _amount <= 0 then
             self.skip_destroy_animation = true
         end
-        self:set_tcg_health(self.tcg_extra.health_amount - _amount)
+        self:set_tcg_health(self.ability.tcgb_health_amount - _amount)
 
         local dissolve_time = 0.7
         self.dissolve_colours = {{1,1,1,0.8}}
@@ -2483,7 +2493,7 @@ function Card:remove_tcg_health(_amount)
             fill = true
         })
 
-        card_eval_status_text(self, 'extra', nil, nil, nil, {message = tostring(self.tcg_extra.health_amount), colour = G.C.RED})
+        card_eval_status_text(self, 'extra', nil, nil, nil, {message = tostring(self.ability.tcgb_health_amount), colour = G.C.RED})
 
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
