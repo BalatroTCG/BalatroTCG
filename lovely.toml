@@ -1227,7 +1227,7 @@ if BalatroTCG.GameActive then
     if context.before then
         card.glass_trigger_count = 0
     elseif context.main_scoring then
-        card.glass_trigger_count = card.glass_trigger_count + 1
+        card.glass_trigger_count = (card.glass_trigger_count or 0) + 1
     elseif context.destroy_card and context.cardarea == G.play and context.destroy_card == card and card.glass_trigger_count > 1 then
         card.glass_trigger = true
         return { remove = true }

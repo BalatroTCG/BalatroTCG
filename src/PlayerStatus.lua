@@ -228,7 +228,11 @@ function TCG_PlayerStatus:set_backs(backs)
     --G.GAME.selected_back_key = backs[1]
 
     for k, v in ipairs(backs) do
-        self.backs[#self.backs + 1] = Back(G.P_CENTERS[v])
+        local backCenter = G.P_CENTERS[v]
+
+        if not backCenter then goto continue end
+
+        self.backs[#self.backs + 1] = Back(backCenter)
 
         if not player then
             local data = BalatroTCG.DeckBackgrounds[v] or BalatroTCG.DeckBackgrounds.unknown
@@ -244,6 +248,8 @@ function TCG_PlayerStatus:set_backs(backs)
 
             self.children[k] = sprite
         end
+
+        ::continue::
     end
 end
 

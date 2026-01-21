@@ -1043,7 +1043,6 @@ function Card:set_ability(center, initial, delay_sprites)
     end
 end
 
--- This function is way too laggy but it's the only solution I have right now
 function copy_center(center)
     local funcs = {}
 
@@ -1080,14 +1079,19 @@ function reset_tcg_centers()
         G.P_CENTERS[k] = v
     end
 
+    BalatroTCG.ModifiedCenters = {}
+
+
 end
 
 function create_tcg_center(self)
 
     if self.key == 'c_base' then return self end
 
-    if BalatroTCG.ModifiedCenters[self.key] then return self end
-
+    if BalatroTCG.ModifiedCenters[self.key] then return G.P_CENTERS[self.key] end
+    
+    BalatroTCG.ModifiedCenters[self.key] = self
+    
     local center = {}
     for k, v in pairs(self) do
         center[k] = v
@@ -2362,7 +2366,6 @@ function create_tcg_center(self)
         
     end
 
-    BalatroTCG.ModifiedCenters[self.key] = G.P_CENTERS[k]
     G.P_CENTERS[self.key] = self
 
     return self

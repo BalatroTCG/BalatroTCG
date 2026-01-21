@@ -139,7 +139,7 @@ SMODS.Sticker{
 	default_compat = false,
 	needs_enable_flag = true,
     loc_vars = function(self, info_queue, card)
-        return {vars = {card.ability.tcgb_health_amount or -50, card.ability.tcgb_max_health or BalatroTCG.Status_Current.params.joker_health}}
+        return {vars = {card.ability.tcgb_health_amount or 0, card.ability.tcgb_max_health or (BalatroTCG.GameActive and BalatroTCG.Status_Current.params.joker_health or 15)}}
     end,
 }
 
@@ -533,6 +533,9 @@ function reset_tcg_settings()
         }
     }
 end
+
+reset_tcg_settings()
+
 function set_tcg_mp_settings()
     BalatroTCG.Settings = {
         Unbalance = not MP.LOBBY.config.tcg_balanced,
@@ -657,9 +660,6 @@ function Game:start_tcg_game(args)
     self.GAME.STOP_USE = 0
     self.GAME.selected_back = Back(G.P_CENTERS.b_red)
 
-
-
-    
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
@@ -672,6 +672,7 @@ function Game:start_tcg_game(args)
     local playerDeck = BalatroTCG.SelectedDeck
     if playerDeck == 'random' then playerDeck = BalatroTCG.TabDecks[pseudorandom('asdf', 1, #BalatroTCG.TabDecks)] end
 
+    playerDeck:sort()
     
     self.GAME.hands["High Card"].visible = true
     
@@ -686,7 +687,14 @@ function Game:start_tcg_game(args)
     if args.online then
         opponentDeck = get_new_tcg_deck()
     else
-        opponentDeck = BalatroTCG.DefaultDecks[pseudorandom('asdf', 1, #BalatroTCG.DefaultDecks)]
+        local validDecks = {}
+        for k, v in ipairs(BalatroTCG.DefaultDecks) do
+            if v:has_content() then
+                validDecks[#validDecks + 1] = v
+            end
+        end
+        opponentDeck = validDecks[pseudorandom('asdf', 1, #validDecks)]
+        opponentDeck:sort()
         --opponentDeck = BalatroTCG.DefaultDecks[1]
     end
 

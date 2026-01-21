@@ -196,12 +196,12 @@ function select_tcg_deck_ui(tab_type)
 	
 	if tab_type == 'build' or tab_type == 'build_multi' then
 		for k, v in ipairs(BalatroTCG.DefaultDecks) do
-			if v:has_decks() then
+			if v:has_content() then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 		for k, v in ipairs(BalatroTCG.CustomDecks) do
-			if v:has_decks() then
+			if v:has_content() then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
@@ -219,12 +219,12 @@ function select_tcg_deck_ui(tab_type)
 		local legal_only = true
 
 		for k, v in ipairs(BalatroTCG.DefaultDecks) do
-			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only) then
+			if v:has_content() and (v:is_legal() == 'Legal' or not legal_only) then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 		for k, v in ipairs(BalatroTCG.CustomDecks) do
-			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only)  then
+			if v:has_content() and (v:is_legal() == 'Legal' or not legal_only)  then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
@@ -234,23 +234,23 @@ function select_tcg_deck_ui(tab_type)
 		local legal_only = _RELEASE_MODE
 		
 		for k, v in ipairs(BalatroTCG.DefaultDecks) do
-			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only) then
+			if v:has_content() and (v:is_legal() == 'Legal' or not legal_only) then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 		for k, v in ipairs(BalatroTCG.CustomDecks) do
-			if v:has_decks() and (v:is_legal() == 'Legal' or not legal_only)  then
+			if v:has_content() and (v:is_legal() == 'Legal' or not legal_only)  then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 	else
 		for k, v in ipairs(BalatroTCG.DefaultDecks) do
-			if v:has_decks() then
+			if v:has_content() then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
 		for k, v in ipairs(BalatroTCG.CustomDecks) do
-			if v:has_decks() then
+			if v:has_content() then
 				table.insert(BalatroTCG.TabDecks, v)
 			end
 		end
@@ -863,6 +863,7 @@ G.FUNCS.tcg_copy_build = function(e)
 		BalatroTCG.DeckIndex = #BalatroTCG.TabDecks
 	end
 
+
 	save_decks()
 
 	G.FUNCS.overlay_menu{
@@ -958,6 +959,7 @@ G.FUNCS.create_tcg_builder_cocktail = function(e)
 		)
 	end
 	local decks = MP.get_cocktail_decks()
+	table.insert(decks, 16, "b_challenge")
 
 	local cfg = SMODS.Mods["Multiplayer"].config
 	for i, v in ipairs(decks) do
@@ -1117,21 +1119,24 @@ end
 G.FUNCS.your_collection_tcg_backs_page = function(args)
 	G.tcg_addition_page = args.cycle_config.current_option
 
-	G.in_delete_run = true
+	--G.in_delete_run = true
 	if not args or not args.cycle_config then return end
 	for j = 1, #G.your_collection do
 		for i = #G.your_collection[j].cards,1, -1 do
-			local c = G.your_collection[j]:remove_card(G.your_collection[j].cards[i])
+			local c = G.your_collection[j].cards[i]
+			c.area:remove_card(c)
 			c:remove()
 			c = nil
 		end
 	end
+
 	for i = 1, 5 do
 		for j = 1, #G.your_collection do
 			local center = G.CARD_POOL[i+(j-1)*5 + (G.tcg_addition_page - 1) * 10]
 			if not center then break end
 			local card = Card(G.your_collection[j].T.x + G.your_collection[j].T.w/2, G.your_collection[j].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.S_A, G.P_CENTERS.c_base, { tcg_back = center.original_id })
-			for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do 
+			
+			for k, v in pairs(BalatroTCG.BuildingDeck.backs) do
 				if v == center.original_id then card.tcgb_deck_selected = true end
 			end
 			card.sprite_facing = 'back'
@@ -1143,7 +1148,7 @@ G.FUNCS.your_collection_tcg_backs_page = function(args)
 		end
 	end
 	
-	G.in_delete_run = false
+	--G.in_delete_run = false
 end
 
 SMODS.DrawStep({

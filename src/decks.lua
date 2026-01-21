@@ -1619,7 +1619,7 @@ function BalatroTCG.Deck:card_from_control_ex(deck, back, control)
     return _card
 end
 
-function BalatroTCG.Deck:has_decks()
+function BalatroTCG.Deck:has_content()
 
     for k, v in ipairs(self.backs) do
         if not G.P_CENTERS[v] then return false end
@@ -1789,6 +1789,8 @@ function deck_back_cost(name)
     else
         if name == 'b_abandoned' then
             return 5
+        elseif name == 'b_blue' then
+            return 5
         elseif name == 'b_checkered' then
             return 5
         elseif name == 'b_yellow' then
@@ -1797,8 +1799,8 @@ function deck_back_cost(name)
             return 10
         elseif name == 'b_challenge' then
             return 5
-        elseif name == 'b_mp_indigo' then
-            return 0
+        elseif name == 'b_mp_gradient' then
+            return 10
         else
             return 0
         end
@@ -1862,10 +1864,12 @@ function tcg_base_cost(set, name, base_cost)
     elseif set == 'Joker' then
         if name == 'Joker' then
             return 1
+        elseif name == 'Jolly Joker' or name == 'Sly Joker' then
+            return 2
         elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-            return base_cost - 2
-        elseif name == 'Jolly Joker' or name == 'Zany Joker' or name == 'Mad Joker' or name == 'Crazy Joker' or name == 'Droll Joker' or name == 'Sly Joker' or name == 'Wily Joker' or name == 'Clever Joker' or name == 'Devious Joker' or name == 'Crafty Joker' then
-            return base_cost - 1
+            return 3
+        elseif name == 'Zany Joker' or name == 'Mad Joker' or name == 'Crazy Joker' or name == 'Droll Joker' or name == 'Wily Joker' or name == 'Clever Joker' or name == 'Devious Joker' or name == 'Crafty Joker' then
+            return 3
         elseif name == 'Brainstorm' then
             return 9
         elseif name == 'Oops! All 6s' then
@@ -1891,9 +1895,9 @@ function BalatroTCG.Deck:set_cost()
 
     for i, card in ipairs(self.cards) do
         if card.type ~= 'p' then
-            local consumable = G.P_CENTERS[card.c]
+            local consumable = create_tcg_center(G.P_CENTERS[card.c])
 
-            self.cost = self.cost + tcg_base_cost(consumable.set, consumable.name, consumable.cost)
+            self.cost = self.cost + consumable.cost
         end
     end
     
@@ -2044,7 +2048,7 @@ function tcg_get_limitations(backname)
     return limits
 end
 
-function get_TCG_params(back)
+function get_TCG_params(back_list, back)
     local ret = {
         max_budget = 1e308,
         dollars = BalatroTCG.Settings.StartingMoney,
@@ -2062,13 +2066,18 @@ function get_TCG_params(back)
         -- TARGET: Set default TCG deck parameters
     }
 
-    if not back then return ret end
+    if not back_list then return ret end
 
-    if type(back) == 'table' then
+    if type(back_list) ~= 'table' then
+        back = back_list
+        back_list = {back}
+    end
+
+    if not back then
         local default = get_TCG_params(nil)
 
-        for k, v in ipairs(back) do
-            local values = get_TCG_params(v)
+        for k, v in ipairs(back_list) do
+            local values = get_TCG_params(back_list, v)
 
             ret.max_budget = math.min(values.max_budget, ret.max_budget)
             ret.discount = math.max(values.discount, ret.discount)
@@ -2151,7 +2160,19 @@ function get_TCG_params(back)
             ret.destroy_spectrals = false
             ret.joker_slots = 0
         elseif back == 'b_mp_cocktail' then
-            ret.hands = ret.hands - 1
+            local hasBlueDeck = false
+            for k, v in ipairs(back_list) do
+                if v == 'b_blue' then
+                    hasBlueDeck = true
+                    break
+                end
+            end
+
+            if hasBlueDeck then
+                ret.discards = ret.discards - 1
+            else
+                ret.hands = ret.hands - 1
+            end
         elseif back == 'b_mp_gradient' then
         elseif back == 'b_mp_heidelberg' then
         elseif back == 'b_mp_indigo' then
@@ -2172,8 +2193,6 @@ end
 function BalatroTCG.Deck:is_legal()
 
     local errors = {}
-
-    self.backs = self.backs or {}
 
     local limits = tcg_get_limitations(self.backs)
 

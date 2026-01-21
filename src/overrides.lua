@@ -74,7 +74,7 @@ function Card:highlight(is_higlighted)
         end
     end
 
-	if self.tcg_deck_type then
+	if self.tcg_deck_type and self.area and self.area.config.type == 'title' then
         if self.highlighted then
             for k, v in ipairs(BalatroTCG.BuildingDeck.backs) do
                 if self.tcg_deck_type == v then goto skip end
@@ -342,7 +342,7 @@ G.FUNCS.add_tcg_card = function(e)
                     if c.original_id == 'b_mp_cocktail' then
 
                         if BalatroTCG.BuildingDeck.backs[1] ~= 'b_mp_cocktail' then
-                            BalatroTCG.BuildingDeck.backs = { c.original_id, BalatroTCG.BuildingDeck.backs[1] }
+                            BalatroTCG.BuildingDeck.backs = { 'b_mp_cocktail', BalatroTCG.BuildingDeck.backs[1] }
                         end
 
                         BalatroTCG.BuildingDeck:sort()
@@ -1308,41 +1308,41 @@ G.FUNCS.can_discard = function(e)
 
 end
 
--- local generate_card_ui_ref = generate_card_ui
--- function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
---     if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
---         BalatroTCG.Player:set_card_areas()
---     end
+local generate_card_ui_ref = generate_card_ui
+function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
+    if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+        BalatroTCG.Player:set_card_areas()
+    end
     
--- 	if card and card.tcg_deck_type then
--- 		_c = G.P_CENTERS[card.tcg_deck_type]
---         card_type = "Back"
--- 		local ret = generate_card_ui_ref(
--- 			_c,
--- 			full_UI_table,
--- 			specific_vars,
--- 			"Back",
--- 			badges,
--- 			hide_desc,
--- 			main_start,
--- 			main_end,
--- 			card
--- 		)
---         localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
---         if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
---             BalatroTCG.Status_Current:set_card_areas()
---         end
+	if card and card.tcg_deck_type then
+		_c = G.P_CENTERS[card.tcg_deck_type]
+        card_type = "Back"
+		local ret = generate_card_ui_ref(
+			_c,
+			full_UI_table,
+			specific_vars,
+			"Back",
+			badges,
+			hide_desc,
+			main_start,
+			main_end,
+			card
+		)
+        localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
+        if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+            BalatroTCG.Status_Current:set_card_areas()
+        end
 
--- 		return ret
--- 	end
+		return ret
+	end
     
---     local value = generate_card_ui_ref(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
+    local value = generate_card_ui_ref(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)
 
---     if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
---         BalatroTCG.Status_Current:set_card_areas()
---     end
---     return value
--- end
+    if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+        BalatroTCG.Status_Current:set_card_areas()
+    end
+    return value
+end
 
 local EventManager_add_event_ref = EventManager.add_event
 function EventManager:add_event(event, queue, front)

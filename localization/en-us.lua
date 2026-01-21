@@ -131,7 +131,7 @@ return {
 				text = {
 					"Copies all effects",
 					"of {C:attention}#1#{} other decks,",
-                    "{C:red}-#2#{} hand",
+                    "{C:red}-#2#{} hand or discard",
 				},
 			},
 			b_mp_gradient_tcg = {
