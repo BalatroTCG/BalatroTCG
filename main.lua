@@ -64,7 +64,8 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 ]]
 
 -- TODO:
--- Luckies give 1 in 6 for $20
+-- Flesh out opponent display system
+-- Opponents used vouchers/consumeables will be shown, and any hit jokers will be revealed
 
 
 -- Receiving actions:
@@ -126,16 +127,32 @@ BalatroTCG.load_dir("ui")
 BalatroTCG.load_dir("src")
 
 SMODS.Atlas({
-	key = "sticker_health",
-	path = "sticker_health.png",
+	key = "sticker_hidden",
+	path = "sticker_hidden.png",
+	px = 71,
+	py = 95,
+})
+SMODS.Atlas({
+	key = "sticker_visible",
+	path = "sticker_visible.png",
 	px = 71,
 	py = 95,
 })
 
 SMODS.Sticker{
-    key = "sticker_health",
-    atlas = "sticker_health",
-    badge_colour = HEX 'c75985',
+    key = "sticker_hidden",
+    atlas = "sticker_hidden",
+    badge_colour = HEX '4c4ec7',
+	default_compat = false,
+	needs_enable_flag = true,
+    loc_vars = function(self, info_queue, card)
+        return {vars = {card.ability.tcgb_health_amount or 0, card.ability.tcgb_max_health or (BalatroTCG.GameActive and BalatroTCG.Status_Current.params.joker_health or 15)}}
+    end,
+}
+SMODS.Sticker{
+    key = "sticker_visible",
+    atlas = "sticker_visible",
+    badge_colour = HEX 'ef4864',
 	default_compat = false,
 	needs_enable_flag = true,
     loc_vars = function(self, info_queue, card)
@@ -685,7 +702,74 @@ function Game:start_tcg_game(args)
     local opponentDeck
 
     if args.online then
-        opponentDeck = get_new_tcg_deck()
+        opponentDeck = BalatroTCG.Deck('b_red', 'Custom_Deck', {
+            { type = 'p', r = 'A', s = 'S' },
+            { type = 'p', r = 'K', s = 'S' },
+            { type = 'p', r = 'Q', s = 'S' },
+            { type = 'p', r = 'J', s = 'S' },
+            { type = 'p', r = 'T', s = 'S' },
+            { type = 'p', r = '9', s = 'S' },
+            { type = 'p', r = '8', s = 'S' },
+            { type = 'p', r = '7', s = 'S' },
+            { type = 'p', r = '6', s = 'S' },
+            { type = 'p', r = '5', s = 'S' },
+            { type = 'p', r = '4', s = 'S' },
+            { type = 'p', r = '3', s = 'S' },
+            { type = 'p', r = '2', s = 'S' },
+
+            { type = 'p', r = 'A', s = 'H' },
+            { type = 'p', r = 'K', s = 'H' },
+            { type = 'p', r = 'Q', s = 'H' },
+            { type = 'p', r = 'J', s = 'H' },
+            { type = 'p', r = 'T', s = 'H' },
+            { type = 'p', r = '9', s = 'H' },
+            { type = 'p', r = '8', s = 'H' },
+            { type = 'p', r = '7', s = 'H' },
+            { type = 'p', r = '6', s = 'H' },
+            { type = 'p', r = '5', s = 'H' },
+            { type = 'p', r = '4', s = 'H' },
+            { type = 'p', r = '3', s = 'H' },
+            { type = 'p', r = '2', s = 'H' },
+            
+            { type = 'p', r = 'A', s = 'C' },
+            { type = 'p', r = 'K', s = 'C' },
+            { type = 'p', r = 'Q', s = 'C' },
+            { type = 'p', r = 'J', s = 'C' },
+            { type = 'p', r = 'T', s = 'C' },
+            { type = 'p', r = '9', s = 'C' },
+            { type = 'p', r = '8', s = 'C' },
+            { type = 'p', r = '7', s = 'C' },
+            { type = 'p', r = '6', s = 'C' },
+            { type = 'p', r = '5', s = 'C' },
+            { type = 'p', r = '4', s = 'C' },
+            { type = 'p', r = '3', s = 'C' },
+            { type = 'p', r = '2', s = 'C' },
+            
+            { type = 'p', r = 'A', s = 'D' },
+            { type = 'p', r = 'K', s = 'D' },
+            { type = 'p', r = 'Q', s = 'D' },
+            { type = 'p', r = 'J', s = 'D' },
+            { type = 'p', r = 'T', s = 'D' },
+            { type = 'p', r = '9', s = 'D' },
+            { type = 'p', r = '8', s = 'D' },
+            { type = 'p', r = '7', s = 'D' },
+            { type = 'p', r = '6', s = 'D' },
+            { type = 'p', r = '5', s = 'D' },
+            { type = 'p', r = '4', s = 'D' },
+            { type = 'p', r = '3', s = 'D' },
+            { type = 'p', r = '2', s = 'D' },
+            
+            { type = 'j', c = 'j_cavendish' },
+            { type = 'j', c = 'j_joker' },
+            { type = 'j', c = 'j_gros_michel' },
+            
+            { type = 'j', c = 'j_blueprint' },
+            
+            { type = 'c', c = 'c_fool' },
+            { type = 'c', c = 'c_hermit' },
+            { type = 'c', c = 'c_immolate' },
+            { type = 'c', c = 'c_ectoplasm' },
+        })
     else
         local validDecks = {}
         for k, v in ipairs(BalatroTCG.DefaultDecks) do

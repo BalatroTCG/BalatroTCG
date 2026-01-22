@@ -96,8 +96,6 @@ function Card:use_consumeable(area, copier)
             end
         end
 
-        BalatroTCG.Status_Current:setup_visuals(self, G.discard, area)
-        
         stop_use()
 
         if self.ability.set == 'Planet' then
@@ -1034,12 +1032,14 @@ function Card:set_ability(center, initial, delay_sprites)
         if not BalatroTCG.Settings.Unbalance then
             center.use_original_desc = nil
         end
+        -- self.config.center_key = center.key
     end
 
     set_ability_ref(self, center, initial, delay_sprites)
     
     if BalatroTCG.UseTCG_UI then
-        self.config.center_key = center.key
+        print(self.config.center_key)
+        -- self.config.center_key = center.key
     end
 end
 
@@ -1087,10 +1087,11 @@ end
 function create_tcg_center(self)
 
     if self.key == 'c_base' then return self end
+    --if true then return self end
 
     if BalatroTCG.ModifiedCenters[self.key] then return G.P_CENTERS[self.key] end
     
-    BalatroTCG.ModifiedCenters[self.key] = self
+    BalatroTCG.ModifiedCenters[self.key] = G.P_CENTERS[self.key]
     
     local center = {}
     for k, v in pairs(self) do
@@ -2401,7 +2402,7 @@ function TCG_Override_Desc(self, _c, loc_vars)
     elseif _c.name == 'Bull' then loc_vars = {ability.extra, ability.extra*math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_health or 0)))}
     elseif _c.name == 'Triboulet' then loc_vars = {ability.extra, G.GAME.probabilities.normal, ability.chance}
     elseif _c.name == 'Bloodstone' then 
-        local a, b = SMODS.get_probability_vars(self, self.ability.extra.num, self.ability.extra.denom, 'bloodstone')
+        local a, b = SMODS.get_probability_vars(self, self.ability.extra.num, self.ability.extra.odds, 'bloodstone')
         loc_vars = {a, b, self.ability.extra.Xmult}
     elseif _c.name == 'The Idol' and self then loc_vars = {ability.extra, localize(self:get_ability_rank(G.GAME.current_round.idol_card.rank), 'ranks'), localize(self:get_ability_suit(G.GAME.current_round.idol_card.suit), 'suits_plural'), colours = {G.C.SUITS[self:get_ability_suit(G.GAME.current_round.idol_card.suit)]}}
     elseif _c.name == 'Mail-In Rebate' and self then loc_vars = {ability.extra, localize(self:get_ability_rank(G.GAME.current_round.mail_card.rank), 'ranks')}
@@ -2454,29 +2455,32 @@ function TCG_Override_Desc(self, _c, loc_vars)
 end
 
 function Card:set_tcg_max_health(_amount)
-    self.ability.tcgb_sticker_health = true
+    self.tcg_extra.has_health = true
+    self.ability.tcgb_sticker_hidden = true
     self.ability.tcgb_health_amount = _amount
     self.ability.tcgb_max_health = _amount
 end
 function Card:set_tcg_health(_amount) 
-    if not self.ability.tcgb_sticker_health then
+    if not self.tcg_extra.has_health then
         self:set_tcg_max_health(BalatroTCG.Status_Current.params.joker_health)
     elseif not self.ability.eternal then
         if _amount <= 0 then
             self:start_dissolve()
         else
-            self.ability.tcgb_sticker_health = true
             self.ability.tcgb_health_amount = math.min(_amount, self.ability.tcgb_max_health)
         end
     end
 end
 function Card:disable_tcg_health()
-    self.ability.tcgb_sticker_health = nil
+    self.tcg_extra.has_health = nil
+    self.ability.tcgb_sticker_hidden = nil
+    self.ability.tcgb_sticker_visible = nil
     self.ability.tcgb_health_amount = nil
     self.ability.tcgb_max_health = nil
 end
 function Card:remove_tcg_health(_amount) 
     if not self.ability.eternal then
+        
         self.ability.tcgb_health_amount = (self.ability.tcgb_health_amount or 0)
         if self.ability.tcgb_health_amount - _amount <= 0 then
             self.skip_destroy_animation = true

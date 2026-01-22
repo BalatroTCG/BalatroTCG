@@ -12,6 +12,7 @@ G.FUNCS.play_cards_from_highlighted = function(e)
         end
     end
     play_cards_from_highlighted_ref(e)
+    
 end
 
 local can_highlight_ref = CardArea.can_highlight
@@ -203,10 +204,21 @@ end
 local Card_calculate_seal = Card.calculate_seal
 function Card:calculate_seal(context)
 
+    -- Apparently red seals in the consumeables count for playing cards???
+    if BalatroTCG.GameActive and self.seal == 'Red' then
+        if context.repetition and context.other_card == self then
+            return {
+                message = localize('k_again_ex'),
+                repetitions = 1,
+                card = self
+            }
+        end
+
+        return
+    end
     if BalatroTCG.GameActive and context.discard and context.other_card == self then
         local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
         local status = BalatroTCG.Status_Current
-
 
         if card and self.seal == 'Purple' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
             card.area:remove_card(card)
@@ -715,6 +727,9 @@ G.FUNCS.playing_card_to_hand = function(e)
             trigger = 'after',
             delay = 0.1,
             func = function()
+                c1.ability.tcgb_sticker_hidden = false
+                c1.ability.tcgb_sticker_visible = false
+
                 c1.from_area = c1.area
                 c1.area:remove_card(c1)
                 c1:add_to_deck()
@@ -1172,11 +1187,6 @@ function ease_dollars(mod, instant)
     end
 end
 
-local create_UIBox_options_ref = create_UIBox_options
-function create_UIBox_options()
-    --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
-    return create_UIBox_options_ref()
-end
 
 -- I'm scared this will break something
 local emplace_Index = 0
@@ -1278,6 +1288,8 @@ end
 local start_setup_run_ref = G.FUNCS.start_setup_run
 G.FUNCS.start_setup_run = function(e)
     BalatroTCG.GameActive = false
+
+    reset_tcg_centers()
 
     return start_setup_run_ref(e)
 end

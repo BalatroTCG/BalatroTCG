@@ -107,6 +107,21 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'functions/button_callbacks.lua'
+pattern = "else draw_card(G.hand, G.play, 1, 'up', true, card, nil, mute) end"
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    BalatroTCG.Status_Current.visual_delay = 1000
+    BalatroTCG.Status_Current:check_visuals()
+    
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/button_callbacks.lua'
 pattern = "if card.ability.set == 'Voucher' then"
 position = "at"
 payload = '''if card.ability.set == 'Voucher' and not BalatroTCG.GameActive then 
@@ -246,6 +261,26 @@ if BalatroTCG.GameActive then
     
     G.GAME.won = game_won
     game_over = not game_won
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''check_for_unlock({type = 'run_card_replays'})'''
+position = "before"
+payload = '''
+if BalatroTCG.GameActive then
+    G.E_MANAGER:add_event(Event({
+        trigger = 'immediate',
+        func = function()
+            BalatroTCG.Player.visual_delay = 1000
+            BalatroTCG.Player:check_visuals()
+            return true
+        end
+    }))
 end
 '''
 match_indent = true
@@ -791,6 +826,20 @@ target = 'card.lua'
 pattern = "if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) then"
 position = "at"
 payload = '''if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) or (BalatroTCG.GameActive and self.ability.set == 'Voucher') or (G.GAME.modifiers.buy_cards and self:is_playing_card()) then
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''
+if context.repetition then
+    if self.seal == 'Red' then'''
+position = "at"
+payload = '''
+if context.repetition then
+    if self.seal == 'Red' then
 '''
 match_indent = true
 overwrite = true

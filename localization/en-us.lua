@@ -594,12 +594,20 @@ return {
             },
         },
         Other={
-            tcgb_sticker_health={
-                name="Health",
+            tcgb_sticker_hidden={
+                name="Hidden",
                 text={
-                    "Destroyed when losing",
-                    "all it's health",
-                    "{C:inactive}({C:attention}#1#/#2#{C:inactive} remaining)",
+                    "Hidden from",
+                    "your opponent",
+                    "{C:inactive}({C:attention}#1#/#2#{C:inactive} health)",
+                },
+            },
+            tcgb_sticker_visible={
+                name="Visible",
+                text={
+                    "Visible to",
+                    "your opponent",
+                    "{C:inactive}({C:attention}#1#/#2#{C:inactive} health)",
                 },
             },
             blue_seal_tcg={
@@ -622,8 +630,8 @@ return {
             purple_seal_tcg={
                 name="Purple Seal",
                 text={
-                    "Draws a {C:tarot}Tarot{} card",
-                    "when {C:attention}discarded",
+                    "Draws a {C:tarot}Tarot{} card from",
+                    "full deck when {C:attention}discarded",
                     "{C:inactive}(Must have room)",
                 },
             },
@@ -951,13 +959,11 @@ return {
 
 			k_tcg_bet = "Spend $ to go first?",
 			k_tcg_waiting = "Waiting for opponent...",
-            labels={
-                tcg_health="Health"
-            }
 
 		},
         labels = {
-            tcgb_sticker_health = "Health",
+            tcgb_sticker_hidden = "Hidden",
+            tcgb_sticker_visible = "Visible",
         },
         v_text = {
             tcg_err_none={

@@ -2382,7 +2382,7 @@ function Back:init(selected_back)
     if BalatroTCG.GameActive then
         if selected_back.name == 'Green Deck' then
             self.calculate_deck = function(context)
-                if not context.repetition and not context.individual and context.end_of_round and G.GAME.current_round.discards_left > 0 then
+                if not context.cardarea and not context.repetition and not context.individual and context.end_of_round and G.GAME.current_round.discards_left > 0 then
                     ease_dollars(G.GAME.current_round.discards_left * 2)
                 end
             end
@@ -2444,7 +2444,7 @@ function Back:init(selected_back)
             end
         elseif selected_back.name == 'Anaglyph Deck' then
             self.calculate_deck = function(context)
-                if context.setting_blind and math.fmod(context.status.status.round, 3) == 0 then
+                if context.setting_blind and not context.cardarea and math.fmod(context.status.status.round, 3) == 0 then
                     ease_hands_played(1)
                     ease_discard(1)
                 end
