@@ -504,7 +504,7 @@ if BalatroTCG.GameActive and not (self.tcg_extra and self.tcg_extra.virtual) the
     for k, v in ipairs(G.playing_cards) do
         if v == self then
             G.graveyard:emplace(self)
-            self.REMOVED = true
+            
             
             table.remove(G.playing_cards, k)
             for k2, v2 in ipairs(G.playing_cards) do
@@ -539,6 +539,23 @@ else
     else
         G.jokers.config.card_limit = G.jokers.config.card_limit - 1
     end
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''
+local eval = function(card) return not card.REMOVED end
+'''
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    local eval = function(card) return card.area == G.graveyard or card.area == G.discard end
+else
+    local eval = function(card) return not card.REMOVED end
 end
 '''
 match_indent = true

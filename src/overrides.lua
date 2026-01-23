@@ -7,6 +7,10 @@ G.FUNCS.play_cards_from_highlighted = function(e)
             joker:highlight(false)
             joker.states.drag.can = false
         end
+        for _, joker in ipairs(G.consumeables.cards) do
+            joker:highlight(false)
+            joker.states.drag.can = false
+        end
         for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
             joker.states.drag.can = false
         end
@@ -182,20 +186,36 @@ function Game:init_game_object(...)
     local output = init_game_object_ref(self, ...)
 
     if BalatroTCG.UseTCG_UI then
-        output.hands = {
-            ["Flush Five"] =        {order = 1, mult = 16,  chips = 160, s_mult = 16,  s_chips = 160, level = 1, l_mult = 2,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true},{'S_A', true}}},
-            ["Flush House"] =       {order = 2, mult = 14,  chips = 140, s_mult = 14,  s_chips = 140, level = 1, l_mult = 3,  l_chips = 40, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'D_7', true},{'D_7', true},{'D_7', true},{'D_4', true},{'D_4', true}}},
-            ["Five of a Kind"] =    {order = 3, mult = 12,  chips = 120, s_mult = 12,  s_chips = 120, level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_A', true},{'H_A', true},{'H_A', true},{'C_A', true},{'D_A', true}}},
-            ["Straight Flush"] =    {order = 4, mult = 8,   chips = 100, s_mult = 8,   s_chips = 100, level = 1, l_mult = 10, l_chips = 80, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_Q', true},{'S_J', true},{'S_T', true},{'S_9', true},{'S_8', true}}},
-            ["Four of a Kind"] =    {order = 5, mult = 7,   chips = 60,  s_mult = 7,   s_chips = 60,  level = 1, l_mult = 4,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_J', true},{'H_J', true},{'C_J', true},{'D_J', true},{'C_3', false}}},
-            ["Full House"] =        {order = 6, mult = 4,   chips = 40,  s_mult = 4,   s_chips = 40,  level = 1, l_mult = 3,  l_chips = 35, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'H_K', true},{'C_K', true},{'D_K', true},{'S_2', true},{'D_2', true}}},
-            ["Flush"] =             {order = 7, mult = 4,   chips = 35,  s_mult = 4,   s_chips = 35,  level = 1, l_mult = 2,  l_chips = 25, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'H_A', true},{'H_K', true},{'H_T', true},{'H_5', true},{'H_4', true}}},
-            ["Straight"] =          {order = 8, mult = 4,   chips = 30,  s_mult = 4,   s_chips = 30,  level = 1, l_mult = 6,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'D_J', true},{'C_T', true},{'C_9', true},{'S_8', true},{'H_7', true}}},
-            ["Three of a Kind"] =   {order = 9, mult = 3,   chips = 30,  s_mult = 3,   s_chips = 30,  level = 1, l_mult = 4,  l_chips = 25, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_T', true},{'C_T', true},{'D_T', true},{'H_6', false},{'D_5', false}}},
-            ["Two Pair"] =          {order = 10,mult = 2,   chips = 20,  s_mult = 2,   s_chips = 20,  level = 1, l_mult = 1,  l_chips = 50, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'H_A', true},{'D_A', true},{'C_Q', false},{'H_4', true},{'C_4', true}}},
-            ["Pair"] =              {order = 11,mult = 2,   chips = 10,  s_mult = 2,   s_chips = 10,  level = 1, l_mult = 0,  l_chips = 30, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_K', false},{'S_9', true},{'D_9', true},{'H_6', false},{'D_3', false}}},
-            ["High Card"] =         {order = 12,mult = 1,   chips = 5,   s_mult = 1,   s_chips = 5,   level = 1, l_mult = 2,  l_chips = 00, played = 0, played_this_round = 0, played_this_ante = 0, example = {{'S_A', true},{'D_Q', false},{'D_9', false},{'C_4', false},{'D_3', false}}},
-        }
+        for k, v in pairs(output.hands) do
+            v.visible = k == "High Card"
+        end
+        output.hands["Straight Flush"].l_mult = 10
+        output.hands["Straight Flush"].l_chips = 80
+        output.hands["Flush House"].l_mult = 8
+        output.hands["Flush House"].l_chips = 50
+        output.hands["Five of a Kind"].l_mult = 6
+        output.hands["Five of a Kind"].l_chips = 65
+        output.hands["Flush Five"].l_mult = 3
+        output.hands["Flush Five"].l_chips = 70
+
+        output.hands["Straight"].l_mult = 6
+        output.hands["Straight"].l_chips = 60
+        output.hands["Full House"].l_mult = 4
+        output.hands["Full House"].l_chips = 60
+        output.hands["Four of a Kind"].l_mult = 3
+        output.hands["Four of a Kind"].l_chips = 40
+        output.hands["Flush"].l_mult = 2
+        output.hands["Flush"].l_chips = 25
+
+        output.hands["Three of a Kind"].l_mult = 2
+        output.hands["Three of a Kind"].l_chips = 30
+        output.hands["Two Pair"].l_mult = 2
+        output.hands["Two Pair"].l_chips = 20
+        output.hands["Pair"].l_mult = 1
+        output.hands["Pair"].l_chips = 30
+        output.hands["High Card"].l_mult = 1
+        output.hands["High Card"].l_chips = 20
+
     end
 
     return output
@@ -217,32 +237,36 @@ function Card:calculate_seal(context)
         return
     end
     if BalatroTCG.GameActive and context.discard and context.other_card == self then
-        local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
-        local status = BalatroTCG.Status_Current
 
-        if card and self.seal == 'Purple' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-            card.area:remove_card(card)
+        if self.seal == 'Purple' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+            local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard, G.hand})
+            
+            if card then
+                local status = BalatroTCG.Status_Current
+                card.area:remove_card(card)
 
-            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-            G.E_MANAGER:add_event(Event({
-                trigger = 'before',
-                delay = 0.0,
-                func = (function()
-                    card:start_materialize()
-                    status.consumeables:emplace(card)
+                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'before',
+                    delay = 0.0,
+                    func = (function()
+                        card:start_materialize()
+                        status.consumeables:emplace(card)
 
-                    for _, c in ipairs(G.playing_cards) do
-                        if c == card then
-                            goto skip
+                        for _, c in ipairs(G.playing_cards) do
+                            if c == card then
+                                goto skip
+                            end
                         end
-                    end
-                    table.insert(status.playing_cards, card)
-                    ::skip::
-                    G.GAME.consumeable_buffer = 0
-                    return true
-                end)}))
-            card_eval_status_text(self, 'extra', nil, nil, nil, {message = localize('k_plus_tarot'), colour = G.C.PURPLE})
-            return nil, true
+                        table.insert(status.playing_cards, card)
+                        ::skip::
+                        G.GAME.consumeable_buffer = 0
+                        return true
+                    end)}))
+                card_eval_status_text(self, 'extra', nil, nil, nil, {message = localize('k_plus_tarot'), colour = G.C.PURPLE})
+                return nil, true
+            end
+            return
         end
     end
     return Card_calculate_seal(self, context)
@@ -1120,17 +1144,19 @@ end
 local game_delete_run_ref = Game.delete_run
 function Game:delete_run(args)
 
-    BalatroTCG.GameActive = false
-    BalatroTCG.GameStarted = false
+    if BalatroTCG.GameActive then
+        BalatroTCG.GameActive = false
+        BalatroTCG.GameStarted = false
 
 
-    BalatroTCG.GraveyardView = false
-    BalatroTCG.MuteAudio = false
-    BalatroTCG.PlayerActive = false
-    BalatroTCG.UseTCG_UI = false
-    BalatroTCG.SavedSpeed = nil
-    BalatroTCG.Status_Current = nil
-    BalatroTCG.Status_Other = nil
+        BalatroTCG.GraveyardView = false
+        BalatroTCG.MuteAudio = false
+        BalatroTCG.PlayerActive = false
+        BalatroTCG.UseTCG_UI = false
+        BalatroTCG.SavedSpeed = nil
+        BalatroTCG.Status_Current = nil
+        BalatroTCG.Status_Other = nil
+    end
     
     reset_tcg_centers()
 
@@ -1212,7 +1238,16 @@ function CardArea:emplace(card, location, stay_flipped)
 
     end
 
+    
+
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
+        if self ~= G.graveyard then
+            self.REMOVED = nil
+        end
+        if self == G.discard or self == G.graveyard then
+            card.ability.tcgb_sticker_hidden = false
+            card.ability.tcgb_sticker_visible = false
+        end
         if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then
             BalatroTCG.Status_Current:setup_visuals(card, self)
         end

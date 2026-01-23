@@ -475,14 +475,6 @@ return {
                     "{C:inactive}(Currently {C:attention}#2#{C:inactive}/#3#)",
                 },
             },
-            j_astronomer_tcg={
-                name="Astronomer",
-                text={
-                    "All {C:planet}Planet{} cards",
-                    "are {C:attention}free and",
-                    "return your discard pile"
-                },
-            },
             j_chaos_tcg={
                 name="Chaos the Clown",
                 text={
@@ -579,7 +571,8 @@ return {
                 name="Astronomer",
                 text={
                     "All {C:planet}Planet{} cards",
-                    "are {C:attention}free",
+                    "are {C:attention}free and",
+                    "return your discard pile"
                 },
             },
             j_perkeo_tcg={
@@ -594,9 +587,12 @@ return {
             j_cartomancer_tcg={
                 name="Cartomancer",
                 text={
-                    "Draw a {C:tarot}Tarot{} card",
-                    "at start of {C:attention}Round{},",
+                    "{C:tarot}Tarot{} cards return to",
+                    "{C:red}discard{} pile after use,",
+                    "draw a {C:tarot}Tarot{} card",
+                    "at start of {C:attention}Round{}",
                     "{C:inactive}(Must have room)",
+
                 },
             },
             j_triboulet_tcg={
@@ -694,15 +690,6 @@ return {
             },
         },
         Tarot={
-            c_fool_tcg={
-                name="The Fool",
-                text={
-                    "Creates the last",
-                    "{C:tarot}Tarot{} or {C:planet}Planet{} card",
-                    "used during this run",
-                    "{s:0.8,C:tarot}The Fool{s:0.8} and {s:0.8,C:tarot}The Hermit{s:0.8} excluded",
-                },
-            },
             c_hermit_tcg={
                 name="The Hermit",
                 text={
@@ -726,7 +713,7 @@ return {
                     "Draws the last",
                     "{C:tarot}Tarot{} or {C:planet}Planet{} card",
                     "used during this game",
-                    "{s:0.8,C:tarot}The Fool{s:0.8} excluded",
+                    "{s:0.8,C:tarot}The Fool{s:0.8} and {s:0.8,C:tarot}The Hermit{s:0.8} excluded",
                 },
             },
             c_high_priestess_tcg={

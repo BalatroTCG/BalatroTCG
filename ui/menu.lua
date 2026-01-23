@@ -15,6 +15,11 @@ function G.FUNCS.play_options(e)
     BalatroTCG.UseTCG_UI = false
 	
 	reset_tcg_centers()
+	
+    local usingUI = BalatroTCG.UseTCG_UI
+    BalatroTCG.UseTCG_UI = false
+    G.GAME = G:init_game_object()
+    BalatroTCG.UseTCG_UI = usingUI
 
 	G.FUNCS.overlay_menu({
 		definition = G.UIDEF.override_main_menu_play_button(),
@@ -137,43 +142,47 @@ function localize(args, misc_cat)
         return localize_ref(args, misc_cat)
     end
 
-    if args and BalatroTCG.UseTCG_UI and args.set == 'Back' and G.P_CENTERS[args.key] then
-		local loc_args = nil
+    if args and BalatroTCG.UseTCG_UI then
+		if args.set == 'Back' and G.P_CENTERS[args.key] then
+			local loc_args = nil
 
 
-		local back_name = args.key
+			local back_name = args.key
 
-		if G.P_CENTERS[back_name] and G.P_CENTERS[back_name].tcg_loc_vars and type(G.P_CENTERS[back_name].tcg_loc_vars) == 'function' then
-			local res = G.P_CENTERS[back_name]:tcg_loc_vars() or {}
-			loc_args = res.vars
-		elseif back_name == 'b_blue' then loc_args = { 1 }
-		elseif back_name == 'b_red' then loc_args = { 1 }
-		elseif back_name == 'b_yellow' then loc_args = { 25 }
-		elseif back_name == 'b_green' then loc_args = { 2 }
-		elseif back_name == 'b_black' then loc_args = { 1, 1 }
-		elseif back_name == 'b_magic' then  loc_args = { localize{type = 'name_text', key = 'v_crystal_ball', set = 'Voucher'} }
-		elseif back_name == 'b_nebula' then loc_args = { localize{type = 'name_text', key = 'v_telescope', set = 'Voucher'} }
-		elseif back_name == 'b_ghost' then loc_args = { }
-		elseif back_name == 'b_abandoned' then 
-		elseif back_name == 'b_checkered' then
-		elseif back_name == 'b_zodiac' then loc_args = { localize{type = 'name_text', key = 'v_tarot_merchant', set = 'Voucher'}, localize{type = 'name_text', key = 'v_planet_merchant', set = 'Voucher'} }
-		elseif back_name == 'b_painted' then loc_args = { 2, -1 }
-		elseif back_name == 'b_anaglyph' then loc_args = {1, 3}
-		elseif back_name == 'b_plasma' then loc_args = { 50 }
-		elseif back_name == 'b_erratic' then loc_args = { 5 }
-		elseif back_name == 'b_challenge' then loc_args = { 30 }
-		
-		elseif back_name == 'b_mp_cocktail' then loc_args = { 2, 1 }
-		elseif back_name == 'b_mp_gradient' then loc_args = { }
-		elseif back_name == 'b_mp_heidelberg' then loc_args = { 2 }
-		elseif back_name == 'b_mp_indigo' then loc_args = { 70, 1 }
-		elseif back_name == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, 90 }
-		elseif back_name == 'b_mp_orange' then loc_args = { 2 }
-		elseif back_name == 'b_mp_violet' then loc_args = { 4 }
+			if G.P_CENTERS[back_name] and G.P_CENTERS[back_name].tcg_loc_vars and type(G.P_CENTERS[back_name].tcg_loc_vars) == 'function' then
+				local res = G.P_CENTERS[back_name]:tcg_loc_vars() or {}
+				loc_args = res.vars
+			elseif back_name == 'b_blue' then loc_args = { 1 }
+			elseif back_name == 'b_red' then loc_args = { 1 }
+			elseif back_name == 'b_yellow' then loc_args = { 25 }
+			elseif back_name == 'b_green' then loc_args = { 2 }
+			elseif back_name == 'b_black' then loc_args = { 1, 1 }
+			elseif back_name == 'b_magic' then  loc_args = { localize{type = 'name_text', key = 'v_crystal_ball', set = 'Voucher'} }
+			elseif back_name == 'b_nebula' then loc_args = { localize{type = 'name_text', key = 'v_telescope', set = 'Voucher'} }
+			elseif back_name == 'b_ghost' then loc_args = { }
+			elseif back_name == 'b_abandoned' then 
+			elseif back_name == 'b_checkered' then
+			elseif back_name == 'b_zodiac' then loc_args = { localize{type = 'name_text', key = 'v_tarot_merchant', set = 'Voucher'}, localize{type = 'name_text', key = 'v_planet_merchant', set = 'Voucher'} }
+			elseif back_name == 'b_painted' then loc_args = { 2, -1 }
+			elseif back_name == 'b_anaglyph' then loc_args = {1, 3}
+			elseif back_name == 'b_plasma' then loc_args = { 50 }
+			elseif back_name == 'b_erratic' then loc_args = { 5 }
+			elseif back_name == 'b_challenge' then loc_args = { 30 }
+			
+			elseif back_name == 'b_mp_cocktail' then loc_args = { 2, 1 }
+			elseif back_name == 'b_mp_gradient' then loc_args = { }
+			elseif back_name == 'b_mp_heidelberg' then loc_args = { 2 }
+			elseif back_name == 'b_mp_indigo' then loc_args = { 70, 1 }
+			elseif back_name == 'b_mp_oracle' then loc_args = { localize{type = 'name_text', key = 'v_clearance_sale', set = 'Voucher'}, 90 }
+			elseif back_name == 'b_mp_orange' then loc_args = { 2 }
+			elseif back_name == 'b_mp_violet' then loc_args = { 4 }
+			end
+			
+			args.key = args.key .. '_tcg'
+			args.vars = loc_args or args.vars
+		elseif args.set == 'Other' and G.localization.descriptions[args.set][args.key .. '_tcg'] then -- Temporary fix for seals
+			args.key = args.key .. '_tcg'
 		end
-		
-        args.key = args.key .. '_tcg'
-		args.vars = loc_args or args.vars
     end
     return localize_ref(args, misc_cat)
 end
@@ -606,9 +615,11 @@ function create_tcg_builder(type, callback)
 	reset_tcg_settings()
 
     BalatroTCG.UseTCG_UI = true
+    G.GAME = G:init_game_object()
 
 	local deck_tables = {}
 	local buildDeck = {}
+	
 
 	-- table.insert(deck_tables, {n=G.UIT.R, config={align = "cm", padding = 1}, nodes={}})
 	-- table.insert(buildDeck, {n=G.UIT.R, config={align = "cm", padding = 1}, nodes={}})

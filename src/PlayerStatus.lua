@@ -533,11 +533,16 @@ function TCG_PlayerStatus:apply()
     for k, v in ipairs(self.playing_cards) do 
         v:set_cost()
     end
-    for k, v in ipairs(self.graveyard) do 
+    for k, v in ipairs(self.graveyard) do
         v:set_cost()
     end
     
     for _, joker in ipairs(self.jokers.cards) do
+        joker.states.drag.can = true
+        joker.states.collide.can = true
+        if joker.facing == 'back' then joker:flip() end
+    end
+    for _, joker in ipairs(self.consumeables.cards) do
         joker.states.drag.can = true
         joker.states.collide.can = true
         if joker.facing == 'back' then joker:flip() end

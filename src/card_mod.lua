@@ -101,7 +101,7 @@ function Card:use_consumeable(area, copier)
         if self.ability.set == 'Planet' then
             if not BalatroTCG.Status_Current.params.destroy_planets or next(SMODS.find_card('j_astronomer')) then self.tcg_todeck = true end
         elseif self.ability.set == 'Tarot' then
-            if not BalatroTCG.Status_Current.params.destroy_tarots then self.tcg_todeck = true end
+            if not BalatroTCG.Status_Current.params.destroy_tarots or next(SMODS.find_card('j_cartomancer')) then self.tcg_todeck = true end
         elseif self.ability.set == 'Spectral' then
             if not BalatroTCG.Status_Current.params.destroy_spectrals then self.tcg_todeck = true end
         end
@@ -123,7 +123,7 @@ function Card:use_consumeable(area, copier)
                     (c.ability.set == 'Joker' and not (
                         c.config.center.no_pool_flag and G.GAME.pool_flags[c.config.center.no_pool_flag] or
                         c.config.center.yes_pool_flag and not G.GAME.pool_flags[c.config.center.yes_pool_flag]
-                    )) end, {G.deck, G.discard, G.graveyard})
+                    )) end, {G.deck, G.discard, G.graveyard, G.hand})
                 
                 if card then
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
@@ -152,7 +152,7 @@ function Card:use_consumeable(area, copier)
 
                 local center = G.P_CENTERS[G.GAME.last_tarot_planet]
 
-                local card = pick_from_areas(function (c) return c.ability.name == center.name end, {G.deck, G.discard, G.graveyard})
+                local card = pick_from_areas(function (c) return c.ability.name == center.name end, {G.deck, G.discard, G.graveyard, G.hand})
                 
                 if card then
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
@@ -234,7 +234,7 @@ function Card:use_consumeable(area, copier)
             elseif self.ability.name == 'The Emperor' then
                 
                 for i = 1, math.min(self.ability.consumeable.tarots, G.consumeables.config.card_limit - #G.consumeables.cards) do
-                    local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
+                    local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard, G.hand})
 
                     if card then
                         card.area:remove_card(card)
@@ -277,7 +277,7 @@ function Card:use_consumeable(area, copier)
             elseif self.ability.name == 'The High Priestess' then
 
                 for i = 1, math.min(self.ability.consumeable.planets, G.consumeables.config.card_limit - #G.consumeables.cards) do
-                    local card = pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard})
+                    local card = pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard, G.hand})
 
                     if card then
                         card.area:remove_card(card)
@@ -1076,9 +1076,7 @@ function reset_tcg_centers()
     for k, v in pairs(BalatroTCG.ModifiedCenters) do
         G.P_CENTERS[k] = v
     end
-
     BalatroTCG.ModifiedCenters = {}
-
 
 end
 
@@ -1340,7 +1338,7 @@ function create_tcg_center(self)
                 end
             end
         elseif name == 'Greedy Joker' or name == 'Lusty Joker' or name == 'Wrathful Joker' or name == 'Gluttonous Joker' then
-            if not BalatroTCG.Settings.Unbalance then self.config.extra.s_mult = 5 end
+            if not BalatroTCG.Settings.Unbalance then self.config.extra.s_mult = 6 end
 
             self.tcg_estimate = function(self, context)
                 if context.purchase == self then
@@ -1669,15 +1667,15 @@ function create_tcg_center(self)
         elseif name == 'Flower Pot' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 10 end
         elseif name == 'The Duo' then
-            if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 5 end
+            if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 8 end
         elseif name == 'The Trio' then
-            if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 7 end
-        elseif name == 'The Family' then
             if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 10 end
-        elseif name == 'The Order' then
+        elseif name == 'The Family' then
             if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 12 end
+        elseif name == 'The Order' then
+            if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 14 end
         elseif name == 'The Tribe' then
-            if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 6 end
+            if not BalatroTCG.Settings.Unbalance then self.config.x_mult = 7 end
         elseif name == 'Caino' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 3.5 end
         elseif name == 'Baseball Card' then
@@ -1953,7 +1951,7 @@ function create_tcg_center(self)
         elseif name == 'Golden Ticket' then
             if not BalatroTCG.Settings.Unbalance then
                 self.eternal_compat = false
-                self.config.extra = 2
+                self.config.extra = 1
             end
 
             self.use_original_desc = true
@@ -1968,15 +1966,15 @@ function create_tcg_center(self)
                             dollars = self.ability.extra,
                             card = self
                         }
-                    elseif not BalatroTCG.Settings.Unbalance and context.individual and context.cardarea == G.hand and context.other_card.ability.name == 'Gold Card' then
-
-                        G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + self.ability.extra
-                        G.E_MANAGER:add_event(Event({func = (function() G.GAME.dollar_buffer = 0; return true end)}))
-                        return {
-                            dollars = self.ability.extra,
-                            card = context.other_card
-                        }
                     end
+                elseif not BalatroTCG.Settings.Unbalance and context.individual and not context.end_of_round and context.cardarea == G.hand and context.other_card.ability.name == 'Gold Card' then
+
+                    G.GAME.dollar_buffer = (G.GAME.dollar_buffer or 0) + self.ability.extra
+                    G.E_MANAGER:add_event(Event({func = (function() G.GAME.dollar_buffer = 0; return true end)}))
+                    return {
+                        dollars = self.ability.extra,
+                        card = self
+                    }
                 end
             end
 
@@ -2190,6 +2188,26 @@ function create_tcg_center(self)
             if not BalatroTCG.Settings.Unbalance then self.config.d_size = 2 end
         elseif name == 'Burglar' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 2 end
+        elseif name == 'Certificate' then
+            self.tcg_calculate = function(self, context)
+                if context.setting_blind and not self.getting_sliced then
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            local _card = create_playing_card({
+                                front = pseudorandom_element(G.P_CARDS, pseudoseed('cert_fr')),
+                                center = G.P_CENTERS.c_base}, G.hand, nil, nil, {G.C.SECONDARY_SET.Enhanced})
+                            _card:set_seal(SMODS.poll_seal({type_key = 'certsl', guaranteed = true}), nil, true)
+                            G.GAME.blind:debuff_card(_card)
+                            G.hand:sort()
+                            if context_blueprint_card then context_blueprint_card:juice_up() else self:juice_up() end
+                            playing_card_joker_effects({_card})
+                            save_run()
+                            return true
+                        end}))
+                    
+                    return nil, true
+                end
+            end
         elseif name == 'Burnt Joker' then
             
             self.use_original_desc = true
@@ -2340,7 +2358,7 @@ function create_tcg_center(self)
                 if context.end_of_round and not context.repetition and not context.individual and not context.blueprint then
                     self.ability.wait = self.ability.wait + 1
                     if self.ability.wait == self.ability.wait_rounds then 
-                        local eval = function(card) return not card.REMOVED end
+                        local eval = function(card) return card.area == G.graveyard or card.area == G.discard end
                         juice_card_until(self, eval, true)
                     end
                     return {
@@ -2348,7 +2366,7 @@ function create_tcg_center(self)
                         colour = G.C.FILTER
                     }
                 elseif context.selling_self then
-                    ability.wait = 0
+                    self.ability.wait = 0
                     BalatroTCG.Status_Current:add_protection({ percent = self.ability.extra / 100 })
                 end
             end
@@ -2361,7 +2379,7 @@ function create_tcg_center(self)
             end
         elseif name == 'Chicot' then
             self.eternal_compat = false
-            self.config.extra = 3
+            self.config.extra = 10
         elseif name == 'Troubadour' then
             self.tcg_add_to_deck = function(self, from_debuff)
                 G.hand:change_size(self.ability.extra.h_size)
