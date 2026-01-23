@@ -173,12 +173,8 @@ end
 local Game_save_settings_ref = Game.save_settings
 function Game:save_settings()
 
-    --local temp = G.SETTINGS.GAMESPEED
-    --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed
-
     Game_save_settings_ref(self)
 
-    --G.SETTINGS.GAMESPEED = temp
 end
 
 local init_game_object_ref = Game.init_game_object
@@ -1247,6 +1243,14 @@ function CardArea:emplace(card, location, stay_flipped)
         if self == G.discard or self == G.graveyard then
             card.ability.tcgb_sticker_hidden = false
             card.ability.tcgb_sticker_visible = false
+
+            -- Fixes a bug where objects break when thrown into the graveyard.  Dunno why but this works ig
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                blockable = false,
+                delay =  1,
+                func = (function() card.states.hover.can = true; card.dissolve = nil; return true end)
+            }))
         end
         if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then
             BalatroTCG.Status_Current:setup_visuals(card, self)
@@ -1303,7 +1307,6 @@ function Card:start_dissolve(dissolve_colours, silent, dissolve_time_fac, no_jui
 
     if self.tcg_todeck and not (self.tcg_extra and self.tcg_extra.virtual) then
         
-        self.REMOVED = true
         if self.ability.queue_negative_removal then
             if self.area then
                 self.area.config.card_limit = self.area.config.card_limit - 1
@@ -1392,21 +1395,6 @@ function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, h
         BalatroTCG.Status_Current:set_card_areas()
     end
     return value
-end
-
-local EventManager_add_event_ref = EventManager.add_event
-function EventManager:add_event(event, queue, front)
-    if self.instant_events then
-        local results = G.ARGS.event_manager_update
-        results.blocking, results.completed, results.time_done, results.pause_skip = false, false, false, false
-
-        -- this is a really bad idea I can feel it
-        while not results.completed do
-            event:handle(results)
-        end
-    else
-        return EventManager_add_event_ref(self, event, queue, front)
-    end
 end
 
 function pick_from_areas(check, areas, seed)

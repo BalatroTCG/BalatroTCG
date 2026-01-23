@@ -13,9 +13,6 @@ function TCG_PlayerStatus:init(deck, player)
     self.states.collide.can = true
     self.shadow_height = 0
     
-
-    G.E_MANAGER.instant_events = true
-
     self.is_player = player
 
     self:set_backs(deck.backs)
@@ -200,7 +197,6 @@ function TCG_PlayerStatus:init(deck, player)
     
     self.status.discount = G.GAME.discount_percent
     
-    G.E_MANAGER.instant_events = nil
 end
 
 function TCG_PlayerStatus:send_backs()
@@ -651,6 +647,8 @@ function Card:set_opponent_display(card_set, card_base, visible)
     if (self.facing == 'front') ~= visible then
         self:flip()
     end
+    
+    self.states.hover.can = false
 end
 
 function TCG_PlayerStatus:receive_message(message)
@@ -691,7 +689,11 @@ function TCG_PlayerStatus:receive_message(message)
         local highlighted_cards = {}
 
         for str in string.gmatch(message.highlighted, "(%d+),") do
-            tcg_set_opponent_table(highlighted_cards, tonumber(str), true)
+            if BalatroTCG.config.FlipOpponent then
+                highlighted_cards[tonumber(str)] = true
+            else
+                highlighted_cards[#self.opponentHand.cards - tonumber(str) + 1] = true
+            end
         end
 
         for i, card in ipairs(self.opponentHand.cards) do
@@ -967,7 +969,7 @@ function TCG_PlayerStatus:check_visuals()
                     self.opponentJokers:align_cards()
                 end
 
-                for i = 1, #split do
+                for i = 1, #self.opponentJokers.cards do
                 for j = i, #self.opponentJokers.cards do
                     local current = tcg_get_opponent_table(self.opponentJokers.cards, j):tcg_get_visual()
                     if current == split[i] then
@@ -1011,7 +1013,7 @@ function TCG_PlayerStatus:check_visuals()
                     self.opponentConsumeables:align_cards()
                 end
 
-                for i = 1, #split do
+                for i = 1, #self.opponentConsumeables.cards do
                 for j = i, #self.opponentConsumeables.cards do
                     local current = tcg_get_opponent_table(self.opponentConsumeables.cards, j):tcg_get_visual()
                     if current == split[i] then

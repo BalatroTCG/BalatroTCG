@@ -1078,16 +1078,18 @@ function reset_tcg_centers()
     end
     BalatroTCG.ModifiedCenters = {}
 
+    print('resetting')
+
 end
 
 function create_tcg_center(self)
 
     if self.key == 'c_base' then return self end
-    --if true then return self end
 
     if BalatroTCG.ModifiedCenters[self.key] then return G.P_CENTERS[self.key] end
     
     BalatroTCG.ModifiedCenters[self.key] = self
+    print('creating center')
     
     local center = {}
     for k, v in pairs(self) do
@@ -1527,7 +1529,7 @@ function create_tcg_center(self)
         elseif name == 'Ride the Bus' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 4 end
         elseif name == 'Spare Trousers' then
-            if not BalatroTCG.Settings.Unbalance then self.config.extra = 8 end
+            if not BalatroTCG.Settings.Unbalance then self.config.extra = 10 end
         elseif name == 'Erosion' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 6 end
         elseif name == 'Fortune Teller' then
@@ -1577,7 +1579,7 @@ function create_tcg_center(self)
                 
             end
         elseif name == 'Flash Card' then
-            self.config.extra = 2
+            self.config.extra = 3
         elseif name == 'Ceremonial Dagger' then
             
             if BalatroTCG.Settings.Unbalance then

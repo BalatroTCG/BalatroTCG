@@ -389,8 +389,8 @@ return {
             j_mr_bones_tcg={
                 name="Mr. Bones",
                 text={
-                    "Reduce damage taken by {C:attention}#1#%",
-                    "for every copy of Mr. Bones",
+                    "Reduce damage taken",
+                    "by {C:attention}#1#%"
                 },
             },
             j_abstract_tcg={

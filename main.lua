@@ -777,8 +777,8 @@ function Game:start_tcg_game(args)
                 validDecks[#validDecks + 1] = v
             end
         end
-        opponentDeck = validDecks[pseudorandom('asdf', 1, #validDecks)]
-        --opponentDeck = BalatroTCG.DefaultDecks[1]
+        --opponentDeck = validDecks[pseudorandom('asdf', 1, #validDecks)]
+        opponentDeck = BalatroTCG.DefaultDecks[1]
         opponentDeck:sort()
     end
 
