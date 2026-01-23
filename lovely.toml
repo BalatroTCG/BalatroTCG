@@ -240,9 +240,9 @@ if BalatroTCG.UseTCG_UI then
     end
 
     if card and card.tcg_loc_vars and type(card.tcg_loc_vars) == 'function' then
-        specific_vars = card:tcg_loc_vars(_c, specific_vars)
+        specific_vars = card:tcg_loc_vars(_c) or specific_vars
     else
-        specific_vars = TCG_Override_Desc(card, _c, specific_vars)
+        specific_vars = TCG_Override_Desc(card, _c) or specific_vars
     end
     
 end
@@ -407,7 +407,7 @@ pattern = "for _, v in ipairs(info_queue) do"
 position = "after"
 payload = '''
     if BalatroTCG.UseTCG_UI then
-        v = create_tcg_center(v)
+        --v = create_tcg_center(v)
     end
 '''
 match_indent = true
@@ -504,7 +504,7 @@ if BalatroTCG.GameActive and not (self.tcg_extra and self.tcg_extra.virtual) the
     for k, v in ipairs(G.playing_cards) do
         if v == self then
             G.graveyard:emplace(self)
-            --self:set_ability(G.P_CENTERS[self.config.center.key])
+            self.REMOVED = true
             
             table.remove(G.playing_cards, k)
             for k2, v2 in ipairs(G.playing_cards) do

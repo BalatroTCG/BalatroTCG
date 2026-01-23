@@ -1586,7 +1586,7 @@ function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 		
 		MP.LOBBY.config.tcg_balanced = true
 		MP.LOBBY.config.health_pool = 100
-		MP.LOBBY.config.joker_health = 15
+		MP.LOBBY.config.joker_health = 20
 		MP.LOBBY.config.default_hands = 2
 		MP.LOBBY.config.default_discards = 2
 
@@ -1596,7 +1596,7 @@ function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 
 		MP.LOBBY.config.game_round_limit = true
 		MP.LOBBY.config.round_limit = 15
-		MP.LOBBY.config.winner_type = "Lowest Money"
+		MP.LOBBY.config.winner_type = "Highest Money"
 
 		MP.LOBBY.config.deck_money_limit = true
 		MP.LOBBY.config.deck_joker_limits = true

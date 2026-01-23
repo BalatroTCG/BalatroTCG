@@ -38,6 +38,9 @@ function TCG_PlayerStatus:init(deck, player)
         consumeable_H = 0.95*G.CARD_H
     }
 
+    self.adjusting_display = false
+    self.opponent_joker_display = ''
+    self.opponent_consumeable_display = ''
 
     self.consumeables = CardArea(
         0, 0,
@@ -683,11 +686,7 @@ function TCG_PlayerStatus:receive_message(message)
         local highlighted_cards = {}
 
         for str in string.gmatch(message.highlighted, "(%d+),") do
-            if BalatroTCG.config.FlipOpponent then
-                highlighted_cards[tonumber(str)] = true
-            else
-                highlighted_cards[#self.opponentHand.cards - tonumber(str) + 1] = true
-            end
+            tcg_set_opponent_table(highlighted_cards, tonumber(str), true)
         end
 
         for i, card in ipairs(self.opponentHand.cards) do
@@ -710,7 +709,12 @@ function TCG_PlayerStatus:receive_message(message)
             end
         end
 
-    elseif message.type == 'opponent_hand' then
+    elseif message.type == 'opponent_display' then
+        
+        self.opponent_joker_display = message.joker_display
+        self.opponent_consumeable_display = message.consumeable_display
+
+    elseif message.type == 'opponent_hand' and self.is_player then
 
         
         if message.from ~= message.to then
@@ -804,6 +808,8 @@ function TCG_PlayerStatus:string_to_fake_area(string)
 end
 
 function TCG_PlayerStatus:setup_visuals(card, area, start_area)
+    
+
     if not area or
         (area == self.play or
         area == self.jokers or
@@ -832,8 +838,7 @@ function TCG_PlayerStatus:setup_visuals(card, area, start_area)
             
             transfer.to = self:area_to_string(area)
             
-            if transfer.to == 'play' then
-                
+            if transfer.to == 'play' and not next(SMODS.find_card('j_chaos')) then
                 if card:is_playing_card() then
                     transfer.card_set = 'Default'
                     transfer.card_base = card.config.card_key
@@ -863,10 +868,228 @@ function TCG_PlayerStatus:setup_visuals(card, area, start_area)
         end
     end
 
+
+
     self:send_status()
 end
 
+function Card:tcg_get_visual()
+    if self.ability.tcgb_sticker_hidden or self.facing == 'back' then
+        -- if self.ability.eternal then
+        --     return 'e'
+        -- else
+        --     return 'x'
+        -- end
+        return 'x'
+    else
+        
+        if self:is_playing_card() then
+            return 'Default,' .. self.config.card_key
+        else
+            return self.ability.set .. ',' .. self.config.center_key
+        end
+    end
+end
+
+function CardArea:tcg_display_string(from_self)
+    local ret = ''
+    
+    if BalatroTCG.config.FlipOpponent or from_self then
+        for i, card in ipairs(self.cards) do
+            ret = ret .. card:tcg_get_visual() .. ';'
+        end
+    else
+        for i = #self.cards, 1, -1 do
+            local card = self.cards[i]
+            ret = ret .. card:tcg_get_visual() .. ';'
+        end
+    end
+
+    return ret
+end
+function tcg_get_opponent_table(table, i)
+
+    if BalatroTCG.config.FlipOpponent then
+        return table[i]
+    else
+        return table[#table - i + 1]
+    end
+end
+function tcg_set_opponent_table(table, i, value)
+
+    if BalatroTCG.config.FlipOpponent then
+        table[i] = value
+    else
+        table[#table - i + 1] = value
+    end
+end
+
 function TCG_PlayerStatus:check_visuals()
+
+    local current_joker_display, current_consumeable_display = self.opponentJokers:tcg_display_string(), self.opponentConsumeables:tcg_display_string()
+
+    if (not self.adjusting_display) and 
+        (
+            (self.opponent_joker_display ~= current_joker_display) or
+            (self.opponent_consumeable_display ~= current_consumeable_display)
+        ) then
+        self.adjusting_display = true
+
+        G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.3, func = function()
+
+            local current_joker_display, current_consumeable_display = self.opponentJokers:tcg_display_string(), self.opponentConsumeables:tcg_display_string()
+
+            
+            function adjust_jokers()
+                local split = splitlines(self.opponent_joker_display, ';')
+                local count = #split
+                
+                if #self.opponentJokers.cards ~= count then
+                    
+                    while #self.opponentJokers.cards > count do
+                        self.opponentJokers.cards[1]:start_dissolve()
+                        self.opponentJokers:remove_card(self.opponentJokers.cards[1])
+                    end
+
+                    while #self.opponentJokers.cards < count do
+                        
+                        local card = Card(self.opponentJokers.T.x, self.opponentJokers.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
+                        
+                        card.states.drag.can = false
+                        self.opponentJokers:emplace(card, nil, true)
+                    end
+
+                    self.opponentJokers:align_cards()
+                end
+
+                for i = 1, #split do
+                for j = i, #self.opponentJokers.cards do
+                    local current = tcg_get_opponent_table(self.opponentJokers.cards, j):tcg_get_visual()
+                    if current == split[i] then
+                        if i ~= j then
+                            local temp = tcg_get_opponent_table(self.opponentJokers.cards, i)
+                            tcg_set_opponent_table(self.opponentJokers.cards, i, tcg_get_opponent_table(self.opponentJokers.cards, j))
+                            tcg_set_opponent_table(self.opponentJokers.cards, j, temp)
+                        end
+                    else
+                        if split[i] == 'x' then
+                            tcg_get_opponent_table(self.opponentJokers.cards, i):set_opponent_display(nil, nil, false)
+                        else
+                            local cardsplit = splitlines(split[i], ',')
+                            tcg_get_opponent_table(self.opponentJokers.cards, i):set_opponent_display(cardsplit[1], cardsplit[2], true)
+                        end
+                    end
+
+                end
+                end
+            end
+            
+            function adjust_consumeables()
+                local split = splitlines(self.opponent_consumeable_display, ';')
+                local count = #split
+                
+                if #self.opponentConsumeables.cards ~= count then
+                    
+                    while #self.opponentConsumeables.cards > count do
+                        self.opponentConsumeables.cards[1]:start_dissolve()
+                        self.opponentConsumeables:remove_card(self.opponentConsumeables.cards[1])
+                    end
+
+                    while #self.opponentConsumeables.cards < count do
+                        
+                        local card = Card(self.opponentConsumeables.T.x, self.opponentConsumeables.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card, tcg_back = self.Other.back_key})
+                        
+                        card.states.drag.can = false
+                        self.opponentConsumeables:emplace(card, nil, true)
+                    end
+
+                    self.opponentConsumeables:align_cards()
+                end
+
+                for i = 1, #split do
+                for j = i, #self.opponentConsumeables.cards do
+                    local current = tcg_get_opponent_table(self.opponentConsumeables.cards, j):tcg_get_visual()
+                    if current == split[i] then
+                        if i ~= j then
+                            local temp = tcg_get_opponent_table(self.opponentConsumeables.cards, i)
+                            tcg_set_opponent_table(self.opponentConsumeables.cards, i, tcg_get_opponent_table(self.opponentConsumeables.cards, j))
+                            tcg_set_opponent_table(self.opponentConsumeables.cards, j, temp)
+                        end
+                    else
+                        if split[i] == 'x' then
+                            tcg_get_opponent_table(self.opponentConsumeables.cards, i):set_opponent_display(nil, nil, false)
+                        else
+                            local cardsplit = splitlines(split[i], ',')
+                            tcg_get_opponent_table(self.opponentConsumeables.cards, i):set_opponent_display(cardsplit[1], cardsplit[2], true)
+                        end
+                    end
+
+                end
+                end
+            end
+
+            if self.is_player then
+
+                if self.opponent_joker_display ~= current_joker_display then
+                    
+                    G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.2, func = function() 
+                        G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); play_sound('cardSlide1', 0.85);return true end })) 
+                        delay(0.15)
+                        G.E_MANAGER:add_event(Event({ func = function() self.opponentJokers:shuffle('aajk'); play_sound('cardSlide1', 1.15);return true end })) 
+                        delay(0.15)
+                        G.E_MANAGER:add_event(Event({ func = function() 
+                            
+                            adjust_jokers()
+    
+                            play_sound('cardSlide1', 1)
+                            return true end })) 
+                        delay(0.5)
+                        G.E_MANAGER:add_event(Event({ func = function() self.adjusting_display = false; return true end })) 
+                        return true end })) 
+                elseif self.opponent_consumeable_display ~= current_consumeable_display then
+    
+                    G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.2, func = function() 
+
+                        G.E_MANAGER:add_event(Event({ func = function() self.opponentConsumeables:shuffle('aajk'); play_sound('cardSlide1', 0.85);return true end })) 
+                        delay(0.15)
+                        G.E_MANAGER:add_event(Event({ func = function() self.opponentConsumeables:shuffle('aajk'); play_sound('cardSlide1', 1.15);return true end })) 
+                        delay(0.15)
+                        G.E_MANAGER:add_event(Event({ func = function() 
+                            
+                            adjust_consumeables()
+    
+                            play_sound('cardSlide1', 1)
+                            return true end })) 
+                        delay(0.5)
+                        G.E_MANAGER:add_event(Event({ func = function() self.adjusting_display = false; return true end })) 
+                        return true end }))
+                else
+                    self.adjusting_display = false
+                end
+            else
+                self.adjusting_display = false
+            end
+            
+            return true
+        end
+        }))
+    end
+
+    local current_joker_display, current_consumeable_display = self.jokers:tcg_display_string(true), self.consumeables:tcg_display_string(true)
+
+    if self.sent_joker_display ~= current_joker_display or self.sent_consumeable_display ~= current_consumeable_display then
+        
+        self:send_message({
+            type = 'opponent_display',
+            joker_display = current_joker_display,
+            consumeable_display = current_consumeable_display
+        })
+
+        self.sent_joker_display = current_joker_display
+        self.sent_consumeable_display = current_consumeable_display
+    end
+    
+
     if self.highlight_delay > 0 then
         self.highlight_delay = self.highlight_delay + 1
         if self.highlight_delay > 15 then
@@ -1120,8 +1343,8 @@ function TCG_PlayerStatus:take_attacks()
                         G.GAME.chips_damage = 0
                     else
                         
-                        -- joker.ability.tcgb_sticker_visible = true
-                        -- joker.ability.tcgb_sticker_hidden = false
+                        joker.ability.tcgb_sticker_visible = true
+                        joker.ability.tcgb_sticker_hidden = false
 
                         local attacked = math.min(joker.ability.tcgb_health_amount or 0, G.GAME.chips_damage)
                         
@@ -1304,10 +1527,10 @@ function TCG_PlayerStatus:set_screen_positions()
         --     self.hand.T.y = self.hand.T.y - 5.5
         -- end
         
-        if not _RELEASE_MODE then
-            self.opponentJokers.T.x = 0
-            self.opponentJokers.T.y = 0
-        end
+        -- if not _RELEASE_MODE then
+        --     self.opponentJokers.T.x = 0
+        --     self.opponentJokers.T.y = 0
+        -- end
 
         self.opponentConsumeables.T.x = self.opponentJokers.T.x + self.opponentJokers.T.w + 0.2
         self.opponentConsumeables.T.y = self.opponentJokers.T.y

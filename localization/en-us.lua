@@ -472,14 +472,30 @@ return {
                     "Sell this card to",
                     "reduce damage taken",
                     "by {C:attention}#1#% this round",
+                    "{C:inactive}(Currently {C:attention}#2#{C:inactive}/#3#)",
+                },
+            },
+            j_astronomer_tcg={
+                name="Astronomer",
+                text={
+                    "All {C:planet}Planet{} cards",
+                    "are {C:attention}free and",
+                    "return your discard pile"
                 },
             },
             j_chaos_tcg={
                 name="Chaos the Clown",
                 text={
-                    "Shuffles and flips",
-                    "{C:attention}Jokers{} when",
-                    "opponent starts"
+                    "Prevents your {C:attention}opponent{} from",
+                    "seeing any of your {C:attention}cards",
+                },
+            },
+            j_burnt_tcg={
+                name="Burnt Joker",
+                text={
+                    "Upgrade the level of",
+                    "every {C:attention}discarded",
+                    "poker hand",
                 },
             },
             j_throwback_tcg={
@@ -678,6 +694,15 @@ return {
             },
         },
         Tarot={
+            c_fool_tcg={
+                name="The Fool",
+                text={
+                    "Creates the last",
+                    "{C:tarot}Tarot{} or {C:planet}Planet{} card",
+                    "used during this run",
+                    "{s:0.8,C:tarot}The Fool{s:0.8} and {s:0.8,C:tarot}The Hermit{s:0.8} excluded",
+                },
+            },
             c_hermit_tcg={
                 name="The Hermit",
                 text={

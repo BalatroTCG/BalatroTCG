@@ -862,7 +862,10 @@ local gameupdate_ref = Game.update
 function Game:update(dt)
     gameupdate_ref(self, dt)
     if BalatroTCG.GameStarted then
-        BalatroTCG.Status_Current:check_visuals()
+        BalatroTCG.Player:check_visuals()
+        if not BalatroTCG.MP_Lobby then
+            BalatroTCG.Opponent:check_visuals()
+        end
     end
 end
 
@@ -1265,7 +1268,7 @@ function Card:start_dissolve(dissolve_colours, silent, dissolve_time_fac, no_jui
 
     if self.tcg_todeck and not (self.tcg_extra and self.tcg_extra.virtual) then
         
-
+        self.REMOVED = true
         if self.ability.queue_negative_removal then
             if self.area then
                 self.area.config.card_limit = self.area.config.card_limit - 1

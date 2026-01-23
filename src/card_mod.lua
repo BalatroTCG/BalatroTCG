@@ -99,7 +99,7 @@ function Card:use_consumeable(area, copier)
         stop_use()
 
         if self.ability.set == 'Planet' then
-            if not BalatroTCG.Status_Current.params.destroy_planets then self.tcg_todeck = true end
+            if not BalatroTCG.Status_Current.params.destroy_planets or next(SMODS.find_card('j_astronomer')) then self.tcg_todeck = true end
         elseif self.ability.set == 'Tarot' then
             if not BalatroTCG.Status_Current.params.destroy_tarots then self.tcg_todeck = true end
         elseif self.ability.set == 'Spectral' then
@@ -422,12 +422,11 @@ function Card:use_consumeable(area, copier)
                     used_tarot:juice_up(0.3, 0.5)
                     play_sound('gold_seal', 1.2, 0.4)
                     card:set_eternal(true)
-                    card:set_rental(true)
                 end
                 
                 local _first_dissolve = false
                 for _, joker in ipairs(G.jokers.cards) do
-                    if (not SMODS.is_eternal(joker, self)) then v.getting_sliced = true; v:start_dissolve(nil, _first_dissolve);_first_dissolve = true end
+                    if (not SMODS.is_eternal(joker, self)) then joker.getting_sliced = true; joker:start_dissolve(nil, _first_dissolve);_first_dissolve = true end
                 end
             else
                 use_consumeable_ref(self, area, copier)
@@ -1038,8 +1037,7 @@ function Card:set_ability(center, initial, delay_sprites)
     set_ability_ref(self, center, initial, delay_sprites)
     
     if BalatroTCG.UseTCG_UI then
-        print(self.config.center_key)
-        -- self.config.center_key = center.key
+        self.config.center_key = center.key
     end
 end
 
@@ -1091,7 +1089,7 @@ function create_tcg_center(self)
 
     if BalatroTCG.ModifiedCenters[self.key] then return G.P_CENTERS[self.key] end
     
-    BalatroTCG.ModifiedCenters[self.key] = G.P_CENTERS[self.key]
+    BalatroTCG.ModifiedCenters[self.key] = self
     
     local center = {}
     for k, v in pairs(self) do
@@ -1492,7 +1490,7 @@ function create_tcg_center(self)
                 self.config.extra.max = 40
             end
         elseif name == 'Abstract Joker' then
-            if not BalatroTCG.Settings.Unbalance then self.config.extra = 5 end
+            if not BalatroTCG.Settings.Unbalance then self.config.extra = 3 end
         elseif name == 'Half Joker' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra.mult = 35 end
         elseif name == 'Mystic Summit' then
@@ -1683,7 +1681,7 @@ function create_tcg_center(self)
         elseif name == 'Caino' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 3.5 end
         elseif name == 'Baseball Card' then
-            if not BalatroTCG.Settings.Unbalance then self.config.extra = 2 end
+            if not BalatroTCG.Settings.Unbalance then self.config.extra = 2.5 end
         elseif name == 'Glass Joker' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 1.0 end
         elseif name == 'Yorick' then
@@ -2192,6 +2190,18 @@ function create_tcg_center(self)
             if not BalatroTCG.Settings.Unbalance then self.config.d_size = 2 end
         elseif name == 'Burglar' then
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 2 end
+        elseif name == 'Burnt Joker' then
+            
+            self.use_original_desc = true
+
+            self.tcg_calculate = function(self, context)
+                if (not BalatroTCG.Settings.Unbalance or G.GAME.current_round.discards_used <= 0) and not context.hook then
+                    local text,disp_text = G.FUNCS.get_poker_hand_info(G.hand.highlighted)
+                    card_eval_status_text(context_blueprint_card or self, 'extra', nil, nil, nil, {message = localize('k_upgrade_ex')})
+                    level_up_hand(context.blueprint_card or self, text, nil, 1)
+                    return nil, true
+                end
+            end
         elseif name == 'Trading Card' then
             
         elseif name == 'Riff-raff' then
@@ -2327,7 +2337,7 @@ function create_tcg_center(self)
             self.config.wait = 0
 
             self.tcg_calculate = function(self, context)
-                if context.end_of_round and not context.blueprint then
+                if context.end_of_round and not context.repetition and not context.individual and not context.blueprint then
                     self.ability.wait = self.ability.wait + 1
                     if self.ability.wait == self.ability.wait_rounds then 
                         local eval = function(card) return not card.REMOVED end
@@ -2338,6 +2348,7 @@ function create_tcg_center(self)
                         colour = G.C.FILTER
                     }
                 elseif context.selling_self then
+                    ability.wait = 0
                     BalatroTCG.Status_Current:add_protection({ percent = self.ability.extra / 100 })
                 end
             end
@@ -2372,11 +2383,13 @@ function create_tcg_center(self)
     return self
 end
 
-function TCG_Override_Desc(self, _c, loc_vars)
+function TCG_Override_Desc(self, _c)
     
+    local loc_vars = nil
+
     local ability = self and self.ability or _c.config
 
-    if _c.use_original_desc then return loc_vars end
+    if _c.use_original_desc then return end
 
     if _c.name == 'Ancient Joker' and self then loc_vars = {ability.extra, localize(self:get_ability_suit(G.GAME.current_round.ancient_card.suit), 'suits_singular'), colours = {G.C.SUITS[self:get_ability_suit(G.GAME.current_round.ancient_card.suit)]}}
     elseif _c.name == 'Campfire' then loc_vars = {ability.extra, ability.reduce, ability.x_mult}
@@ -2397,12 +2410,12 @@ function TCG_Override_Desc(self, _c, loc_vars)
     elseif _c.name == 'Ceremonial Dagger' then loc_vars = {ability.extra.growth, ability.extra.mult}
     elseif _c.name == 'Abstract Joker' then loc_vars = {ability.extra, ((G.jokers and G.jokers.cards and #G.jokers.cards or 0) + (BalatroTCG.Status_Current and #BalatroTCG.Status_Current.opponentJokers.cards or 0))*ability.extra}
     elseif _c.name == 'Supernova' then loc_vars = {ability.extra}
-    elseif _c.name == 'Luchador' then loc_vars = {math.floor(ability.extra)}
+    elseif _c.name == 'Luchador' then loc_vars = {math.floor(ability.extra), ability.wait, ability.wait_rounds}
     elseif _c.name == 'Bootstraps' then loc_vars = {ability.extra.mult, ability.extra.mult * math.floor(BalatroTCG.Status_Current and (BalatroTCG.Status_Current.status.dollars + (G.GAME.dollar_buffer or 0) + BalatroTCG.Status_Current.status.opponent_health) or 0)}
     elseif _c.name == 'Bull' then loc_vars = {ability.extra, ability.extra*math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_health or 0)))}
     elseif _c.name == 'Triboulet' then loc_vars = {ability.extra, G.GAME.probabilities.normal, ability.chance}
     elseif _c.name == 'Bloodstone' then 
-        local a, b = SMODS.get_probability_vars(self, self.ability.extra.num, self.ability.extra.odds, 'bloodstone')
+        local a, b = SMODS.get_probability_vars(self, ability.extra.num, ability.extra.odds, 'bloodstone')
         loc_vars = {a, b, self.ability.extra.Xmult}
     elseif _c.name == 'The Idol' and self then loc_vars = {ability.extra, localize(self:get_ability_rank(G.GAME.current_round.idol_card.rank), 'ranks'), localize(self:get_ability_suit(G.GAME.current_round.idol_card.suit), 'suits_plural'), colours = {G.C.SUITS[self:get_ability_suit(G.GAME.current_round.idol_card.suit)]}}
     elseif _c.name == 'Mail-In Rebate' and self then loc_vars = {ability.extra, localize(self:get_ability_rank(G.GAME.current_round.mail_card.rank), 'ranks')}
@@ -2465,10 +2478,14 @@ function Card:set_tcg_health(_amount)
         self:set_tcg_max_health(BalatroTCG.Status_Current.params.joker_health)
     elseif not self.ability.eternal then
         if _amount <= 0 then
-            self:start_dissolve()
-        else
-            self.ability.tcgb_health_amount = math.min(_amount, self.ability.tcgb_max_health)
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                blockable = false,
+                delay =  1,
+                func = (function() self:start_dissolve() return true end)
+            }))
         end
+        self.ability.tcgb_health_amount = math.max(math.min(_amount, self.ability.tcgb_max_health), 0)
     end
 end
 function Card:disable_tcg_health()

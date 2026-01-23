@@ -39,9 +39,9 @@ function TCG_AI:run()
                 
             end
         else
-            if BalatroTCG.Opponent.opponentJokers.cards[1] then
-                BalatroTCG.Opponent.opponentJokers.cards[1]:highlight(true)
-            end
+            -- if BalatroTCG.Opponent.opponentJokers.cards[1] then
+            --     BalatroTCG.Opponent.opponentJokers.cards[1]:highlight(true)
+            -- end
             local button = G.buttons:get_UIE_by_ID(self.button)
             button:click()
         end

@@ -533,14 +533,14 @@ function reset_tcg_settings()
         StartingMoney = 100,
         DefaultHands = 2,
         DefaultDiscards = 2,
-        JokerHealth = 15,
+        JokerHealth = 20,
         MoneyLeak = true,
         MoneyLeakStart = 10,
         MoneyLeakIncrease = 2,
         EndingRound = true,
         SquareDamage = true,
         RoundEnd = 15,
-        WinCondition = "Lowest Money",
+        WinCondition = "Highest Money",
         DeckLimitations = {
             Money = true,
             Size = true,
@@ -778,8 +778,8 @@ function Game:start_tcg_game(args)
             end
         end
         opponentDeck = validDecks[pseudorandom('asdf', 1, #validDecks)]
-        opponentDeck:sort()
         --opponentDeck = BalatroTCG.DefaultDecks[1]
+        opponentDeck:sort()
     end
 
 
