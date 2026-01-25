@@ -185,32 +185,32 @@ function Game:init_game_object(...)
         for k, v in pairs(output.hands) do
             v.visible = k == "High Card"
         end
-        output.hands["Straight Flush"].l_mult = 10
-        output.hands["Straight Flush"].l_chips = 80
-        output.hands["Flush House"].l_mult = 8
-        output.hands["Flush House"].l_chips = 50
-        output.hands["Five of a Kind"].l_mult = 6
-        output.hands["Five of a Kind"].l_chips = 65
+        output.hands["Straight Flush"].l_mult = 18
+        output.hands["Straight Flush"].l_chips = 150
+        output.hands["Flush House"].l_mult = 12
+        output.hands["Flush House"].l_chips = 100
+        output.hands["Five of a Kind"].l_mult = 7
+        output.hands["Five of a Kind"].l_chips = 135
         output.hands["Flush Five"].l_mult = 3
-        output.hands["Flush Five"].l_chips = 70
+        output.hands["Flush Five"].l_chips = 75
 
-        output.hands["Straight"].l_mult = 6
-        output.hands["Straight"].l_chips = 60
-        output.hands["Full House"].l_mult = 4
-        output.hands["Full House"].l_chips = 60
-        output.hands["Four of a Kind"].l_mult = 3
-        output.hands["Four of a Kind"].l_chips = 40
-        output.hands["Flush"].l_mult = 2
-        output.hands["Flush"].l_chips = 25
+        output.hands["Straight"].l_mult = 10
+        output.hands["Straight"].l_chips = 120
+        output.hands["Full House"].l_mult = 6
+        output.hands["Full House"].l_chips = 70
+        output.hands["Four of a Kind"].l_mult = 4
+        output.hands["Four of a Kind"].l_chips = 90
+        output.hands["Flush"].l_mult = 3
+        output.hands["Flush"].l_chips = 80
 
-        output.hands["Three of a Kind"].l_mult = 2
-        output.hands["Three of a Kind"].l_chips = 30
-        output.hands["Two Pair"].l_mult = 2
+        output.hands["Three of a Kind"].l_mult = 5
+        output.hands["Three of a Kind"].l_chips = 40
+        output.hands["Two Pair"].l_mult = 3
         output.hands["Two Pair"].l_chips = 20
-        output.hands["Pair"].l_mult = 1
-        output.hands["Pair"].l_chips = 30
+        output.hands["Pair"].l_mult = 2
+        output.hands["Pair"].l_chips = 40
         output.hands["High Card"].l_mult = 1
-        output.hands["High Card"].l_chips = 20
+        output.hands["High Card"].l_chips = 25
 
     end
 
@@ -772,6 +772,33 @@ G.FUNCS.playing_card_to_hand = function(e)
     end
 end
 
+function Card:can_buy_tcg()
+
+
+    local ignore = false
+
+    if self.config.center.requires then
+        ignore = true
+        for kk, vv in pairs(self.config.center.requires) do
+            if G.GAME.used_vouchers[vv] then
+                ignore = false
+            end
+        end
+    end
+
+    if self.ability.set == 'Voucher' and G.GAME.used_vouchers[self.config.center_key] then
+        ignore = true
+    end
+
+    if ignore or (
+        (self.config.center.no_pool_flag and G.GAME.pool_flags[self.config.center.no_pool_flag]) or
+        (self.config.center.yes_pool_flag and not G.GAME.pool_flags[self.config.center.yes_pool_flag])) then
+        return false
+    else
+        return true
+    end
+end
+
 G.FUNCS.can_buy_tcg = function(e)
 
     if not BalatroTCG.Status_Current:can_do_things() then
@@ -779,31 +806,9 @@ G.FUNCS.can_buy_tcg = function(e)
         e.config.button = nil
         return
     end
-
     local v = e.config.ref_table
 
-    local ignore = false
-
-    if v.config.center.requires then
-        ignore = true
-        for kk, vv in pairs(v.config.center.requires) do
-            if G.GAME.used_vouchers[vv] then
-                ignore = false
-            end
-        end
-    end
-
-    if v.ability.set == 'Voucher' and G.GAME.used_vouchers[v.config.center_key] then
-        ignore = true
-    end
-
-    if ignore or (
-        (v.config.center.no_pool_flag and G.GAME.pool_flags[v.config.center.no_pool_flag]) or
-        (v.config.center.yes_pool_flag and not G.GAME.pool_flags[v.config.center.yes_pool_flag]) or
-        ((e.config.ref_table.cost >= G.GAME.dollars - G.GAME.bankrupt_at) and (e.config.ref_table.cost > 0))) then
-        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-        e.config.button = nil
-    else
+    if v:can_buy_tcg() and not ((v.cost >= G.GAME.dollars - G.GAME.bankrupt_at) and (v.cost > 0)) then
         e.config.colour = G.C.ORANGE
         if v.ability.set == 'Voucher' then
             e.config.button = 'use_card'
@@ -812,14 +817,19 @@ G.FUNCS.can_buy_tcg = function(e)
         else
             e.config.button = 'buy_from_shop'
         end
+    else
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
     end
+
     if e.config.ref_parent and e.config.ref_parent.children.buy_and_use then
-      if e.config.ref_parent.children.buy_and_use.states.visible then
-        e.UIBox.alignment.offset.y = -0.6
-      else
-        e.UIBox.alignment.offset.y = 0
-      end
+        if e.config.ref_parent.children.buy_and_use.states.visible then
+            e.UIBox.alignment.offset.y = -0.6
+        else
+            e.UIBox.alignment.offset.y = 0
+        end
     end
+
 end
 
 local check_for_buy_space_ref = G.FUNCS.check_for_buy_space

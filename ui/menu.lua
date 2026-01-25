@@ -165,7 +165,7 @@ function localize(args, misc_cat)
 			elseif back_name == 'b_zodiac' then loc_args = { localize{type = 'name_text', key = 'v_tarot_merchant', set = 'Voucher'}, localize{type = 'name_text', key = 'v_planet_merchant', set = 'Voucher'} }
 			elseif back_name == 'b_painted' then loc_args = { 2, -1 }
 			elseif back_name == 'b_anaglyph' then loc_args = {1, 3}
-			elseif back_name == 'b_plasma' then loc_args = { 50 }
+			elseif back_name == 'b_plasma' then loc_args = { 75 }
 			elseif back_name == 'b_erratic' then loc_args = { 5 }
 			elseif back_name == 'b_challenge' then loc_args = { 30 }
 			
@@ -1169,6 +1169,15 @@ SMODS.DrawStep({
 		if self.tcgb_deck_selected then self.children.back:draw_shader("foil", nil, self.ARGS.send_to_shader) end
 	end,
 	conditions = { vortex = false, facing = "back" },
+})
+
+SMODS.DrawStep({
+	key = "tcgb_debuff_unusuable",
+	order = 5,
+	func = function(self)
+		if BalatroTCG.GameStarted and self.area == G.hand and not self:can_buy_tcg() then self.children.center:draw_shader("debuff", nil, self.ARGS.send_to_shader) end
+	end,
+	conditions = { vortex = false, facing = "front" },
 })
 
 G.FUNCS.your_collection_tcg_deck_page = function(args)

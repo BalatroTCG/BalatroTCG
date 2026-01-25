@@ -538,7 +538,7 @@ function reset_tcg_settings()
         MoneyLeakStart = 10,
         MoneyLeakIncrease = 2,
         EndingRound = true,
-        SquareDamage = true,
+        DamageCalc = "Linear",
         RoundEnd = 15,
         WinCondition = "Highest Money",
         DeckLimitations = {
@@ -633,8 +633,6 @@ G.FUNCS.tcg_start_multi = function(e)
         return true
         end
     }))
-
-    print(e.seed)
     
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
@@ -777,8 +775,8 @@ function Game:start_tcg_game(args)
                 validDecks[#validDecks + 1] = v
             end
         end
-        --opponentDeck = validDecks[pseudorandom('asdf', 1, #validDecks)]
-        opponentDeck = BalatroTCG.DefaultDecks[1]
+        opponentDeck = validDecks[pseudorandom('asdf', 1, #validDecks)]
+        --opponentDeck = BalatroTCG.DefaultDecks[1]
         opponentDeck:sort()
     end
 
@@ -944,16 +942,24 @@ function TCG_GetDamage(value)
     if value > 0 then
         value = math.log10(value)
 
-        if BalatroTCG.Settings.SquareDamage then
+        -- What score equates to 1 damage?
+        local start = math.log10(100) - 1
+
+        value = value - start
+
+        if BalatroTCG.Settings.DamageCalc == "Linear" then
+            local scale = 5
+            value = (value * scale) - (scale - 1)
+        elseif BalatroTCG.Settings.DamageCalc == "Quadratic" then
             value = value * value
-        else
+        elseif BalatroTCG.Settings.DamageCalc == "Exponential" then
             value = math.pow(2, value - 1)
         end
             
-        local value = math.floor(value)
+        local value = math.max(math.floor(value), 0)
 
         for k, v in ipairs(BalatroTCG.Status_Current.backs) do
-            if v.name == 'Plasma Deck' then value = value / 2 end
+            if v.name == 'Plasma Deck' then value = value * .75 end
         end
         
         value = math.floor(value)

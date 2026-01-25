@@ -372,6 +372,8 @@ function TCG_PlayerStatus:apply()
     G.GAME.bankrupt_at = self.status.bankrupt_at
 
     self:set_card_areas()
+
+    G.GAME.modifiers.extra_discard_cost = G.GAME.modifiers.extra_discard
     
     if self.status.round == 1 then
         for k, v in ipairs(self.params.starting_vouchers) do

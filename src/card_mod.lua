@@ -599,6 +599,15 @@ function Card:calculate_joker(context)
                     scalar_value = "chip_mod",
                 })
             end
+            if self.ability.name == 'Campfire' then
+                if self.ability.x_mult <= 1 then 
+                    return nil
+                else
+                    self:juice_up(0.3, 0.4)
+                    play_sound('timpani')
+                    self.ability.x_mult = math.floor((self.ability.x_mult * (1 - (self.ability.reduce / 100))) * 10) / 10
+                end
+            end
         elseif context.discard then
             if self.ability.name == 'Trading Card' and not BalatroTCG.Settings.Unbalance and not context.blueprint and G.GAME.current_round.discards_used <= 0 and #context.full_hand == 1 then
                 return {
@@ -673,15 +682,6 @@ function Card:calculate_joker(context)
                     end
                 end
             elseif not context.blueprint then
-                if self.ability.name == 'Campfire' then
-                    if self.ability.x_mult - self.ability.reduce < 1 then 
-                        return nil
-                    else
-                        self:juice_up(0.3, 0.4)
-                        play_sound('timpani')
-                        self.ability.x_mult = self.ability.x_mult - self.ability.reduce
-                    end
-                end
                 if self.ability.name == 'Rocket' then
                     local amount = self.ability.extra.dollars
                     ease_dollars(amount)
@@ -847,6 +847,15 @@ function Card:calculate_joker(context)
                         return nil
                     end
                 elseif context.after then
+                    if self.ability.name == 'Campfire' then
+                        if self.ability.x_mult <= 1 then 
+                            return nil
+                        else
+                            self:juice_up(0.3, 0.4)
+                            play_sound('timpani')
+                            self.ability.x_mult = math.floor((self.ability.x_mult * (1 - (self.ability.reduce / 100))) * 10) / 10
+                        end
+                    end
                 elseif context.joker_main then
                     
                     if self.ability.name == 'Abstract Joker' then
@@ -1077,9 +1086,6 @@ function reset_tcg_centers()
         G.P_CENTERS[k] = v
     end
     BalatroTCG.ModifiedCenters = {}
-
-    print('resetting')
-
 end
 
 function create_tcg_center(self)
@@ -1089,7 +1095,6 @@ function create_tcg_center(self)
     if BalatroTCG.ModifiedCenters[self.key] then return G.P_CENTERS[self.key] end
     
     BalatroTCG.ModifiedCenters[self.key] = self
-    print('creating center')
     
     local center = {}
     for k, v in pairs(self) do
@@ -1131,15 +1136,21 @@ function create_tcg_center(self)
     elseif self.set == 'Voucher' then
         if name == 'Reroll Surplus' then
             self.config.extra = 2
+            self.config.increase = 2
             
             self.redeem = function(self, card)
+                G.GAME.modifiers.extra_discard_cost = G.GAME.modifiers.extra_discard_cost or card.ability.extra
                 G.GAME.modifiers.extra_discard = card.ability.extra
+                G.GAME.modifiers.extra_discard_increase = card.ability.increase
             end
         elseif name == 'Reroll Glut' then
             self.config.extra = 1
+            self.config.increase = 1
             
             self.redeem = function(self, card)
+                G.GAME.modifiers.extra_discard_cost = G.GAME.modifiers.extra_discard_cost or card.ability.extra
                 G.GAME.modifiers.extra_discard = card.ability.extra
+                G.GAME.modifiers.extra_discard_increase = card.ability.increase
             end
         elseif name == 'Clearance Sale' or name == 'Liquidation' then
             -- self.redeem = function(self, card)
@@ -1812,7 +1823,7 @@ function create_tcg_center(self)
             if not BalatroTCG.Settings.Unbalance then self.config.extra = 2 end
         elseif name == 'Campfire' then
             self.config.extra = 1.5
-            self.config.reduce = 1
+            self.config.reduce = 10
         elseif name == 'Acrobat' then
             self.config.scaling = 0.25
             self.config.initial = 1
@@ -2155,19 +2166,26 @@ function create_tcg_center(self)
             end
         elseif name == 'Cloud 9' then
             if not BalatroTCG.Settings.Unbalance then self.eternal_compat = false end
-            self.config.extra = 1
+            self.config.extra = 9
+            self.config.final = 0
             
             self.blueprint_compat = false
             self.tcg_calculate = function(self, context)
-                if context.tcg_take_damage and not context.blueprint then
-                    return {
-                        reduce = math.floor(self.ability.nine_tally / self.ability.extra)
-                    }
-                elseif context.updating then
+                if context.updating then
+                    local single = 1 / ((100 - 9) / 100)
+                    print(single)
+
                     self.ability.nine_tally = 0
                     for k, v in pairs(G.playing_cards) do
                         if v:is_rank_joker(9) then self.ability.nine_tally = self.ability.nine_tally+1 end
                     end
+
+                    self.ability.final = 1 - math.pow(single, self.ability.nine_tally)
+                elseif context.tcg_take_damage and not context.blueprint then
+                    
+                    return {
+                        percent = self.ability.final
+                    }
                 end
             end
         -- Misc
@@ -2418,7 +2436,7 @@ function TCG_Override_Desc(self, _c)
     elseif _c.name == 'Rocket' then loc_vars = {ability.extra.dollars, ability.extra.increase, ability.extra.limit}
     elseif _c.name == 'Fortune Teller' then loc_vars = {ability.extra, (G.GAME.consumeable_usage_total and G.GAME.consumeable_usage_total.tarot or 0) * ability.extra}    
     elseif _c.name == 'Superposition' then loc_vars = {ability.extra}
-    elseif _c.name == 'Cloud 9' then loc_vars = {ability.extra, math.floor((ability.nine_tally or 0) / ability.extra)}
+    elseif _c.name == 'Cloud 9' then loc_vars = {ability.extra, math.floor(ability.final * 100)}
     elseif _c.name == 'Blue Joker' then loc_vars = {ability.extra, ability.extra*((G.deck and G.deck.cards) and #G.deck.cards or 60)}
     elseif _c.name == 'Chicot' then loc_vars = {ability.extra}
     elseif _c.name == 'Golden Joker' then loc_vars = {ability.extra}
@@ -2463,10 +2481,10 @@ function TCG_Override_Desc(self, _c)
             colours = {G.C.UI.TEXT_DARK},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.2011, scale = 0.32, min_cycle_time = 0})}},
         }
 
-    elseif _c.name == 'Reroll Surplus' then loc_vars = { ability.extra }
+    elseif _c.name == 'Reroll Surplus' then loc_vars = { (G.GAME.used_vouchers['v_reroll_surplus']) and G.GAME.modifiers.extra_discard_cost or ability.extra, (G.GAME.used_vouchers['v_reroll_surplus']) and G.GAME.modifiers.extra_discard_increase or ability.increase }
+    elseif _c.name == 'Reroll Glut' then loc_vars = { (G.GAME.used_vouchers['v_reroll_glut']) and G.GAME.modifiers.extra_discard_cost or ability.extra, (G.GAME.used_vouchers['v_reroll_glut']) and G.GAME.modifiers.extra_discard_increase or ability.increase }
     elseif _c.name == 'Seed Money' then loc_vars = { ability.extra }
     elseif _c.name == 'Money Tree' then loc_vars = { BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.seed_reduction or 0 }
-    elseif _c.name == 'Reroll Glut' then loc_vars = { ability.extra }
     elseif _c.name == 'Hieroglyph' then loc_vars = { ability.extra }
     elseif _c.name == 'Petroglyph' then loc_vars = { ability.extra }
     elseif _c.name == 'Hone' then loc_vars = { ability.extra }

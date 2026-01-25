@@ -1818,15 +1818,15 @@ function tcg_base_cost(set, name, base_cost)
     elseif set == 'Voucher' then
         
         if name == 'Reroll Surplus' then
-            return 5
+            return 8
         elseif name == 'Reroll Glut' then
-            return 5
+            return 8
         elseif name == 'Crystal Ball' then
             return 8
         elseif name == 'Seed Money' then
-            return 2
+            return 1
         elseif name == 'Hone' then
-            return 8
+            return 6
         elseif name == 'Glow Up' then
             return 12
         elseif name == 'Overstock' then
@@ -1845,9 +1845,9 @@ function tcg_base_cost(set, name, base_cost)
         elseif name == 'Planet Tycoon' then
             return 12
         elseif name == 'Magic Trick' then
-            return 5
+            return 6
         elseif name == 'Illusion' then
-            return 10
+            return 14
         elseif name == 'Grabber' then
             return 9
         elseif name == 'Wasteful' then

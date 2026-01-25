@@ -296,7 +296,8 @@ if BalatroTCG.GameActive then
     if G.GAME.current_round.discards_left > 0 then
         ease_discard(-1)
     else
-        ease_dollars(-G.GAME.modifiers.extra_discard)
+        ease_dollars(-G.GAME.modifiers.extra_discard_cost)
+        G.GAME.modifiers.extra_discard_cost = G.GAME.modifiers.extra_discard_cost + G.GAME.modifiers.extra_discard_increase
     end
 else
     ease_discard(-1)

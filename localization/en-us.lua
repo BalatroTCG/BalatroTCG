@@ -204,7 +204,7 @@ return {
                 text={
                     "This Joker gains {X:mult,C:white}X#1#{} Mult",
                     "for each card {C:attention}sold{}, reduces by",
-                    "{X:mult,C:white}X#2#{} Mult per round",
+                    "{C:attention}#2#%{} Mult per hand/discard",
                     "{C:inactive}(Currently {X:mult,C:white} X#3# {C:inactive} Mult)",
                 },
             },
@@ -352,7 +352,7 @@ return {
                 name="Cloud 9",
                 text={
                     "Reduce damage taken by",
-                    "{C:attention}1{} every {C:attention}#1#{} nines",
+                    "{C:attention}#1#%{} for every 9",
                     "in your {C:attention}full deck",
                     "{C:inactive}(Currently {C:money}$#2#{}{C:inactive})",
                 },
@@ -851,6 +851,7 @@ return {
                 text={
                     "Extra {C:red}discards{}",
                     "cost {C:money}$#1#{}",
+                    "Increase cost by {C:money}$#2#{}",
                 },
             },
             v_reroll_surplus_tcg={
@@ -858,6 +859,7 @@ return {
                 text={
                     "Extra {C:red}discards{}",
                     "cost {C:money}$#1#{}",
+                    "Increase cost by {C:money}$#2#{}",
                 },
             },
             v_retcon_tcg={
