@@ -1662,7 +1662,7 @@ function MP.UI.create_tcg_lobby_options_tab()
 								"joker_health_option",
 								"b_opts_tcg_joker_health",
 								0.85,
-								{ 5, 10, 20, 25, 30, 40, 50 },
+								{ 5, 10, 15, 20, 25, 30, 40, 50 },
 								MP.UTILS.get_array_index_by_value(
 									{ 5, 10, 15, 20, 25, 30, 40, 50 },
 									MP.LOBBY.config.joker_health

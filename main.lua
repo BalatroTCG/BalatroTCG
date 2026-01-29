@@ -64,8 +64,9 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 ]]
 
 -- TODO:
--- Flesh out opponent display system
--- Opponents used vouchers/consumeables will be shown, and any hit jokers will be revealed
+-- Add particles to deck backgrounds
+-- Swirl background by who's playing
+-- Add deck background class
 
 
 -- Receiving actions:
@@ -84,9 +85,6 @@ function splitlines(inputstr, sep)
   return t
 end
 
-local function init()
-    
-end
 
 function BalatroTCG.load_file(file)
 	local chunk, err = SMODS.load_file(file, "tcgb")
@@ -125,6 +123,10 @@ end
 
 BalatroTCG.load_dir("ui")
 BalatroTCG.load_dir("src")
+BalatroTCG.load_dir("src/Backs")
+BalatroTCG.load_dir("src/Jokers")
+BalatroTCG.load_dir("src/Spectrals")
+BalatroTCG.load_dir("src/Tarots")
 
 SMODS.Atlas({
 	key = "sticker_hidden",
@@ -228,298 +230,6 @@ SMODS.Atlas({
 	py = 34,
 })
 
-BalatroTCG.DeckBackgrounds = {
-    unknown = {
-        main = HEX("FFFFFF"),
-        special = HEX("999999"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("888888"),
-        UI_DARK = HEX("444444"),
-        
-        contrast = 0.7,
-        
-        pos = {x = 0, y = 0},
-    },
-
-    b_red = {
-        main = HEX("FFFFFF"),
-        tertiary = HEX("000000"),
-        special = HEX("fe5f55"),
-
-        UI = HEX("fe5f55"),
-        UI_DARK = HEX("400d0f"),
-        
-        contrast = 2,
-
-        pos = {x = 0, y = 1},
-    },
-    b_blue= {
-        main = HEX("FFFFFF"),
-        special = HEX("009cfd"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("009cfd"),
-        UI_DARK = HEX("111540"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 2},
-    },
-    b_yellow= {
-        main = HEX("FFFFFF"),
-        special = HEX("fda200"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("fda200"),
-        UI_DARK = HEX("402c09"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 3},
-    },
-    b_green= {
-        main = HEX("FFFFFF"),
-        special = HEX("56a786"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("56a786"),
-        UI_DARK = HEX("094021"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 4},
-    },
-    b_black= {
-        main = HEX("bee9ee"),
-        special = HEX("4f6367"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("4f6367"),
-        UI_DARK = HEX("221c2e"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 5},
-    },
-    b_magic= {
-        main = HEX("ffe6bc"),
-        special = HEX("9074e1"),
-        tertiary = HEX("1a2021"),
-
-        UI = HEX("9074e1"),
-        UI_DARK = HEX("402c09"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 6},
-    },
-    b_nebula= {
-        special = HEX("6696a4"),
-        tertiary = HEX("66749c"),
-        main = HEX("3e1976"),
-
-        UI = HEX("6696a4"),
-        UI_DARK = HEX("3a314d"),
-        
-        contrast = 0.8,
-        
-        pos = {x = 0, y = 7},
-    },
-    b_ghost= {
-        main = HEX("d9c357"),
-        tertiary = HEX("7aa4f2"),
-        special = HEX("283379"),
-
-        UI = HEX("d9c357"),
-        UI_DARK = HEX("2e4061"),
-        
-        contrast = 1.2,
-        
-        pos = {x = 0, y = 8},
-    },
-    b_abandoned= {
-        main = HEX("faf0dc"),
-        special = HEX("da9a81"),
-        tertiary = HEX("322019"),
-
-        UI = HEX("da9a81"),
-        UI_DARK = HEX("322019"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 9},
-    },
-    b_checkered= {
-        main = HEX("000000"),
-        special = HEX("fe5f55"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("fe5f55"),
-        UI_DARK = HEX("002035"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 10},
-    },
-    b_zodiac= {
-        main = HEX("dec651"),
-        special = HEX("534e79"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("534e79"),
-        UI_DARK = HEX("402c09"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 11},
-    },
-    b_painted= {
-        main = HEX("8c2922"),
-        special = HEX("4a1a54"),
-        tertiary = HEX("ffd62b"),
-
-        UI = HEX("e290f2"),
-        UI_DARK = HEX("114831"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 12},
-    },
-    b_anaglyph= {
-        main = HEX("045d94"),
-        special = HEX("5c1b16"),
-        tertiary = HEX("FFFFFF"),
-
-        UI = HEX("fe5f55"),
-        UI_DARK = HEX("094c8f"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 13},
-    },
-    b_plasma= {
-        main = HEX("f7c7d1"),
-        tertiary = HEX("a3629c"),
-        special = HEX("0f1f4a"),
-
-        UI = HEX("d9869d"),
-        UI_DARK = HEX("2c3967"),
-        
-        contrast = 1,
-        
-        pos = {x = 0, y = 14},
-    },
-    b_erratic= {
-        main = HEX("4f6367"),
-        special = HEX("fe5f55"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("718e93"),
-        UI_DARK = HEX("470b08"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 15},
-    },
-    b_challenge= {
-        main = HEX("FFFFFF"),
-        special = HEX("c75985"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("db6596"),
-        UI_DARK = HEX("6b3246"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 16},
-    },
-
-    b_mp_violet= {
-        main = HEX("FFFFFF"),
-        special = HEX("a763d8"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("a763d8"),
-        UI_DARK = HEX("3b234d"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 17},
-    },
-    b_mp_indigo= {
-        main = HEX("FFFFFF"),
-        special = HEX("6749a4"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("6749a4"),
-        UI_DARK = HEX("3b234d"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 18},
-    },
-    b_mp_orange= {
-        main = HEX("FFFFFF"),
-        special = HEX("fc802b"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("fc802b"),
-        UI_DARK = HEX("422d1e"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 19},
-    },
-    b_mp_oracle= {
-        main = HEX("c6d1c5"),
-        special = HEX("c29032"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("c29032"),
-        UI_DARK = HEX("222d40"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 20},
-    },
-    b_mp_gradient= {
-        main = HEX("ffa5c9"),
-        special = HEX("b756b7"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("b756b7"),
-        UI_DARK = HEX("5e245e"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 21},
-    },
-    b_mp_heidelberg= {
-        main = HEX("c6dfdd"),
-        special = HEX("88beb0"),
-        tertiary = HEX("000000"),
-
-        UI = HEX("88beb0"),
-        UI_DARK = HEX("2c484a"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 22},
-    },
-    b_mp_cocktail= {
-        main = HEX("fec687"),
-        special = HEX("c14139"),
-        tertiary = HEX("121617"),
-
-        UI = HEX("c2889f"),
-        UI_DARK = HEX("244357"),
-        
-        contrast = 2,
-        
-        pos = {x = 0, y = 23},
-    },
-}
 
 local _start_up = Game.start_up
 function Game:start_up()
@@ -565,6 +275,7 @@ function set_tcg_mp_settings()
         MoneyLeakIncrease = MP.LOBBY.config.money_leak_increase,
         EndingRound = MP.LOBBY.config.game_round_limit,
         RoundEnd = MP.LOBBY.config.round_limit,
+        DamageCalc = "Linear",
         WinCondition = MP.LOBBY.config.winner_type,
         DeckLimitations = {
             Money = MP.LOBBY.config.deck_money_limit,
@@ -575,7 +286,7 @@ function set_tcg_mp_settings()
         },
     }
 
-    if BalatroTCG.SelectedDeck and BalatroTCG.SelectedDeck:is_legal() ~= 'Legal' then
+    if not BalatroTCG.SelectedDeck or type(BalatroTCG.SelectedDeck) ~= 'table' or BalatroTCG.SelectedDeck:is_legal() ~= 'Legal' then
         BalatroTCG.SelectedDeck = BalatroTCG.DefaultDecks[1]
         MP.ACTIONS.unready_lobby()
     end
@@ -679,6 +390,8 @@ function Game:start_tcg_game(args)
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
     self.GAME.pseudorandom.hashed_seed = pseudohash(self.GAME.pseudorandom.seed)
+    
+    G.GAME.facing_blind = true
 
     --print(self.GAME.pseudorandom.seed)
     --BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
@@ -947,13 +660,14 @@ function TCG_GetDamage(value)
 
         value = value - start
 
-        if BalatroTCG.Settings.DamageCalc == "Linear" then
-            local scale = 5
-            value = (value * scale) - (scale - 1)
-        elseif BalatroTCG.Settings.DamageCalc == "Quadratic" then
+        if BalatroTCG.Settings.DamageCalc == "Quadratic" then
             value = value * value
         elseif BalatroTCG.Settings.DamageCalc == "Exponential" then
             value = math.pow(2, value - 1)
+        -- TARGET: custom damage types
+        else
+            local scale = 4
+            value = (value * scale) - (scale - 1)
         end
             
         local value = math.max(math.floor(value), 0)
@@ -1174,9 +888,9 @@ function switch_player(playerActive)
     end
     
     BalatroTCG.PlayerActive = playerActive
+
+    G.ARGS.spin.real = (G.SETTINGS.reduced_motion and 0 or 1) * (BalatroTCG.PlayerActive and -2 or 2)
     if BalatroTCG.PlayerActive then
-        --ease_background_colour_blind(G.STATE, 'Small Blind')
-        --G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
 
         if BalatroTCG.Status_Current then BalatroTCG.Opponent:pass_over() end
         
@@ -1185,11 +899,6 @@ function switch_player(playerActive)
         
         BalatroTCG.Player:apply()
     else
-        --ease_background_colour_blind(G.STATE, 'Crimson Heart')
-        -- BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
-        -- if _RELEASE_MODE and not (MP and MP.LOBBY and MP.LOBBY.code) then
-        --     G.SETTINGS.GAMESPEED = 1000
-        -- end
         
         if BalatroTCG.Status_Current then BalatroTCG.Player:pass_over() end
 
@@ -1362,6 +1071,3 @@ function create_tcg_end_box(win)
     t.config.id = 'you_win_UI'
     return t
 end
-
-init()
-

@@ -455,26 +455,6 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = '=[SMODS _ "src/utils.lua"]'
-pattern = "if SMODS.no_resolve then SMODS.no_resolve = nil end"
-position = "before"
-payload = '''
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = '=[SMODS _ "src/utils.lua"]'
-pattern = "SMODS.calculate_card_areas('individual', context, effects, { main_scoring = true })"
-position = "after"
-payload = '''
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
 target = '=[SMODS _ "src/overrides.lua"]'
 pattern = '''if (v.area and v.area == G.deck) or v.ability.wheel_flipped then'''
 position = "at"
@@ -522,6 +502,17 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
+pattern = '''if not copier then set_consumeable_usage(self) end'''
+position = "at"
+payload = '''
+if not copier and not BalatroTCG.GameActive then set_consumeable_usage(self) end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
 pattern = '''
 if self.ability.consumeable then
     G.consumeables.config.card_limit = G.consumeables.config.card_limit - 1
@@ -554,7 +545,7 @@ local eval = function(card) return not card.REMOVED end
 position = "at"
 payload = '''
 if BalatroTCG.GameActive then
-    local eval = function(card) return card.area == G.graveyard or card.area == G.discard end
+    local eval = function(card) return card.area and not (card.area == G.graveyard or card.area == G.discard) end
 else
     local eval = function(card) return not card.REMOVED end
 end
@@ -1025,12 +1016,17 @@ if BalatroTCG.GameActive then
     if not BalatroTCG.GameStarted then
         ease_background_colour_blind(G.STATE, 'Small Blind')
     else
-        local bg = BalatroTCG.DeckBackgrounds[BalatroTCG.Status_Current.back_key] or BalatroTCG.DeckBackgrounds.unknown
+
+        G.ARGS.spin.real = (G.SETTINGS.reduced_motion and 0 or 1) * (BalatroTCG.PlayerActive and -0.5 or 0.5)
+        local data = BalatroTCG.DeckData.get(BalatroTCG.Status_Current.back_key)
+        local bg = data.background
 
         ease_background_colour{new_colour = bg.main, special_colour = bg.special, tertiary_colour = bg.tertiary, contrast = bg.contrast}
         
-        ease_colour(G.C.DYN_UI.MAIN, BalatroTCG.DeckBackgrounds[BalatroTCG.Opponent.back_key].UI)
-        ease_colour(G.C.DYN_UI.DARK, BalatroTCG.DeckBackgrounds[BalatroTCG.Opponent.back_key].UI_DARK)
+        data = BalatroTCG.DeckData.get(BalatroTCG.Opponent.back_key)
+
+        ease_colour(G.C.DYN_UI.MAIN, data.ui.main)
+        ease_colour(G.C.DYN_UI.DARK, data.ui.secondary)
     end
 
 else

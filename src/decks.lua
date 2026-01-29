@@ -1763,49 +1763,17 @@ function tcg_card_nominal(card)
     return factor
 end
 
-function deck_back_cost(name)
-
-
+function deck_back_cost(name, full_list)
     if type(name) == 'table' then
         local cost = 0
 
         for k, v in ipairs(name) do
-            cost = cost + deck_back_cost(v)
+            cost = cost + deck_back_cost(v, name)
         end
         return cost
     end
 
-    if not G.P_CENTERS[name] then return 0 end
-    
-    local back = Back(G.P_CENTERS[name])
-
-
-    if back.tcg_cost then
-        if type(back.tcg_cost) == 'function' then
-            return back.tcg_cost()
-        else
-            return back.tcg_cost
-        end
-    else
-        if name == 'b_abandoned' then
-            return 5
-        elseif name == 'b_blue' then
-            return 5
-        elseif name == 'b_checkered' then
-            return 5
-        elseif name == 'b_yellow' then
-            return 5
-        elseif name == 'b_plasma' then
-            return 10
-        elseif name == 'b_challenge' then
-            return 5
-        elseif name == 'b_mp_gradient' then
-            return 10
-        else
-            return 0
-        end
-    end
-
+    return BalatroTCG.DeckData.get(name):get_cost(full_list)
 end
 
 function tcg_base_cost(set, name, base_cost)
@@ -1814,7 +1782,7 @@ function tcg_base_cost(set, name, base_cost)
     if set == 'Planet' then
         --return base_cost - 1
     elseif set == 'Spectral' then
-        return base_cost + 1
+        --return base_cost + 1
     elseif set == 'Voucher' then
         
         if name == 'Reroll Surplus' then
@@ -2001,50 +1969,8 @@ function tcg_get_limitations(backname)
         return limits
     end
     
-    local back = Back(G.P_CENTERS[backname])
+    BalatroTCG.DeckData.get(backname):get_limits(limits)
     
-    if back.tcg_limitations then
-        back:tcg_limitations(limits)
-    elseif backname == 'b_magic' then
-        --limits.tarot_copies = 1
-    elseif backname == 'b_nebula' then
-        limits.planet_copies = 1
-    elseif backname == 'b_ghost' then
-    elseif backname == 'b_abandoned' then
-        limits.no_faces = true
-        limits.deck_size = 50
-    elseif backname == 'b_checkered' then
-        limits.checkered_suits = true
-        limits.suit_copies = 1
-    elseif backname == 'b_zodiac' then
-    elseif backname == 'b_erratic' then
-        limits.playing_card_copies = 4
-    elseif backname == 'b_challenge' then
-        limits.max_consumables = 30
-        limits.max_tarots = 30
-        limits.max_planets = 30
-        limits.max_spectrals = 30
-        limits.max_vouchers = 30
-    elseif backname == 'b_mp_cocktail' then
-        limits.deck_count = 3
-    elseif backname == 'b_mp_gradient' then
-    elseif backname == 'b_mp_heidelberg' then
-        limits.max_rares = 2
-        limits.max_uncommons = 0
-    elseif backname == 'b_mp_indigo' then
-        limits.deck_size = 70
-        limits.tarot_copies = 1
-        limits.planet_copies = 1
-        limits.spectral_copies = 1
-        limits.joker_copies = 1
-        limits.voucher_copies = 1
-    elseif backname == 'b_mp_oracle' then
-    elseif backname == 'b_mp_orange' then
-        limits.tarot_copies = 2
-    elseif backname == 'b_mp_violet' then
-        limits.max_vouchers = limits.max_vouchers + 4
-    end
-
     return limits
 end
 
@@ -2114,78 +2040,7 @@ function get_TCG_params(back_list, back)
         return ret
     end
 
-    local deck
-
-    if back then
-        deck = Back(G.P_CENTERS[back])
-    end
-
-    if deck and deck.tcg_apply then
-        deck:tcg_apply(ret)
-    else
-        if back == 'b_red' then
-            ret.discards = ret.discards + 1
-        elseif back == 'b_blue' then
-            ret.hands = ret.hands + 1
-        elseif back == 'b_yellow' then
-            ret.dollars = ret.dollars + 25
-        elseif back == 'b_green' then
-        elseif back == 'b_black' then
-            ret.joker_slots = ret.joker_slots + 1
-            ret.hand_size = ret.hand_size - 1
-        elseif back == 'b_magic' then
-            ret.starting_vouchers = {
-                "v_crystal_ball",
-            }
-        elseif back == 'b_nebula' then
-            ret.starting_vouchers = {
-                "v_telescope",
-            }
-        elseif back == 'b_ghost' then
-        elseif back == 'b_abandoned' then
-        elseif back == 'b_checkered' then
-        elseif back == 'b_zodiac' then
-            ret.starting_vouchers = {
-                "v_planet_merchant",
-                "v_tarot_merchant",
-            }
-        elseif back == 'b_painted' then
-            ret.hand_size = ret.hand_size + 2
-            ret.joker_slots = ret.joker_slots - 1
-        elseif back == 'Anaglyph Deck' then
-        elseif back == 'Plasma Deck' then
-        elseif back == 'Erratic Deck' then
-        elseif back == 'b_challenge' then
-            ret.destroy_tarots = false
-            ret.destroy_spectrals = false
-            ret.joker_slots = 0
-        elseif back == 'b_mp_cocktail' then
-            local hasBlueDeck = false
-            for k, v in ipairs(back_list) do
-                if v == 'b_blue' then
-                    hasBlueDeck = true
-                    break
-                end
-            end
-
-            if hasBlueDeck then
-                ret.discards = ret.discards - 1
-            else
-                ret.hands = ret.hands - 1
-            end
-        elseif back == 'b_mp_gradient' then
-        elseif back == 'b_mp_heidelberg' then
-        elseif back == 'b_mp_indigo' then
-        elseif back == 'b_mp_oracle' then
-            ret.starting_vouchers = {
-                "v_clearance_sale",
-            }
-            ret.dollars = ret.dollars * 0.90
-            ret.max_budget = ret.dollars
-        elseif back == 'b_mp_orange' then
-        elseif back == 'b_mp_violet' then
-        end
-    end
+    BalatroTCG.DeckData.get(back):get_params(ret, back_list)
 
     return ret
 end
@@ -2373,169 +2228,6 @@ function BalatroTCG.Deck:is_legal()
         return errors
     end
     return 'Legal'
-end
-
-local back_init = Back.init
-function Back:init(selected_back)
-    back_init(self, selected_back)
-
-    if BalatroTCG.GameActive then
-        if selected_back.name == 'Green Deck' then
-            self.calculate_deck = function(context)
-                if not context.cardarea and not context.repetition and not context.individual and context.end_of_round and G.GAME.current_round.discards_left > 0 then
-                    ease_dollars(G.GAME.current_round.discards_left * 2)
-                end
-            end
-        elseif selected_back.name == 'Plasma Deck' then
-            self.calculate_deck = function(context)
-                
-                if context.context == 'final_scoring_step' then
-                    local tot = context.chips + context.mult
-                    context.chips = math.floor(tot/2)
-                    context.mult = math.floor(tot/2)
-                    update_hand_text({delay = 0}, {mult = context.mult, chips = context.chips})
-
-                    G.E_MANAGER:add_event(Event({
-                        func = (function()
-                            local text = localize('k_balanced')
-                            play_sound('gong', 0.94, 0.3)
-                            play_sound('gong', 0.94*1.5, 0.2)
-                            play_sound('tarot1', 1.5)
-                            ease_colour(G.C.UI_CHIPS, {0.8, 0.45, 0.85, 1})
-                            ease_colour(G.C.UI_MULT, {0.8, 0.45, 0.85, 1})
-                            attention_text({
-                                scale = 1.4, text = text, hold = 2, align = 'cm', offset = {x = 0,y = -2.7},major = G.play
-                            })
-                            G.E_MANAGER:add_event(Event({
-                                trigger = 'after',
-                                blockable = false,
-                                blocking = false,
-                                delay =  4.3,
-                                func = (function() 
-                                        ease_colour(G.C.UI_CHIPS, G.C.BLUE, 2)
-                                        ease_colour(G.C.UI_MULT, G.C.RED, 2)
-                                    return true
-                                end)
-                            }))
-                            G.E_MANAGER:add_event(Event({
-                                trigger = 'after',
-                                blockable = false,
-                                blocking = false,
-                                no_delete = true,
-                                delay =  6.3,
-                                func = (function() 
-                                    G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
-                                    G.C.UI_MULT[1], G.C.UI_MULT[2], G.C.UI_MULT[3], G.C.UI_MULT[4] = G.C.RED[1], G.C.RED[2], G.C.RED[3], G.C.RED[4]
-                                    return true
-                                end)
-                            }))
-                            return true
-                        end)
-                    }))
-
-                    delay(0.6)
-                    return {
-                        chips = context.chips,
-                        mult = context.mult
-                    }
-                elseif context.damaging then
-                    context.damage = math.floor(context.damage / 2)
-                end
-            end
-        elseif selected_back.name == 'Anaglyph Deck' then
-            self.calculate_deck = function(context)
-                if context.setting_blind and not context.cardarea and math.fmod(context.status.status.round, 3) == 0 then
-                    ease_hands_played(1)
-                    ease_discard(1)
-                end
-            end
-        elseif selected_back.name == 'b_mp_orange' then
-            self.calculate_deck = function(context)
-                if context.discard and context.other_card:is_playing_card() and BalatroTCG.Status_Current.status.round == 1 then
-                    if context.other_card.use_button then
-                        context.other_card.use_button:remove()
-                        context.other_card.use_button = nil
-                    end
-                    return {
-                        delay = 0.45,
-                        remove = true,
-                        card = G.deck.cards[1],
-                    }
-                end
-            end
-        elseif selected_back.name == 'Magic Deck' then
-            self.calculate_deck = function(context)
-                if context.setting_blind and not context.cardarea and context.status.status.round == 1 then
-                    for k, v in pairs(context) do
-                        print(k)
-                    end
-                    print("")
-                    for i = 1, 2 do
-                        
-                        local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
-                        if card then
-                            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-                            card.area:remove_card(card)
-                            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                                card:start_materialize()
-                                G.consumeables:emplace(card)
-
-                                for _, c in ipairs(G.playing_cards) do
-                                    if c == card then
-                                        goto skip
-                                    end
-                                end
-                                table.insert(G.playing_cards, card)
-                                ::skip::
-                                G.GAME.consumeable_buffer = 0
-                                play_sound('timpani')
-                                return true
-                            end
-                            }))
-                        end
-
-                    end
-                end
-            end
-        elseif selected_back.name == 'Ghost Deck' then
-            self.calculate_deck = function(context)
-                if context.setting_blind and not context.cardarea and context.status.status.round == 1 then
-                    for i = 1, 1 do
-                        
-                        local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})
-                        if card then
-                            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-                            card.area:remove_card(card)
-                            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                                card:start_materialize()
-                                G.consumeables:emplace(card)
-
-                                for _, c in ipairs(G.playing_cards) do
-                                    if c == card then
-                                        goto skip
-                                    end
-                                end
-                                table.insert(G.playing_cards, card)
-                                ::skip::
-                                G.GAME.consumeable_buffer = 0
-                                play_sound('timpani')
-                                return true
-                            end
-                            }))
-                        end
-
-                    end
-                end
-            end
-        elseif selected_back.name == 'b_mp_cocktail' then
-            G.GAME.modifiers.mp_cocktail = {}
-
-            self.calculate_deck = function(context)
-
-            end
-        end
-    end
-
 end
 
 function get_new_tcg_deck()

@@ -168,7 +168,7 @@ return {
 			b_mp_orange_tcg = {
 				name = "Orange Deck",
 				text = {
-					"Discarding playing cards on",
+					"Discarding {C:attention}playing{} cards in",
 					"round {C:attention}1{} destroys them",
 				},
 			},
@@ -199,6 +199,15 @@ return {
             },
         },
         Joker={
+            j_drivers_license={
+                name="Driver's License",
+                text={
+                    "{X:mult,C:white} X#1# {} Mult if you have",
+                    "at least {C:attention}#2#{} Enhanced",
+                    "cards in your full deck",
+                    "{C:inactive}(Currently {C:attention}#3#{C:inactive})",
+                },
+            },
             j_campfire_tcg={
                 name="Campfire",
                 text={
@@ -396,8 +405,8 @@ return {
             j_abstract_tcg={
                 name="Abstract Joker",
                 text={
-                    "{C:mult}+#1#{} Mult for",
-                    "each {C:attention}Joker{} card in game",
+                    "{C:mult}+#1#{} Mult for each",
+                    "{C:attention}Joker{} card in game",
                     "{C:inactive}(Currently {C:red}+#2#{C:inactive} Mult)",
                 },
             },
@@ -578,9 +587,9 @@ return {
             j_perkeo_tcg={
                 name="Perkeo",
                 text={
-                    "Creates a {C:dark_edition}Negative{} copy of",
-                    "{C:attention}1{} random {C:attention}consumable{}",
-                    "card in your possession",
+                    "Creates a {C:dark_edition}Negative{} copy of {C:attention}1{}",
+                    "random {C:attention}consumable{} card in your",
+                    "possession to your hand",
                     "at start of {C:attention}Round{},",
                 },
             },
@@ -654,7 +663,7 @@ return {
                 text={
                     "Create a copy of a",
                     "random {C:attention}Joker{}, adds",
-                    "rental to copy",
+                    "rental all Jokers",
                 },
             },
             c_soul_tcg={

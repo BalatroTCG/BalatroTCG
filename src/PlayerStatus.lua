@@ -228,15 +228,20 @@ function TCG_PlayerStatus:set_backs(backs)
 
     for k, v in ipairs(backs) do
         local backCenter = G.P_CENTERS[v]
+        local data = BalatroTCG.DeckData.get(v)
 
         if not backCenter then goto continue end
 
         self.backs[#self.backs + 1] = Back(backCenter)
+        if data.calculate_context then
+            self.backs[#self.backs].calculate_deck = data.calculate_context
+        end
+
+        ::continue::
 
         if not player then
-            local data = BalatroTCG.DeckBackgrounds[v] or BalatroTCG.DeckBackgrounds.unknown
 
-            local sprite = AnimatedSprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ANIMATION_ATLAS['tcgb_player_blinds'], data.pos)
+            local sprite = AnimatedSprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ANIMATION_ATLAS[data.icon_atlas], data.icon_pos)
             
             sprite.states = self.states
             sprite.states.visible = true
@@ -248,7 +253,6 @@ function TCG_PlayerStatus:set_backs(backs)
             self.children[k] = sprite
         end
 
-        ::continue::
     end
 end
 
@@ -348,10 +352,37 @@ function TCG_PlayerStatus:pass_over()
     self.visual_transfer = {
         index = '',
     }
+    
+    for k, v in ipairs(self.bg_sparkles) do
+        v:fade(1)
+    end
+    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 1,blocking = false, blockable = false,
+    func = function()
+        for k, v in ipairs(self.bg_sparkles) do
+            v:remove()
+        end
+        self.bg_sparkles = {}
+        return true
+    end}))
 end
 
 function TCG_PlayerStatus:apply()
 
+    self.bg_sparkles = {}
+    local data = BalatroTCG.DeckData.get(self.back_key)
+
+    if data.bg_particles then
+        for k, v in ipairs(data.bg_particles) do
+            local copy = copy_table(v)
+            copy.initialize = true
+            copy.attach = G.ROOM_ATTACH
+
+            local particles = Particles(1, 1, 0,0, copy)
+            particles.fade_alpha = 1
+            particles:fade(1, 0)
+            self.bg_sparkles[#self.bg_sparkles + 1] = particles
+        end
+    end
 
     BalatroTCG.CurrentPlayer = self
 

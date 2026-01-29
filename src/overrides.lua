@@ -514,6 +514,13 @@ function Card:can_use_consumeable(any_state, skip_check)
 
     if self.ability.name == 'Wraith' then return true end
 
+    if self.ability.name == 'The Soul' then
+        for k, v in ipairs(G.jokers.cards) do
+            if v.ability.set == 'Joker' and v.config.center.eternal_compat then return true end
+        end
+        return false
+    end
+
     if not BalatroTCG.GameActive then
         return value
     end
@@ -623,6 +630,24 @@ function play_button_type(h)
     return 'SAFE'
 end
 
+function BalatroTCG.consumeable_slots_available()
+    local val = G.consumeables.config.card_limit - G.GAME.consumeable_buffer - #G.consumeables.cards
+
+    if G.GAME.modifiers.consumeable_in_jokers then
+        val = val + G.jokers.config.card_limit - G.GAME.joker_buffer - #G.jokers.cards
+    end
+
+    return val
+end
+function BalatroTCG.joker_slots_available()
+    local val = G.jokers.config.card_limit - G.GAME.joker_buffer - #G.jokers.cards
+
+    if G.GAME.modifiers.joker_in_consumeables then
+        val = val + G.consumeables.config.card_limit - G.GAME.consumeable_buffer - #G.consumeables.cards
+    end
+
+    return val
+end
 
 local calculate_card_areas_ref = SMODS.calculate_card_areas
 function SMODS.calculate_card_areas(_type, context, return_table, args)
@@ -1247,12 +1272,15 @@ function CardArea:emplace(card, location, stay_flipped)
     
 
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
-        if self ~= G.graveyard then
-            self.REMOVED = nil
-        end
         if self == G.discard or self == G.graveyard then
+
             card.ability.tcgb_sticker_hidden = false
             card.ability.tcgb_sticker_visible = false
+
+            if card.tcg_extra.virtual then
+                card:dissolve()
+                return
+            end
 
             -- Fixes a bug where objects break when thrown into the graveyard.  Dunno why but this works ig
             G.E_MANAGER:add_event(Event({
@@ -1261,6 +1289,7 @@ function CardArea:emplace(card, location, stay_flipped)
                 delay =  1,
                 func = (function() card.states.hover.can = true; card.dissolve = nil; return true end)
             }))
+            
         end
         if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then
             BalatroTCG.Status_Current:setup_visuals(card, self)
