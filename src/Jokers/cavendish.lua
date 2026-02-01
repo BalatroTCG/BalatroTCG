@@ -10,3 +10,7 @@ BalatroTCG.JokerMod {
         end
     end,
 }
+BalatroTCG.JokerMod {
+    key_override = 'j_gros_michel',
+    
+}

@@ -5,19 +5,11 @@ BalatroTCG.JokerMod {
         self.config.extra = 3
     end,
     calculate_context = function(self, context, balanced)
-        if context.discard and context.other_card == context.full_hand[#context.full_hand] then
-            local face_cards = 0
-            for k, v in ipairs(context.full_hand) do
-                if not v:is_playing_card() then face_cards = face_cards + 1 end
-            end
-            if face_cards >= self.ability.cards then
-                SMODS.scale_card(self, {
-                    ref_table = self.ability,
-                    ref_value = "mult",
-                    scalar_value = "extra",
-                    message_key = 'a_mult',
-                    message_colour = G.C.RED
-                })
+        if context.end_of_round and not context.repetition then
+            if not context.other_card:is_playing_card() then
+                self.ability.mult = self.ability.mult + self.ability.extra
+                
+                SMODS.calculate_effect({ message = localize({type='variable',key='a_mult',vars={self.ability.extra}}), colour = G.C.RED}, context.other_card)
             end
         elseif context.joker_main and self.ability.mult > 0 then
             return {

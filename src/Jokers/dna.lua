@@ -1,6 +1,11 @@
 BalatroTCG.JokerMod {
     key_override = 'j_dna',
     
+    description_override = {
+        balanced = true,
+        none = false,
+    },
+    
     calculate_context = function(self, context, balanced)
         if context.before and #context.full_hand == 1 and context.full_hand[1]:is_playing_card() and (balanced or G.GAME.current_round.hands_played == 0) then
             G.playing_card = (G.playing_card and G.playing_card + 1) or 1

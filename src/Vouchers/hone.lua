@@ -1,7 +1,7 @@
 BalatroTCG.VoucherMod {
     key_override = 'v_hone',
     
-    get_cost = function(original, balanced) return 6 end,
+    get_cost = function(original, balanced) return 5 end,
 
     modify = function(self, balanced)
         self.config.extra = 50

@@ -3,7 +3,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.d_size = 2
+            --self.config.d_size = 2
         end
     end,
 }

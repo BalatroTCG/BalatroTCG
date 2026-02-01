@@ -6,32 +6,17 @@ BalatroTCG.ConsumeableMod {
     end,
     use_consumeable = function(self, area, copier, balanced, original_func)
         
-        if G.GAME.last_tarot_planet == 'c_fool' then return end
+        local rightmost = G.hand.highlighted[1]
+        local leftmost = G.hand.highlighted[1]
 
-        local center = G.P_CENTERS[G.GAME.last_tarot_planet]
-
-        local card = pick_from_areas(function (c) return c.ability.name == center.name end, {G.deck, G.discard, G.graveyard, G.hand})
+        original_func(self, area, copier)
         
-        if card then
-            if card.area then card.area:remove_card(card) end
-            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                card:start_materialize()
-                G.consumeables:emplace(card)
-
-                for _, c in ipairs(G.playing_cards) do
-                    if c == card then
-                        goto skip
-                    end
-                end
-                card:add_to_deck()
-                table.insert(G.playing_cards, card)
-                ::skip::
-                play_sound('timpani')
-                self:juice_up(0.3, 0.5)
-                return true
-            end
-            }))
-            delay(0.6)
+        if leftmost.children.use_button then
+            leftmost.children.use_button:remove()
+            leftmost.children.use_button = nil
         end
+        leftmost.tcg_extra.has_health = nil
+        leftmost.ability.tcgb_health_amount = nil
+        leftmost.ability.tcgb_max_health = nil
     end
 }

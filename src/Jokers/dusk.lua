@@ -2,7 +2,7 @@ BalatroTCG.JokerMod {
     key_override = 'j_dusk',
     
     modify = function(self, balanced)
-        self.config.extra = 20
+        self.config.extra = 15
     end,
     calculate_context = function(self, context, balanced)
         if context.repetition and context.cardarea == G.play then

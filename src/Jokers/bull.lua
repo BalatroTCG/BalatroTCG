@@ -2,7 +2,6 @@ BalatroTCG.JokerMod {
     key_override = 'j_bull',
     
     modify = function(self, balanced)
-        if balanced then self.config.extra = 2 end
     end,
     calculate_context = function(self, context, balanced)
         if context.joker_main then

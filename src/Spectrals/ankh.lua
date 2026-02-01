@@ -1,5 +1,5 @@
 BalatroTCG.ConsumeableMod {
-    key_override = 'c_hex',
+    key_override = 'c_ankh',
     
     use_consumeable = function(self, area, copier, balanced, original_func)
         
@@ -35,14 +35,15 @@ BalatroTCG.ConsumeableMod {
             card:start_materialize()
             card:add_to_deck()
             card.tcg_extra.virtual = true
-            if balanced then
-                card:set_rental(true)
-            end
 
             if card.edition and card.edition.negative then
                 card:set_edition(nil, true)
             end
-            G.jokers:emplace(card)
+            if balanced then
+                G.hand:emplace(card)
+            else
+                G.jokers:emplace(card)
+            end
             return true end }))
         
     end

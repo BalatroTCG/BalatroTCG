@@ -1,8 +1,11 @@
 BalatroTCG.VoucherMod {
     key_override = 'v_hieroglyph',
     
-    get_cost = function(original, balanced) return 6 end,
+    get_cost = function(original, balanced) return 5 end,
 
+    loc_vars = function(ability, card, balance)
+        return { ability.extra }
+    end,
     modify = function(self, balanced)
         self.config.extra = 8
     end,
@@ -16,10 +19,13 @@ BalatroTCG.VoucherMod {
 BalatroTCG.VoucherMod {
     key_override = 'v_petroglyph',
     
-    get_cost = function(original, balanced) return 12 end,
+    get_cost = function(original, balanced) return 13 end,
     
+    loc_vars = function(ability, card, balance)
+        return { ability.extra }
+    end,
     modify = function(self, balanced)
-        self.config.extra = 40
+        self.config.extra = 30
     end,
     redeem = function(card, balanced, original_func)
         G.GAME.modifiers.damage_percent = card.ability.extra

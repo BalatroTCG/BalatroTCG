@@ -7,6 +7,7 @@ BalatroTCG.JokerMod {
     calculate_context = function(self, context, balanced)
         if context.discard then
             local rank = self:get_ability_id(11)
+            
             if not context.other_card.debuff and context.other_card:is_rank_joker(rank) and not context.blueprint then
                 self.ability.x_mult = self.ability.x_mult + self.ability.extra
                 return {

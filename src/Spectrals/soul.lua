@@ -18,7 +18,6 @@ BalatroTCG.ConsumeableMod {
             if joker.config.center.eternal_compat then
                 table.insert(applicable, joker)
             end
-            joker:set_eternal(nil)
         end
 
         if #applicable > 0 then
@@ -26,11 +25,8 @@ BalatroTCG.ConsumeableMod {
             used_tarot:juice_up(0.3, 0.5)
             play_sound('gold_seal', 1.2, 0.4)
             card:set_eternal(true)
+            card:set_rental(true)
         end
         
-        local _first_dissolve = false
-        for _, joker in ipairs(G.jokers.cards) do
-            if (not SMODS.is_eternal(joker, self)) then joker.getting_sliced = true; joker:start_dissolve(nil, _first_dissolve);_first_dissolve = true end
-        end
     end
 }

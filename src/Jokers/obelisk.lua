@@ -7,7 +7,7 @@ BalatroTCG.JokerMod {
     calculate_context = function(self, context, balanced)
         if context.cardarea == G.jokers then
             if context.before then
-                if not context.blueprint and balanced then
+                if not context.blueprint then
                     local reset = true
                     local play_more_than = (G.GAME.hands[context.scoring_name].played or 0)
                     for k, v in pairs(G.GAME.hands) do

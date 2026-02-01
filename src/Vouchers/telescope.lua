@@ -40,6 +40,12 @@ BalatroTCG.VoucherMod {
 BalatroTCG.VoucherMod {
     key_override = 'v_observatory',
     
+    modify = function(self, balanced)
+        if balanced then
+            self.config.extra = 2.5
+        end
+    end,
+
     get_cost = function(original, balanced) return 12 end,
 
     redeem = function(card, balanced, original_func)

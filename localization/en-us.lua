@@ -138,7 +138,7 @@ return {
 				name = "Gradient Deck",
 				text = {
 					"Cards are also considered",
-					"one rank {C:attention}higher{} or {C:attention}lower",
+					"one rank {C:attention}lower{}",
 					"for all {C:attention}Joker{} effects",
 				},
 			},
@@ -336,8 +336,8 @@ return {
             j_riff_raff_tcg={
                 name="Riff-Raff",
                 text={
-                    "At start of {C:attention}Round{},",
-                    "draw a random {C:attention}#1# {C:blue}Common{C:attention} Joker",
+                    "At start of {C:attention}Round{}, draw {C:attention}#1#",
+                    "random {C:blue}Common{C:attention} Joker",
                     "{C:inactive}(Must have room)",
                 },
             },
@@ -405,9 +405,18 @@ return {
             j_abstract_tcg={
                 name="Abstract Joker",
                 text={
-                    "{C:mult}+#1#{} Mult for each",
+                    "{C:mult}+#1#{} Mult for each active",
                     "{C:attention}Joker{} card in game",
                     "{C:inactive}(Currently {C:red}+#2#{C:inactive} Mult)",
+                },
+            },
+            j_superposition_tcg={
+                name="Superposition",
+                text={
+                    "Draw a {C:tarot}Tarot{} card from full",
+                    "deck if poker hand contains",
+                    "an {C:attention}Ace{} and a {C:attention}Straight{}",
+                    "{C:inactive}(Must have room)",
                 },
             },
             j_supernova_tcg={
@@ -423,7 +432,8 @@ return {
                 text={
                     "Earn {C:money}$#1#{} of {C:attention}interest{}",
                     "for every {C:money}$5{} you",
-                    "have at end of round",
+                    "have at end of round,",
+                    "capped at {C:money}$5{}",
                 },
             },
             j_trading_tcg={
@@ -517,6 +527,15 @@ return {
                     "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
                 },
             },
+            j_8_ball_tcg={
+                name="8 Ball",
+                text={
+                    "{C:green}#1# in #2#{} chance for each",
+                    "played {C:attention}8{} to draw a {C:tarot}Tarot{}",
+                    "card from full deck when scored",
+                    "{C:inactive}(Must have room)",
+                },
+            },
             j_ceremonial_tcg={
                 name="Ceremonial Dagger",
                 text={
@@ -564,8 +583,8 @@ return {
                 name="Séance",
                 text={
                     "If {C:attention}poker hand{} is a",
-                    "{C:attention}#1#{}, draw a",
-                    "random {C:spectral}Spectral{} card",
+                    "{C:attention}#1#{}, draw a random",
+                    "{C:spectral}Spectral{} card from full deck",
                     "{C:inactive}(Must have room)",
                 },
             },
@@ -606,12 +625,9 @@ return {
             j_cartomancer_tcg={
                 name="Cartomancer",
                 text={
-                    "{C:tarot}Tarot{} cards return to",
-                    "{C:red}discard{} pile after use,",
-                    "draw a {C:tarot}Tarot{} card",
+                    "Draw a {C:tarot}Tarot{} card",
                     "at start of {C:attention}Round{}",
                     "{C:inactive}(Must have room)",
-
                 },
             },
             j_triboulet_tcg={
@@ -644,8 +660,8 @@ return {
                 name="Blue Seal",
                 text={
                     "Draws the {C:planet}Planet{} card",
-                    "for final played {C:attention}poker hand{} from full deck",
-                    "of round if {C:attention}held{} in hand",
+                    "for final played {C:attention}poker hand{}",
+                    "from full deck if {C:attention}held{} in hand",
                     "{C:inactive}(Must have room)",
                 },
             },
@@ -671,16 +687,15 @@ return {
                 name="Ankh",
                 text={
                     "Create a copy of a",
-                    "random {C:attention}Joker{}, adds",
-                    "rental all Jokers",
+                    "random {C:attention}Joker{} and",
+                    "draws it to hand",
                 },
             },
             c_soul_tcg={
                 name="The Soul",
                 text={
                     "One random {C:attention}Joker",
-                    "becomes {C:attention}Eternal,",
-                    "destroy all other Jokers",
+                    "becomes {C:attention}Eternal and {C:attention}Rental",
                 },
             },
             c_wraith_tcg={
@@ -689,6 +704,14 @@ return {
                     "Draws {C:red}Rare{} or",
                     "{C:legendary,E:1}Legendary{} Joker",
                     "to hand",
+                },
+            },
+            c_black_hole_tcg={
+                name="Black Hole",
+                text={
+                    "Draw up to {C:attention}#1#{} random",
+                    "cards from your graveyard",
+                    "to your hand",
                 },
             },
             c_immolate_tcg={
@@ -767,7 +790,7 @@ return {
                 text={
                     "Spend {C:money}$#1#{} once per round",
                     "to add {C:attention}#2#{} damage",
-                    "to your attack",
+                    "to your {C:attention}attack",
                 },
             },
             v_glow_up_tcg={
@@ -809,7 +832,8 @@ return {
                 name="Magic Trick",
                 text={
                     "{C:attention}Playing cards{} can",
-                    "be bought"
+                    "be stored in your",
+                    "{C:attention}Inventory{} for {C:money}$1"
                 },
             },
             v_money_tree_tcg={
@@ -817,7 +841,7 @@ return {
                 text={
                     "Gain {C:money}$1{} per round",
                     "for every {C:attention}dollar",
-                    "lost from Seed Money",
+                    "lost from {C:attention}Seed Money",
                     "{C:inactive}(Currently {C:money}$#1#{}{C:inactive})",
                 },
             },
@@ -886,7 +910,7 @@ return {
                 text={
                     "Spend {C:money}$#1#{} once per round",
                     "to add {C:attention}#2#{} damage",
-                    "to your attack",
+                    "to your {C:attention}attack",
                 },
             },
             v_seed_money_tcg={

@@ -3,8 +3,8 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.x_mult = 4
-            self.config.extra = 0.25
+            self.config.x_mult = 6
+            self.config.extra = 0.5
         end
     end,
 }

@@ -11,7 +11,7 @@ BalatroTCG.VoucherMod {
 BalatroTCG.VoucherMod {
     key_override = 'v_omen_globe',
     
-    get_cost = function(original, balanced) return 10 end,
+    get_cost = function(original, balanced) return 12 end,
     
     modify = function(self, balanced)
         self.config.extra = 1

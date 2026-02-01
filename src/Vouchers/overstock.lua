@@ -10,7 +10,7 @@ BalatroTCG.VoucherMod {
 BalatroTCG.VoucherMod {
     key_override = 'v_overstock_plus',
     
-    get_cost = function(original, balanced) return 12 end,
+    get_cost = function(original, balanced) return 14 end,
 
     redeem = function(card, balanced, original_func)
         G.GAME.modifiers.joker_in_consumeables = true

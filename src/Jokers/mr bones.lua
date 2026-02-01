@@ -4,7 +4,7 @@ BalatroTCG.JokerMod {
     modify = function(self, balanced)
         if balanced then self.eternal_compat = false 
         else center.eternal_compat = true end
-        self.config.extra = 25
+        self.config.extra = 20
     end,
     calculate_context = function(self, context, balanced)
         if context.tcg_take_damage and not context.blueprint then

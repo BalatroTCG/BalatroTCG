@@ -60,9 +60,7 @@ function Card:is_rank_joker(ranks)
                 for i, v in ipairs(ranks) do
                     temp[v - 1] = true
                     temp[v] = true
-                    if BalatroTCG.Settings.Unbalance then
-                        temp[v + 1] = true
-                    end
+                    --temp[v + 1] = true
                 end
         
                 ranks = {}
@@ -103,7 +101,7 @@ function Card:use_consumeable(area, copier)
         if self.ability.set == 'Planet' then
             if not BalatroTCG.Status_Current.params.destroy_planets or next(SMODS.find_card('j_astronomer')) then self.tcg_todeck = true end
         elseif self.ability.set == 'Tarot' then
-            if not BalatroTCG.Status_Current.params.destroy_tarots or next(SMODS.find_card('j_cartomancer')) then self.tcg_todeck = true end
+            if not BalatroTCG.Status_Current.params.destroy_tarots then self.tcg_todeck = true end
         elseif self.ability.set == 'Spectral' then
             if not BalatroTCG.Status_Current.params.destroy_spectrals then self.tcg_todeck = true end
         end
@@ -115,46 +113,6 @@ function Card:use_consumeable(area, copier)
         if self.config.center.tcg_modifier then
             self.config.center.tcg_modifier.use_consumeable(self, area, copier, not BalatroTCG.Settings.Unbalance, use_consumeable_ref)
             return
-        elseif obj.tcg_use and type(obj.tcg_use) == 'function' then
-            obj.tcg_use(self, area, copier)
-            return
-        else
-            
-            if self.ability.set == 'Planet' then
-                use_consumeable_ref(self, area, copier)
-            elseif self.ability.name == 'Judgement' then
-                
-            elseif self.ability.name == 'The Fool' then
-            elseif self.ability.name == 'Ankh' then
-
-            elseif self.ability.name == 'Hex' and balanced then
-
-                
-            elseif self.ability.name == 'The Emperor' then
-                
-                
-            elseif self.ability.name == 'Death' then
-                
-                
-            elseif self.ability.name == 'The High Priestess' then
-
-
-            elseif self.ability.name == 'Immolate' and balanced then
-                self.ability.extra.dollars = 0
-                use_consumeable_ref(self, area, copier)
-
-            elseif self.ability.effect == 'Suit Conversion' and not balanced then
-
-
-            elseif self.ability.name == 'Sigil' or self.ability.name == 'Ouija' then
-                
-            elseif self.ability.name == 'Wraith' then
-                
-            elseif self.ability.name == 'The Soul' then
-                
-            else
-                use_consumeable_ref(self, area, copier)
-            end
         end
     else
         use_consumeable_ref(self, area, copier)
@@ -657,7 +615,7 @@ function TCG_Override_Desc(self, _c)
     elseif _c.name == 'Bootstraps' then loc_vars = {ability.extra.mult, ability.extra.mult * math.floor(BalatroTCG.Status_Current and (BalatroTCG.Status_Current.status.dollars + (G.GAME.dollar_buffer or 0) + BalatroTCG.Status_Current.status.opponent_health) or 0)}
     elseif _c.name == 'Bull' then loc_vars = {ability.extra, ability.extra*math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0) + (BalatroTCG.Status_Current and BalatroTCG.Status_Current.status.opponent_health or 0)))}
     elseif _c.name == 'Triboulet' then loc_vars = {ability.extra, G.GAME.probabilities.normal, ability.chance}
-    elseif _c.name == "Driver's License" then loc_vars = {self.ability.extra, self.config.tally_amount, self.ability.driver_tally or '0'}
+    elseif _c.name == "Driver's License" then loc_vars = {ability.extra, ability.tally_amount, ability.driver_tally or '0'}
     elseif _c.name == 'Bloodstone' then 
         local a, b = SMODS.get_probability_vars(self, ability.extra.num, ability.extra.odds, 'bloodstone')
         loc_vars = {a, b, self.ability.extra.Xmult}

@@ -16,6 +16,12 @@ BalatroTCG.JokerMod {
                     v:set_tcg_health((v.ability.tcgb_health_amount or 0) + self.ability.extra)
                     delay(0.4)
                 end
+                for k, v in ipairs(G.consumeables.cards) do
+                    self:juice_up(0.3, 0.4)
+                    play_sound('tarot1')
+                    v:set_tcg_health((v.ability.tcgb_health_amount or 0) + self.ability.extra)
+                    delay(0.4)
+                end
                 return true end
             }))
         end

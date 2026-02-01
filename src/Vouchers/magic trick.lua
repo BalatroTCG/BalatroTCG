@@ -13,7 +13,7 @@ BalatroTCG.VoucherMod {
 BalatroTCG.VoucherMod {
     key_override = 'v_illusion',
     
-    get_cost = function(original, balanced) return 14 end,
+    get_cost = function(original, balanced) return 18 end,
     
     modify = function(self, balanced)
         self.config.extra = 1.5

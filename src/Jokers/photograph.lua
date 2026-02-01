@@ -1,6 +1,11 @@
 BalatroTCG.JokerMod {
     key_override = 'j_photograph',
     
+    description_override = {
+        balanced = true,
+        none = false,
+    },
+    
     calculate_context = function(self, context, balanced)
 
         if context.individual and context.cardarea == G.play then

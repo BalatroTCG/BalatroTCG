@@ -149,7 +149,7 @@ local Card_add_to_deck_ref = Card.add_to_deck
 function Card:add_to_deck(from_debuff)
     local obj = self.config.center
 
-    if obj.tcg_modifier and obj.tcg_modifier.add_to_deck then
+    if BalatroTCG.GameActive and obj.tcg_modifier and obj.tcg_modifier.add_to_deck then
         self.added_to_deck = true
         obj.tcg_modifier.add_to_deck(self, from_debuff, not BalatroTCG.Settings.Unbalance)
         return
@@ -160,7 +160,7 @@ end
 local Card_remove_from_deck_ref = Card.remove_from_deck
 function Card:remove_from_deck(from_debuff)
     local obj = self.config.center
-    if obj.tcg_modifier and obj.tcg_modifier.remove_from_deck then
+    if BalatroTCG.GameActive and obj.tcg_modifier and obj.tcg_modifier.remove_from_deck then
         self.added_to_deck = false
         obj.tcg_modifier.remove_from_deck(self, from_debuff, not BalatroTCG.Settings.Unbalance)
         return
@@ -188,13 +188,13 @@ function Game:init_game_object(...)
         output.hands["Straight Flush"].l_chips = 150
         output.hands["Flush House"].l_mult = 12
         output.hands["Flush House"].l_chips = 80
-        output.hands["Five of a Kind"].l_mult = 7
+        output.hands["Five of a Kind"].l_mult = 6
         output.hands["Five of a Kind"].l_chips = 100
         output.hands["Flush Five"].l_mult = 3
         output.hands["Flush Five"].l_chips = 120
 
         output.hands["Straight"].l_mult = 10
-        output.hands["Straight"].l_chips = 120
+        output.hands["Straight"].l_chips = 110
         output.hands["Full House"].l_mult = 6
         output.hands["Full House"].l_chips = 70
         output.hands["Four of a Kind"].l_mult = 4
@@ -204,10 +204,10 @@ function Game:init_game_object(...)
 
         output.hands["Three of a Kind"].l_mult = 5
         output.hands["Three of a Kind"].l_chips = 40
-        output.hands["Two Pair"].l_mult = 3
+        output.hands["Two Pair"].l_mult = 4
         output.hands["Two Pair"].l_chips = 20
         output.hands["Pair"].l_mult = 2
-        output.hands["Pair"].l_chips = 40
+        output.hands["Pair"].l_chips = 30
         output.hands["High Card"].l_mult = 1
         output.hands["High Card"].l_chips = 25
 

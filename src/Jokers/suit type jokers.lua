@@ -118,7 +118,7 @@ BalatroTCG.JokerMod {
     key_override = 'j_arrowhead',
     
     modify = function(self, balanced)
-        if balanced then self.config.extra = 75 end
+        if balanced then self.config.extra = 125 end
     end,
     calculate_context = function(self, context, balanced)
         if context.individual and context.cardarea == G.play then
@@ -136,7 +136,7 @@ BalatroTCG.JokerMod {
     key_override = 'j_onyx_agate',
     
     modify = function(self, balanced)
-        if balanced then self.config.extra = 12 end
+        if balanced then self.config.extra = 18 end
     end,
     calculate_context = function(self, context, balanced)
         if context.individual and context.cardarea == G.play then
