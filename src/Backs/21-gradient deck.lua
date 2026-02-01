@@ -12,5 +12,5 @@ BalatroTCG.DeckData {
         main = HEX("b756b7"),
         secondary = HEX("5e245e"),
     },
-    get_cost = function(self) return 10; end
+    get_cost = function(full_list) return 10; end
 }

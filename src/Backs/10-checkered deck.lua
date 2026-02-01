@@ -23,7 +23,7 @@ BalatroTCG.DeckData {
             fill = true
         }
     },
-    get_cost = function(self) return 5; end,
+    get_cost = function(full_list) return 5; end,
     get_limits = function(self, default_limits)
         default_limits.checkered_suits = true
         default_limits.suit_copies = 1

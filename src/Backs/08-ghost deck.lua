@@ -23,7 +23,7 @@ BalatroTCG.DeckData {
             fill = true
         }
     },
-    get_cost = function(self) return 5; end,
+    get_cost = function(full_list) return 5; end,
     calculate_context = function(context)
         if context.setting_blind and not context.cardarea and context.status.status.round == 1 then
             for i = 1, 1 do
@@ -31,7 +31,7 @@ BalatroTCG.DeckData {
                 local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})
                 if card then
                     G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-                    card.area:remove_card(card)
+                    if card.area then card.area:remove_card(card) end
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
                         card:start_materialize()
                         G.consumeables:emplace(card)

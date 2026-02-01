@@ -20,7 +20,8 @@ BalatroTCG.BalancePatchObject = SMODS.GameObject:extend{
     end,
     ai_calculate = function(self, context, balanced)
         
-    end
+    end,
+    get_cost = function(original, balanced) return original end,
 }
 
 BalatroTCG.DeckDataTable = {}
@@ -44,7 +45,7 @@ BalatroTCG.DeckData = BalatroTCG.BalancePatchObject:extend{
     loc_vars = function(self)
         
     end,
-    get_cost = function(self) return 0 end,
+    get_cost = function(full_list) return 0 end,
     get_params = function(self, default_params, full_list)
         
     end,
@@ -69,7 +70,6 @@ BalatroTCG.JokerMod = BalatroTCG.BalancePatchObject:extend{
         
     end,
     ]]
-    get_cost = function(original, balanced) return original end,
 }
 BalatroTCG.ConsumeableMods = {}
 BalatroTCG.ConsumeableMod = BalatroTCG.BalancePatchObject:extend{
@@ -77,38 +77,44 @@ BalatroTCG.ConsumeableMod = BalatroTCG.BalancePatchObject:extend{
     obj_buffer = {},
     set = 'ConsumeableMod',
     required_params = {
-        'key_override',
     },
 
-    use_consumeable = function(card, area, copier, balanced, original_func)
-        original_func(card, area, copier)
+    register = function(self)
+        if self.key_override then
+            if self.obj_table['key__' .. self.key_override] then
+                sendWarnMessage(('Detected duplicate register call on object %s'):format(self.key_override), self.set)
+                return
+            else
+                self.obj_table['key__' .. self.key_override] = self
+            end
+        elseif self.effect_override then
+            if self.obj_table['effect__' .. self.effect_override] then
+                sendWarnMessage(('Detected duplicate register call on object %s'):format(self.effect_override), self.set)
+                return
+            else
+                self.obj_table['effect__' .. self.effect_override] = self
+            end
+        else
+            sendWarnMessage(('Cannot find effect or key override'), self.set)
+            return
+        end
+        self.obj_buffer[#self.obj_buffer] = self
+        self.order = #self.obj_buffer
+        self.registered = true
+    end,
+    can_use_consumeable = function(self, any_state, skip_check, balanced, original_value)
+        return original_value
+    end,
+    use_consumeable = function(self, area, copier, balanced, original_func)
+        original_func(self, area, copier)
     end,
     --[[
-    loc_vars = function(card, balance)
+    loc_vars = function(ability, card, balance)
         
     end,
     ]]
-    get_cost = function(original, balanced) return original end,
 }
-BalatroTCG.EnahncementMods = {}
-BalatroTCG.EnahncementMod = BalatroTCG.BalancePatchObject:extend{
-    obj_table = BalatroTCG.EnahncementMods,
-    obj_buffer = {},
-    set = 'EnahncementMod',
-    required_params = {
-        'key_override',
-    },
 
-    use_consumeable = function(card, area, copier, balanced, original_func)
-        original_func(card, area, copier)
-    end,
-    --[[
-    loc_vars = function(card, balance)
-        
-    end,
-    ]]
-    get_cost = function(original, balanced) return original end,
-}
 BalatroTCG.VoucherMods = {}
 BalatroTCG.VoucherMod = BalatroTCG.BalancePatchObject:extend{
     obj_table = BalatroTCG.VoucherMods,
@@ -118,15 +124,17 @@ BalatroTCG.VoucherMod = BalatroTCG.BalancePatchObject:extend{
         'key_override',
     },
 
-    redeem = function(card, balanced, original_func)
-        original_func(card)
-    end,
     --[[
-    loc_vars = function(card, balance)
+    redeem = function(self, balanced)
+
+    end,
+    calculate_context = function(self, context, balanced)
+
+    end,
+    loc_vars = function(self, balance)
         
     end,
     ]]
-    get_cost = function(original, balanced) return original end,
 }
 BalatroTCG.SealMods = {}
 BalatroTCG.SealMod = BalatroTCG.BalancePatchObject:extend{
@@ -141,7 +149,7 @@ BalatroTCG.SealMod = BalatroTCG.BalancePatchObject:extend{
     calculate_context = function(self, context, balanced)
 
     end,
-    loc_vars = function(card, balance)
+    loc_vars = function(self, balance)
         
     end,
     ]]

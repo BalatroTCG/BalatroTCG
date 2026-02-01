@@ -41,6 +41,9 @@ BalatroTCG.JokerMod {
 BalatroTCG.JokerMod {
     key_override = 'j_brainstorm',
     
+    get_cost = function(original, balanced)
+        if balanced then return 9 end
+    end,
     calculate_context = function(self, context, balanced)
 
         if context.updating then

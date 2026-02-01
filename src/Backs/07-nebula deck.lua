@@ -27,7 +27,6 @@ BalatroTCG.DeckData {
             scale = 0.05,
             lifespan = 1.5,
             speed = 4,
-            attach = G.ROOM_ATTACH,
             colours = {G.C.WHITE},
             fill = true
         }

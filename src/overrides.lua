@@ -6,13 +6,13 @@ G.FUNCS.play_cards_from_highlighted = function(e)
         for _, joker in ipairs(G.jokers.cards) do
             joker:highlight(false)
             joker.states.drag.can = false
+            joker.states.click.can = false
+            
         end
         for _, joker in ipairs(G.consumeables.cards) do
             joker:highlight(false)
             joker.states.drag.can = false
-        end
-        for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
-            joker.states.drag.can = false
+            joker.states.click.can = false
         end
     end
     play_cards_from_highlighted_ref(e)
@@ -149,10 +149,9 @@ local Card_add_to_deck_ref = Card.add_to_deck
 function Card:add_to_deck(from_debuff)
     local obj = self.config.center
 
-    if not self.added_to_deck and BalatroTCG.GameActive and obj and obj.tcg_add_to_deck and type(obj.tcg_add_to_deck) == 'function' then
+    if obj.tcg_modifier and obj.tcg_modifier.add_to_deck then
         self.added_to_deck = true
-
-        obj.tcg_add_to_deck(self, from_debuff)
+        obj.tcg_modifier.add_to_deck(self, from_debuff, not BalatroTCG.Settings.Unbalance)
         return
     else
         Card_add_to_deck_ref(self, from_debuff)
@@ -161,9 +160,9 @@ end
 local Card_remove_from_deck_ref = Card.remove_from_deck
 function Card:remove_from_deck(from_debuff)
     local obj = self.config.center
-    if self.added_to_deck and BalatroTCG.GameActive and obj and obj.tcg_remove_from_deck and type(obj.tcg_remove_from_deck) == 'function' then
+    if obj.tcg_modifier and obj.tcg_modifier.remove_from_deck then
         self.added_to_deck = false
-        obj.tcg_remove_from_deck(self, from_debuff)
+        obj.tcg_modifier.remove_from_deck(self, from_debuff, not BalatroTCG.Settings.Unbalance)
         return
     else
         Card_remove_from_deck_ref(self, from_debuff)
@@ -188,11 +187,11 @@ function Game:init_game_object(...)
         output.hands["Straight Flush"].l_mult = 18
         output.hands["Straight Flush"].l_chips = 150
         output.hands["Flush House"].l_mult = 12
-        output.hands["Flush House"].l_chips = 100
+        output.hands["Flush House"].l_chips = 80
         output.hands["Five of a Kind"].l_mult = 7
-        output.hands["Five of a Kind"].l_chips = 135
+        output.hands["Five of a Kind"].l_chips = 100
         output.hands["Flush Five"].l_mult = 3
-        output.hands["Flush Five"].l_chips = 75
+        output.hands["Flush Five"].l_chips = 120
 
         output.hands["Straight"].l_mult = 10
         output.hands["Straight"].l_chips = 120
@@ -279,7 +278,7 @@ function Card:get_end_of_round_effect(context)
 
         if card and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit and not self.ability.extra_enhancement then
 
-            card.area:remove_card(card)
+            if card.area then card.area:remove_card(card) end
 
             local ret = {}
 
@@ -442,20 +441,22 @@ local cardarea_move = CardArea.move
 function CardArea:move(dt)
     if BalatroTCG.GameActive then
         local finalPos = nil
+        local offset = 5
         if self == BalatroTCG.Player.jokers or self == BalatroTCG.Player.consumeables then
-            finalPos = 0.5
+            finalPos = 1
+            offset = 4.5
         elseif self == BalatroTCG.Player.opponentJokers or self == BalatroTCG.Player.opponentConsumeables then
             finalPos = -2.5
         elseif self == BalatroTCG.Player.opponentHand then
-            finalPos = -7
+            finalPos = -7.5
         elseif self == BalatroTCG.Player.opponentPlay then
-            finalPos = -4
+            finalPos = -5.25
         end
 
         if finalPos then
 
             if not BalatroTCG.PlayerActive then
-                finalPos = finalPos + 5
+                finalPos = finalPos + offset
             end
 
             self.T.y = 15*G.real_dt*finalPos + (1-15*G.real_dt)*self.T.y
@@ -512,13 +513,13 @@ local can_use_consumeable_ref = Card.can_use_consumeable
 function Card:can_use_consumeable(any_state, skip_check)
     local value = can_use_consumeable_ref(self, any_state, skip_check)
 
+    if self.config.center.tcg_modifier then
+        return self.config.center.tcg_modifier.can_use_consumeable(self, any_state, skip_check, not BalatroTCG.Settings.Unbalance, value)
+    end
+
     if self.ability.name == 'Wraith' then return true end
 
     if self.ability.name == 'The Soul' then
-        for k, v in ipairs(G.jokers.cards) do
-            if v.ability.set == 'Joker' and v.config.center.eternal_compat then return true end
-        end
-        return false
     end
 
     if not BalatroTCG.GameActive then
@@ -659,10 +660,29 @@ function SMODS.calculate_card_areas(_type, context, return_table, args)
 
             if return_table then
                 SMODS.current_evaluated_object = object
-                return_table[#return_table+1] = object.calculate_deck(context)
+                return_table[#return_table+1] = object.calculate_deck(context, not BalatroTCG.Settings.Unbalance)
             else
                 SMODS.current_evaluated_object = object
                 local effects = { object.calculate_deck(context) }
+                local f = SMODS.trigger_effects(effects, card)
+                for k,v in pairs(f) do flags[k] = v end
+                SMODS.update_context_flags(context, flags)
+            end
+
+            ::continue::
+        end
+
+        for k, object in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
+            local mod = object.config.center.tcg_modifier
+            
+            if not mod or not mod.calculate_context then goto continue end
+            
+            if return_table then
+                SMODS.current_evaluated_object = object
+                return_table[#return_table+1] = mod.calculate_context(object, context, not BalatroTCG.Settings.Unbalance)
+            else
+                SMODS.current_evaluated_object = object
+                local effects = { mod.calculate_context(object, context, not BalatroTCG.Settings.Unbalance) }
                 local f = SMODS.trigger_effects(effects, card)
                 for k,v in pairs(f) do flags[k] = v end
                 SMODS.update_context_flags(context, flags)
@@ -1054,24 +1074,6 @@ function Card:get_chip_mult(context)
     end
     -- TARGET: get_chip_mult
     return ret
-end
-
-local Card_get_chip_bonus_ref = Card.get_chip_bonus
-function Card:get_chip_bonus(context)
-    context = context or { }
-
-    if self.ability.set == 'Joker' and G.GAME.used_vouchers['v_hone'] then return 50 end
-
-    return Card_get_chip_bonus_ref(self, context)
-end
-
-local Card_get_chip_x_mult_ref = Card.get_chip_x_mult
-function Card:get_chip_x_mult(context)
-    context = context or { }
-    
-    if self.ability.set == 'Joker' and G.GAME.used_vouchers['v_glow_up'] then return 1.5 end
-
-    return Card_get_chip_x_mult_ref(self, context)
 end
 
 

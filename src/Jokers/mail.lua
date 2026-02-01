@@ -7,6 +7,9 @@ BalatroTCG.JokerMod {
             self.config.extra = 3
         end
     end,
+    get_cost = function(original, balanced)
+        if balanced then return 5 end
+    end,
     calculate_context = function(self, context, balanced)
         if context.discard then
             local rank = self:get_ability_id(G.GAME.current_round.mail_card.id)

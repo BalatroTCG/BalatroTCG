@@ -142,6 +142,9 @@ BalatroTCG.JokerMod {
 BalatroTCG.JokerMod {
     key_override = 'j_duo',
     
+    get_cost = function(original, balanced)
+        if balanced then return 6 end
+    end,
     modify = function(self, balanced)
         if balanced then
             self.config.x_mult = 8
@@ -151,6 +154,9 @@ BalatroTCG.JokerMod {
 BalatroTCG.JokerMod {
     key_override = 'j_trio',
     
+    get_cost = function(original, balanced)
+        if balanced then return 7 end
+    end,
     modify = function(self, balanced)
         if balanced then
             self.config.x_mult = 10
@@ -178,6 +184,9 @@ BalatroTCG.JokerMod {
 BalatroTCG.JokerMod {
     key_override = 'j_tribe',
     
+    get_cost = function(original, balanced)
+        if balanced then return 6 end
+    end,
     modify = function(self, balanced)
         if balanced then
             self.config.x_mult = 9

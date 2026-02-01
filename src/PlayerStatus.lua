@@ -320,6 +320,101 @@ function TCG_PlayerStatus:hover()
     end
 end
 
+function Card:add_attack_button()
+    -- using the price to render behind the card
+    if self.children.price then
+        self.children.price:remove()
+    end
+
+    self.children.price = UIBox{
+        definition = G.UIDEF.tcg_attack_button(self),
+        config = {align= "bmi", offset = {x=0,y=0.65}, parent = self}
+    }
+end
+
+G.FUNCS.select_attacking_card = function(e)
+
+    local card = e.config.ref_table
+
+    for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+        joker:highlight(false)
+        joker:add_attack_button()
+    end
+    for _, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+        joker:highlight(false)
+        joker:add_attack_button()
+    end
+    
+    card:highlight(true)
+    local eval = function(card) return card.highlighted end
+    juice_card_until(card, eval, true)
+
+    if card.children.use_button then
+        card.children.use_button:remove()
+        card.children.use_button = nil
+    end
+
+    card.children.price:remove()
+
+    card.children.price = UIBox{
+        definition = G.UIDEF.tcg_attack_cancel_button(card),
+        config = {align= "bmi", offset = {x=0,y=0.65}, parent = card}
+    }
+
+end
+
+G.FUNCS.deselect_attacking_card = function(e)
+
+    local card = e.config.ref_table
+
+    for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+        joker:highlight(false)
+        joker:add_attack_button()
+    end
+    for _, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+        joker:highlight(false)
+        joker:add_attack_button()
+    end
+
+end
+
+function G.UIDEF.tcg_attack_button(e)
+    local use = nil
+    use = {n=G.UIT.C, config={align = "cr"}, nodes={
+        {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.RED, button = 'select_attacking_card'}, nodes={
+        {n=G.UIT.T, config={text = localize('b_tcg_attack_button'),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
+      }}
+    }}
+
+    local t = {
+        n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
+        {n=G.UIT.C, config={padding = 0.15, align = 'cl'}, nodes={
+            {n=G.UIT.R, config={align = 'cl'}, nodes={
+                use
+            }},
+        }},
+    }}
+    return t
+end
+function G.UIDEF.tcg_attack_cancel_button(e)
+    local use = nil
+    use = {n=G.UIT.C, config={align = "cr"}, nodes={
+        {n=G.UIT.C, config={ref_table = e, align = "bm",maxw = 1.25, padding = 0.1, r=0.08, minw = 1.25, minh = 1.5, hover = true, shadow = true, colour = G.C.GREEN, button = 'deselect_attacking_card'}, nodes={
+        {n=G.UIT.T, config={text = localize('b_tcg_attack_cancel_button'),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}}
+      }}
+    }}
+
+    local t = {
+        n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
+        {n=G.UIT.C, config={padding = 0.15, align = 'cl'}, nodes={
+            {n=G.UIT.R, config={align = 'cl'}, nodes={
+                use
+            }},
+        }},
+    }}
+    return t
+end
+
 function TCG_PlayerStatus:stop_hover()
     self.hovering = false
     self.hover_tilt = 0
@@ -367,6 +462,7 @@ function TCG_PlayerStatus:pass_over()
 end
 
 function TCG_PlayerStatus:apply()
+
 
     self.bg_sparkles = {}
     local data = BalatroTCG.DeckData.get(self.back_key)
@@ -442,121 +538,11 @@ function TCG_PlayerStatus:apply()
 
     G.GAME.pseudorandom = self.seed
     
-
-    self.opponentJokers.config.highlighted_limit = 1
-    self.opponentConsumeables.config.highlighted_limit = 1
-    
     local shuffle = true
     
-    -- more hard coding I want to avoid
-    for k, v in ipairs(self.backs) do
-        if v.name == 'b_mp_indigo' and self.status.round > 1 then
-            shuffle = false
-        end
-    end
-
-    if shuffle then
-        G.deck:shuffle('nr' .. self.status.round)
-    end
+    G.deck:shuffle('nr' .. self.status.round)
+    
     SMODS.calculate_context({ setting_blind = true, status = self, full_deck = self.deck, blind = G.GAME.round_resets.blind })
-
-    for k, voucher in ipairs(self.vouchers.cards) do
-        if voucher.ability.name == 'Planet Merchant' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-            
-            local card = pick_from_areas(function (c) return c.ability.set == 'Planet' end, {G.deck, G.discard, G.graveyard})
-            if card then
-                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-                card.area:remove_card(card)
-                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                    card:start_materialize()
-                    G.consumeables:emplace(card)
-
-                    for _, c in ipairs(G.playing_cards) do
-                        if c == card then
-                            goto skip
-                        end
-                    end
-                    table.insert(G.playing_cards, card)
-                    ::skip::
-                    G.GAME.consumeable_buffer = 0
-                    play_sound('timpani')
-                    voucher:juice_up(0.3, 0.4)
-                    return true
-                end
-                }))
-            end
-        elseif voucher.ability.name == 'Tarot Merchant' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-
-            local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
-            if card then
-                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-                card.area:remove_card(card)
-                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                    card:start_materialize()
-                    G.consumeables:emplace(card)
-
-                    for _, c in ipairs(G.playing_cards) do
-                        if c == card then
-                            goto skip
-                        end
-                    end
-                    table.insert(G.playing_cards, card)
-                    ::skip::
-                    G.GAME.consumeable_buffer = 0
-                    play_sound('timpani')
-                    voucher:juice_up(0.3, 0.4)
-                    return true
-                end
-                }))
-            end
-        elseif voucher.ability.name == 'Omen Globe' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-
-            local card = pick_from_areas(function (c) return c.ability.set == 'Spectral' end, {G.deck, G.discard, G.graveyard})
-            if card then
-                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-                card.area:remove_card(card)
-                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                    card:start_materialize()
-                    G.consumeables:emplace(card)
-
-                    for _, c in ipairs(G.playing_cards) do
-                        if c == card then
-                            goto skip
-                        end
-                    end
-                    table.insert(G.playing_cards, card)
-                    ::skip::
-                    G.GAME.consumeable_buffer = 0
-                    play_sound('timpani')
-                    return true
-                end
-                }))
-            end
-        elseif voucher.ability.name == 'Telescope' then
-            local _planet, _hand, _tally = nil, nil, 0
-            for k, v in ipairs(G.handlist) do
-                if G.GAME.hands[v].visible and G.GAME.hands[v].played > _tally then
-                    _hand = v
-                    _tally = G.GAME.hands[v].played
-                end
-            end
-            if _hand then
-                for k, v in pairs(G.P_CENTER_POOLS.Planet) do
-                    if v.config.hand_type == _hand then
-                        _planet = v.key
-                    end
-                end
-                local center = G.P_CENTERS[_planet]
-                for k, card in ipairs(G.deck.cards) do
-                    if card.ability.name == center.name then
-                        G.deck.cards[k] = G.deck.cards[#G.deck.cards]
-                        G.deck.cards[#G.deck.cards] = card
-                        break
-                    end
-                end
-            end
-        end
-    end
 
     
     for k, v in ipairs(self.playing_cards) do 
@@ -569,15 +555,20 @@ function TCG_PlayerStatus:apply()
     for _, joker in ipairs(self.jokers.cards) do
         joker.states.drag.can = true
         joker.states.collide.can = true
+        joker.states.click.can = true
         if joker.facing == 'back' then joker:flip() end
     end
     for _, joker in ipairs(self.consumeables.cards) do
         joker.states.drag.can = true
         joker.states.collide.can = true
+        joker.states.click.can = true
         if joker.facing == 'back' then joker:flip() end
     end
     for _, joker in ipairs(self.opponentJokers.cards) do
-        joker.states.collide.can = true
+        joker:add_attack_button()
+    end
+    for _, joker in ipairs(self.opponentConsumeables.cards) do
+        joker:add_attack_button()
     end
     
     
@@ -664,7 +655,7 @@ function Card:set_opponent_display(card_set, card_base, visible)
             else
                 self:set_ability(G.P_CENTERS['j_joker'])
             end
-            self.config.center = copy_table(self.config.center)
+            self.config.center = copy_center(self.config.center)
 
             self.bypass_discovery_center  = false
             self.config.center.discovered = false
@@ -756,6 +747,8 @@ function TCG_PlayerStatus:receive_message(message)
 
     elseif message.type == 'opponent_hand' and self.is_player then
 
+        self.opponent_joker_display = message.joker_display or self.opponent_joker_display
+        self.opponent_consumeable_display = message.consumeable_display or self.opponent_consumeable_display
         
         if message.from ~= message.to then
             local from = self:string_to_fake_area(message.from)
@@ -878,7 +871,7 @@ function TCG_PlayerStatus:setup_visuals(card, area, start_area)
             
             transfer.to = self:area_to_string(area)
             
-            if transfer.to == 'play' and not next(SMODS.find_card('j_chaos')) then
+            if (transfer.to ~= 'hand' and transfer.to ~= 'discard') and not next(SMODS.find_card('j_chaos')) then
                 if card:is_playing_card() then
                     transfer.card_set = 'Default'
                     transfer.card_base = card.config.card_key
@@ -915,18 +908,17 @@ end
 
 function Card:tcg_get_visual()
     if self.ability.tcgb_sticker_hidden or self.facing == 'back' then
-        -- if self.ability.eternal then
-        --     return 'e'
-        -- else
-        --     return 'x'
-        -- end
-        return 'x'
+        if self.ability.eternal then
+            return 'e'
+        else
+            return 'x'
+        end
     else
         
         if self:is_playing_card() then
             return 'Default,' .. self.config.card_key
         else
-            return self.ability.set .. ',' .. self.config.center_key
+            return self.ability.set .. ',' .. self.config.center_key .. ',' .. (self.ability.eternal and 'e' or 'x')
         end
     end
 end
@@ -1115,19 +1107,19 @@ function TCG_PlayerStatus:check_visuals()
         }))
     end
 
-    local current_joker_display, current_consumeable_display = self.jokers:tcg_display_string(true), self.consumeables:tcg_display_string(true)
+    -- local current_joker_display, current_consumeable_display = self.jokers:tcg_display_string(true), self.consumeables:tcg_display_string(true)
 
-    if self.sent_joker_display ~= current_joker_display or self.sent_consumeable_display ~= current_consumeable_display then
+    -- if self.sent_joker_display ~= current_joker_display or self.sent_consumeable_display ~= current_consumeable_display then
         
-        self:send_message({
-            type = 'opponent_display',
-            joker_display = current_joker_display,
-            consumeable_display = current_consumeable_display
-        })
+    --     self:send_message({
+    --         type = 'opponent_display',
+    --         joker_display = current_joker_display,
+    --         consumeable_display = current_consumeable_display
+    --     })
 
-        self.sent_joker_display = current_joker_display
-        self.sent_consumeable_display = current_consumeable_display
-    end
+    --     self.sent_joker_display = current_joker_display
+    --     self.sent_consumeable_display = current_consumeable_display
+    -- end
     
 
     if self.highlight_delay > 0 then
@@ -1151,6 +1143,10 @@ function TCG_PlayerStatus:send_visuals()
     self.visual_delay = 0
     
     self.visual_transfer.type = 'opponent_hand'
+
+    self.visual_transfer.joker_display = self.jokers:tcg_display_string(true)
+    self.visual_transfer.consumeable_display = self.consumeables:tcg_display_string(true)
+    
     self:send_message(self.visual_transfer)
 
     self.visual_transfer = {
@@ -1382,9 +1378,6 @@ function TCG_PlayerStatus:take_attacks()
                         
                         G.GAME.chips_damage = 0
                     else
-                        
-                        joker.ability.tcgb_sticker_visible = true
-                        joker.ability.tcgb_sticker_hidden = false
 
                         local attacked = math.min(joker.ability.tcgb_health_amount or 0, G.GAME.chips_damage)
                         

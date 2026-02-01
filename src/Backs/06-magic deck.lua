@@ -24,8 +24,8 @@ BalatroTCG.DeckData {
             lifespan = 1,
             speed = 1.1,
             padding = -1,
-            attach = G.ROOM_ATTACH,
             colours = {G.C.WHITE, lighten(G.C.PURPLE, 0.4), lighten(G.C.PURPLE, 0.2), lighten(G.C.GOLD, 0.2)},
+            fill = true
         }
     },
     calculate_context = function(context)
@@ -35,7 +35,7 @@ BalatroTCG.DeckData {
                 local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
                 if card then
                     G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-                    card.area:remove_card(card)
+                    if card.area then card.area:remove_card(card) end
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
                         card:start_materialize()
                         G.consumeables:emplace(card)

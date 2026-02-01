@@ -7,7 +7,8 @@ BalatroTCG.JokerMod {
         end
     end,
     calculate_context = function(self, context, balanced)
-        if not (context.blueprint_card or self).getting_sliced and BalatroTCG.joker_slots_available() > 0 then
+
+        if context.setting_blind and not (context.blueprint_card or self).getting_sliced and BalatroTCG.joker_slots_available() > 0 then
 
             local jokers_to_create = math.min(self.ability.extra, BalatroTCG.joker_slots_available())
             
@@ -17,8 +18,9 @@ BalatroTCG.JokerMod {
                 
                 if card then
                     G.GAME.joker_buffer = G.GAME.joker_buffer + 1
+                    if card.area then card.area:remove_card(card) end
+                    
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                        card.area:remove_card(card)
                         card:start_materialize()
                         G.jokers:emplace(card)
 

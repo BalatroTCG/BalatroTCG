@@ -12,7 +12,7 @@ BalatroTCG.DeckData {
         main = HEX("c2889f"),
         secondary = HEX("244357"),
     },
-    get_cost = function(self) return 5; end,
+    get_cost = function(full_list) return 5; end,
     get_params = function(self, default_params, full_list)
         local hasBlueDeck = false
         
@@ -33,6 +33,9 @@ BalatroTCG.DeckData {
         default_limits.deck_count = 3
     end,
     calculate_context = function(context)
-
+        if context.setting_blind and not context.cardarea then
+            -- Fixes a crash I guess
+            G.GAME.modifiers.mp_cocktail = {}
+        end
     end
 }

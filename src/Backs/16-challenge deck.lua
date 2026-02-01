@@ -12,7 +12,7 @@ BalatroTCG.DeckData {
         main = HEX("db6596"),
         secondary = HEX("6b3246"),
     },
-    get_cost = function(self) return 5; end,
+    get_cost = function(full_list) return 5; end,
     get_params = function(self, default_params, full_list)
         default_params.destroy_planets = false
         default_params.destroy_tarots = false

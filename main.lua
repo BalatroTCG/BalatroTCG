@@ -127,6 +127,7 @@ BalatroTCG.load_dir("src/Backs")
 BalatroTCG.load_dir("src/Jokers")
 BalatroTCG.load_dir("src/Spectrals")
 BalatroTCG.load_dir("src/Tarots")
+BalatroTCG.load_dir("src/Vouchers")
 
 SMODS.Atlas({
 	key = "sticker_hidden",
@@ -368,9 +369,6 @@ function Game:start_tcg_game(args)
     BalatroTCG.GameActive = true
     BalatroTCG.UseTCG_UI = true
 
-    if MP then
-        G.GAME.modifiers.mp_cocktail = {}
-    end
     self:prep_stage(G.STAGES.RUN, G.STATES.NEW_ROUND)
     
     G.STAGE = G.STAGES.RUN
@@ -385,7 +383,7 @@ function Game:start_tcg_game(args)
     self.GAME.stake = 1
     self.GAME.STOP_USE = 0
     self.GAME.selected_back = Back(G.P_CENTERS.b_red)
-
+    
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
@@ -628,7 +626,6 @@ function Game:start_tcg_game(args)
     }
     
     BalatroTCG.PlayerActive = false
-    --switch_player(args.starting)
     
     if true then
         G.E_MANAGER:add_event(Event({
@@ -695,18 +692,6 @@ G.FUNCS.chip_UI_damage = function(e)
 end
 
 function end_tcg_round()
-
-
-    
-    for k, voucher in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
-        if voucher.ability.name == 'Seed Money' and not BalatroTCG.Status_Current.status.used_vouchers['v_money_tree'] then
-            BalatroTCG.Status_Current.status.seed_reduction = BalatroTCG.Status_Current.status.seed_reduction + 1
-            BalatroTCG.Status_Current:damage(1)
-        elseif voucher.ability.name == 'Money Tree' then
-            ease_dollars(BalatroTCG.Status_Current.status.seed_reduction)
-        end
-    end
-
 
     BalatroTCG.Switching = true
     
@@ -837,9 +822,17 @@ function end_tcg_round()
                 
                 for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
                     joker:highlight(false)
+                    if joker.children.price then
+                        joker.children.price:remove()
+                        joker.children.price = nil
+                    end
                 end
                 for _, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
                     joker:highlight(false)
+                    if joker.children.price then
+                        joker.children.price:remove()
+                        joker.children.price = nil
+                    end
                 end
                 
                 
@@ -882,6 +875,7 @@ end
 
 function switch_player(playerActive)
     
+    
     BalatroTCG.GameStarted = true
     if BalatroTCG.Status_Current then
         SMODS.calculate_context({ switching_players = true, old_player = BalatroTCG.Status_Current, new_player = BalatroTCG.Status_Other })
@@ -889,7 +883,6 @@ function switch_player(playerActive)
     
     BalatroTCG.PlayerActive = playerActive
 
-    G.ARGS.spin.real = (G.SETTINGS.reduced_motion and 0 or 1) * (BalatroTCG.PlayerActive and -2 or 2)
     if BalatroTCG.PlayerActive then
 
         if BalatroTCG.Status_Current then BalatroTCG.Opponent:pass_over() end

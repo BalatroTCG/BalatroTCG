@@ -3,7 +3,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then self.eternal_compat = false end
-        center.blueprint_compat = false
+        self.blueprint_compat = false
     end,
     calculate_context = function(self, context, balanced)
         if context.tcg_take_damage and not context.blueprint then

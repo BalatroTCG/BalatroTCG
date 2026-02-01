@@ -363,7 +363,7 @@ return {
                     "Reduce damage taken by",
                     "{C:attention}#1#%{} for every 9",
                     "in your {C:attention}full deck",
-                    "{C:inactive}(Currently {C:money}$#2#{}{C:inactive})",
+                    "{C:inactive}(Currently {C:money}#2#%{}{C:inactive})",
                 },
             },
             j_golden_tcg={
@@ -459,6 +459,16 @@ return {
                     "card used this game",
                     "{C:inactive}(Currently {C:money}$#2#{C:inactive})",
                 }
+            },
+            j_baron_tcg={
+                name="Baron",
+                text={
+                    "Each {C:attention}King{} held in hand",
+                    "gives {X:mult,C:white} X#1# {} Mult",
+                    "for each {C:attention}Jack",
+                    "in {C:attention}full deck",
+                    "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive})",
+                },
             },
             j_troubadour_tcg={
                 name="Troubadour",
@@ -607,10 +617,9 @@ return {
             j_triboulet_tcg={
                 name="Triboulet",
                 text={
-                    "{C:attention}Kings{} and {C:attention}Queens{}",
-                    "score {X:mult,C:white} X#1# {} Mult,",
-                    "{C:green}#2# in #3#{} to break",
-                    "when scored"
+                    "{C:attention}Queens{} score {X:mult,C:white} X#1# {} Mult",
+                    "for every {C:attention}King{} in full deck",
+                    "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive})",
                 },
             },
         },
@@ -703,7 +712,8 @@ return {
                 name="The Hermit",
                 text={
                     "Doubles money",
-                    "Cannot return from graveyard",
+                    "Can't return",
+                    "from graveyard",
                     "{C:inactive}(Max of {C:money}$#1#{C:inactive})",
                 },
             },
@@ -836,7 +846,7 @@ return {
             v_petroglyph_tcg={
                 name="Petroglyph",
                 text={
-                    "Reduce damage taken by {C:money}#1#",
+                    "Reduce damage taken by {C:money}#1#%",
                     "{C:red}-1{} discard",
                 },
             },
@@ -943,6 +953,8 @@ return {
 			b_tcg_return = "Return",
 
 			b_tcg_attack = "Attack",
+			b_tcg_attack_button = "Attack",
+			b_tcg_attack_cancel_button = "Cancel",
 			b_tcg_graveyard = "Graveyard",
 			b_tcg_buy = "Buy $",
 			b_tcg_bet = "Bet",

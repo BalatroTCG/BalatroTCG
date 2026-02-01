@@ -12,7 +12,7 @@ BalatroTCG.DeckData {
         main = HEX("009cfd"),
         secondary = HEX("111540"),
     },
-    get_cost = function(self) return 5; end,
+    get_cost = function(full_list) return 5; end,
     get_params = function(self, default_params, full_list)
         default_params.hands = default_params.hands + 1
     end,

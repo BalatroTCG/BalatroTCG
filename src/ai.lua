@@ -457,9 +457,11 @@ function TCG_AI:run()
                 local sorted_stats = {}
                 local best_hand = nil
                 for card, stat in pairs(card_stats) do
-                    if stat.money_total > 0 or stat.buy_stat > 0 then
-                        best_hand = { hand = 'purchase', card = card }
-                        break
+                    if (card.ability.consumeable and BalatroTCG.consumeable_slots_available() > 0) or (card.ability.set == 'Joker' and BalatroTCG.joker_slots_available() > 0) then
+                        if stat.money_total > 0 or stat.buy_stat > 0 or true then
+                            best_hand = { hand = 'purchase', card = card }
+                            break
+                        end
                     end
                 end
                 

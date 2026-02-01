@@ -12,7 +12,7 @@ BalatroTCG.DeckData {
         main = HEX("d9869d"),
         secondary = HEX("2c3967"),
     },
-    get_cost = function(self) return 10; end,
+    get_cost = function(full_list) return 10; end,
     calculate_context = function(context)
         if context.context == 'final_scoring_step' then
             local tot = context.chips + context.mult

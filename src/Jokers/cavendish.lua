@@ -5,7 +5,7 @@ BalatroTCG.JokerMod {
         if balanced then
             self.config.extra = {
                 Xmult = 10,
-                odds = 10000,
+                odds = 100,
             }
         end
     end,

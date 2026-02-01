@@ -12,7 +12,7 @@ BalatroTCG.DeckData {
         main = HEX("da9a81"),
         secondary = HEX("322019"),
     },
-    get_cost = function(self) return 5; end,
+    get_cost = function(full_list) return 5; end,
     get_limits = function(self, default_limits)
         default_limits.no_faces = true
         default_limits.deck_size = 50

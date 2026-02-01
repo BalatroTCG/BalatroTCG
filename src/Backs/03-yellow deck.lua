@@ -12,7 +12,7 @@ BalatroTCG.DeckData {
         main = HEX("fda200"),
         secondary = HEX("402c09"),
     },
-    get_cost = function(self) return 5; end,
+    get_cost = function(full_list) return 5; end,
     get_params = function(self, default_params, full_list)
         default_params.dollars = default_params.dollars + 25
     end,

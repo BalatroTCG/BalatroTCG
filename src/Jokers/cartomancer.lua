@@ -9,8 +9,8 @@ BalatroTCG.JokerMod {
             
             if card then
                 G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                if card.area then card.area:remove_card(card) end
                 G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                    if card.area then card.area:remove_card(card) end
                     card:start_materialize()
                     G.consumeables:emplace(card)
 

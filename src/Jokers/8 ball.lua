@@ -10,9 +10,10 @@ BalatroTCG.JokerMod {
                 local card = pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard})
                 
                 if card then
+                    if card.area then card.area:remove_card(card) end
+                    
                     G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                     G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
-                        if card.area then card.area:remove_card(card) end
                         card:start_materialize()
                         G.consumeables:emplace(card)
                         
