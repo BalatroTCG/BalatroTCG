@@ -5,13 +5,14 @@ return {
                 name="Abandoned Deck",
                 text={
                     "No {C:attention}Face Cards{} at start,",
-                    "has {C:attention}50{} card limit",
+                    "{C:attention}50{} deck size",
                 },
             },
             b_anaglyph_tcg={
                 name="Anaglyph Deck",
                 text={
-                    "Gain {C:blue}+#1#{} hand and",
+                    "Gain a temporary",
+                    "{C:blue}+#1#{} hand and",
 					"{C:red}+#1#{} discard",
                     "every {C:attention}#2#{} rounds",
                 },
@@ -33,9 +34,9 @@ return {
             b_challenge_tcg={
                 name="Challenge Deck",
                 text={
-                    "No Jokers, {C:attention}#1#{} Consumeables",
-					"Consumeables can have",
-                    "{C:attention}1{} duplicate",
+                    "{C:attention}0{} Joker slots, {C:attention}#1#{} Items",
+					"of any type,",
+                    "{C:attention}Items{} can be reused",
                 },
             },
             b_checkered_tcg={
@@ -57,8 +58,8 @@ return {
             b_ghost_tcg={
                 name="Ghost Deck",
                 text={
-                    "Spectral cards can have",
-                    "{C:attention}1{} duplicate",
+                    "Start game with {C:attention}1",
+                    "random {C:spectral}Spectral{} card",
                 },
             },
             b_green_tcg={
@@ -71,14 +72,17 @@ return {
             b_magic_tcg={
                 name="Magic Deck",
                 text={
-                    "Tarot cards can have",
-                    "{C:attention}1{} duplicate",
+                    "Start game with the",
+                    "{C:tarot,T:v_crystal_ball}#1#{} voucher and",
+                    "{C:attention}2{} random {C:Tarot}Tarot{} cards",
                 },
             },
             b_nebula_tcg={
                 name="Nebula Deck",
                 text={
-                    "Planet cards can have",
+                    "Start run with the",
+                    "{C:planet,T:v_telescope}#1#{} voucher",
+                    "{C:planet}Planet{} cards can have",
                     "{C:attention}1{} duplicate",
                 },
             },
@@ -95,7 +99,7 @@ return {
                     "Balance {C:blue}Chips{} and",
                     "{C:red}Mult{} when calculating",
                     "score for played hand",
-                    "Take {C:red}#1#{} damage per {C:attention}#2#{} dealt",
+                    "Deal {C:red}#1#%{} damage",
                 },
             },
             b_red_tcg={
@@ -108,53 +112,132 @@ return {
             b_yellow_tcg={
                 name="Yellow Deck",
                 text={
-                    "Start with",
+                    "Start game with",
                     "extra {C:money}$#1#",
                 },
             },
             b_zodiac_tcg={
                 name="Zodiac Deck",
                 text={
-                    "{C:attention}+#1#{} hand size,",
-                    "Items are {C:attention}#2#%{} off",
-					"rounded up",
+                    "Start game with",
+                    "{C:tarot,T:v_tarot_merchant}#1#{},",
+                    "and {C:planet,T:v_planet_merchant}#2#{}",
                 },
             },
+
+            
+			b_mp_cocktail_tcg = {
+				name = "Cocktail Deck",
+				text = {
+					"Copies all effects",
+					"of {C:attention}#1#{} other decks,",
+                    "{C:red}-#2#{} hand or discard",
+				},
+			},
+			b_mp_gradient_tcg = {
+				name = "Gradient Deck",
+				text = {
+					"Cards are also considered",
+					"one rank {C:attention}lower{}",
+					"for all {C:attention}Joker{} effects",
+				},
+			},
+			b_mp_heidelberg_tcg = {
+				name = "Heidelberg Deck",
+				text = {
+					"Up to {C:attention}#1#{} Rares/Legendaries",
+					"{C:attention}0{} Uncommons",
+				},
+			},
+			b_mp_indigo_tcg = {
+				name = "Indigo Deck",
+				text = {
+                    "{C:attention}#1#{} deck size",
+                    "{C:attention}+#2#{} copies to any item"
+				},
+			},
+			b_mp_oracle_tcg = {
+				name = "Oracle Deck",
+				text = {
+                    "Start game with",
+                    "{C:money,T:v_clearance_sale}#1#{},",
+					"Balance is capped at",
+					"{C:money}#2#%{} starting value",
+				},
+			},
+			b_mp_orange_tcg = {
+				name = "Orange Deck",
+				text = {
+					"Discarding {C:attention}playing{} cards in",
+					"round {C:attention}1{} destroys them",
+				},
+			},
+			b_mp_violet_tcg = {
+				name = "Violet Deck",
+				text = {
+					"{C:attention}+#1#{} max Vouchers",
+				},
+			},
         },
         Enhanced={
-            m_gold_tcg={
-                name="Gold Card",
-                text={
-                    "{C:money}$#1#{} if this",
-                    "card is held in hand",
-                    "at end of round,",
-                    "no rank or suit",
-                },
-            },
-            m_steel={
-                name="Steel Card",
+            m_glass_tcg={
+                name="Glass Card",
                 text={
                     "{X:mult,C:white} X#1# {} Mult",
-                    "while this card",
-                    "stays in hand",
+                    "{C:red}Destroyed{} on",
+                    "any retrigger",
+                },
+            },
+            m_lucky_tcg={
+                name="Lucky Card",
+                text={
+                    "{C:green}#1# in #2#{} chance",
+                    "to win {C:money}$#3#",
+                    "{C:red}Destroyed{} when",
+                    "successful",
                 },
             },
         },
         Joker={
+            j_drivers_license={
+                name="Driver's License",
+                text={
+                    "{X:mult,C:white} X#1# {} Mult if you have",
+                    "at least {C:attention}#2#{} Enhanced",
+                    "cards in your full deck",
+                    "{C:inactive}(Currently {C:attention}#3#{C:inactive})",
+                },
+            },
             j_campfire_tcg={
                 name="Campfire",
                 text={
                     "This Joker gains {X:mult,C:white}X#1#{} Mult",
                     "for each card {C:attention}sold{}, reduces by",
-                    "{X:mult,C:white}X#2#{} Mult per round",
+                    "{C:attention}#2#%{} Mult per hand/discard",
                     "{C:inactive}(Currently {X:mult,C:white} X#3# {C:inactive} Mult)",
+                },
+            },
+            j_dna_tcg={
+                name="DNA",
+                text={
+                    "If {C:attention}played hand{}",
+                    "has only {C:attention}1{} card, add a",
+                    "permanent copy to deck",
+                },
+            },
+            j_bloodstone_tcg={
+                name="Bloodstone",
+                text={
+                    "{C:green}#1# in #2#{} chance for",
+                    "{C:hearts}Hearts{} to give",
+                    "{X:mult,C:white} X#3# {} Mult when scored",
+                    "Decrease {C:green}chance{} per hand"
                 },
             },
             j_vagabond_tcg={
                 name="Vagabond",
                 text={
-                    "Fills consumeables with",
-                    "random {C:purple}Tarots{}",
+                    "Draw a random {C:purple}Tarot{}",
                     "if hand is played",
                     "with {C:money}$#1#{} or less",
                 },
@@ -172,7 +255,7 @@ return {
                 name="Red Card",
                 text={
                     "Gain {C:red}+#1#{} Mult when",
-                    "discarding #2# or more",
+                    "discarding {C:attention}#2#{} or more",
                     "non playing cards",
                     "{C:inactive}(Currently {C:red}+#3#{C:inactive} Mult)",
                 },
@@ -180,9 +263,8 @@ return {
             j_ticket_tcg={
                 name="Golden Ticket",
                 text={
-                    "Played {C:attention}Gold{} cards",
-                    "earn {C:money}$#1#{} when scored,",
-                    "removes {C:attention}Enhancement{} after"
+                    "{C:attention}Gold{} cards earn {C:money}$#1#{}",
+                    "when held in hand",
                 },
             },
             j_acrobat_tcg={
@@ -196,7 +278,7 @@ return {
                 name="Square Joker",
                 text={
                     "This Joker gains {C:chips}+#2#{} Chips",
-                    "if played hand or discard",
+                    "if played {C:blue}hand{} or {C:red}discard",
                     "has exactly {C:attention}4{} cards",
                     "{C:inactive}(Currently {C:chips}#1#{C:inactive} Chips)",
                 },
@@ -206,7 +288,7 @@ return {
                 text={
                     "Played {C:attention}face{} cards have",
                     "a {C:green}#1# in #2#{} chance to",
-                    "give {C:money}$1{} when scored",
+                    "give {C:money}$2{} when scored",
                 },
             },
             j_rocket_tcg={
@@ -235,6 +317,14 @@ return {
                     "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
                 },
             },
+            j_burglar_tcg={
+                name="Burglar",
+                text={
+                    "At start of {C:attention}Round{},",
+                    "gain {C:blue}+#1#{} Hands and",
+                    "{C:attention}lose all discards",
+                },
+            },
             j_photograph_tcg={
                 name="Photograph",
                 text={
@@ -243,19 +333,27 @@ return {
                     "when scored",
                 },
             },
+            j_riff_raff_tcg={
+                name="Riff-Raff",
+                text={
+                    "At start of {C:attention}Round{}, draw {C:attention}#1#",
+                    "random {C:blue}Common{C:attention} Joker",
+                    "{C:inactive}(Must have room)",
+                },
+            },
             j_bull_tcg={
                 name="Bull",
                 text={
-                    "{C:chips}+#1#{} Chips for",
-                    "each double of money",
+                    "{C:chips}+#1#{} Chips for every {C:money}$1{}",
+                    "you and your opponent have",
                     "{C:inactive}(Currently {C:chips}+#2#{C:inactive} Chips)",
                 },
             },
             j_bootstraps_tcg={
                 name="Bootstraps",
                 text={
-                    "{C:mult}+#1#{} Mult for every",
-                    "each double of money",
+                    "{C:mult}+#1#{} Mult for every {C:money}$1{}",
+                    "you and your opponent have",
                     "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)",
                 },
             },
@@ -263,9 +361,9 @@ return {
                 name="Cloud 9",
                 text={
                     "Reduce damage taken by",
-                    "1 every {C:attention}#1# nines{}",
+                    "{C:attention}#1#%{} for every 9",
                     "in your {C:attention}full deck",
-                    "{C:inactive}(Currently {C:money}$#2#{}{C:inactive})",
+                    "{C:inactive}(Currently {C:money}#2#%{}{C:inactive})",
                 },
             },
             j_golden_tcg={
@@ -287,7 +385,8 @@ return {
                 name="Matador",
                 text={
                     "Redirect all damage",
-                    "to this {C:attention}Joker"
+                    "to the {C:attention}Joker{}",
+                    "on the {C:attention}left{} or {C:attention}right"
                 },
             },
             j_chicot_tcg={
@@ -299,16 +398,25 @@ return {
             j_mr_bones_tcg={
                 name="Mr. Bones",
                 text={
-                    "Reduce damage taken by {C:attention}#1#%",
-                    "for every copy of Mr. Bones",
+                    "Reduce damage taken",
+                    "by {C:attention}#1#%"
                 },
             },
             j_abstract_tcg={
                 name="Abstract Joker",
                 text={
-                    "{C:mult}+#1#{} Mult for",
-                    "each {C:attention}Joker{} card in play",
+                    "{C:mult}+#1#{} Mult for each active",
+                    "{C:attention}Joker{} card in game",
                     "{C:inactive}(Currently {C:red}+#2#{C:inactive} Mult)",
+                },
+            },
+            j_superposition_tcg={
+                name="Superposition",
+                text={
+                    "Draw a {C:tarot}Tarot{} card from full",
+                    "deck if poker hand contains",
+                    "an {C:attention}Ace{} and a {C:attention}Straight{}",
+                    "{C:inactive}(Must have room)",
                 },
             },
             j_supernova_tcg={
@@ -316,7 +424,7 @@ return {
                 text={
                     "{C:red}+#1#{} Mult for number of",
                     "times {C:attention}poker hand{}",
-                    "has been played this run",
+                    "has been played this game",
                 },
             },
             j_to_the_moon_tcg={
@@ -324,7 +432,8 @@ return {
                 text={
                     "Earn {C:money}$#1#{} of {C:attention}interest{}",
                     "for every {C:money}$5{} you",
-                    "have at end of round",
+                    "have at end of round,",
+                    "capped at {C:money}$5{}",
                 },
             },
             j_trading_tcg={
@@ -338,7 +447,8 @@ return {
                 name="Diet Cola",
                 text={
                     "Sell this card to",
-                    "gain {C:blue}+1{} hand and",
+                    "gain a temporary",
+                    "{C:blue}+1{} hand and",
                     "{C:red}+1{} discard"
                 },
             },
@@ -356,9 +466,19 @@ return {
                 text={
                     "Reduce damage taken by",
                     "{C:attention}1{} per unique {C:planet}Planet",
-                    "card used this run",
+                    "card used this game",
                     "{C:inactive}(Currently {C:money}$#2#{C:inactive})",
                 }
+            },
+            j_baron_tcg={
+                name="Baron",
+                text={
+                    "Each {C:attention}King{} held in hand",
+                    "gives {X:mult,C:white} X#1# {} Mult",
+                    "for each {C:attention}Jack",
+                    "in {C:attention}full deck",
+                    "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive})",
+                },
             },
             j_troubadour_tcg={
                 name="Troubadour",
@@ -378,16 +498,25 @@ return {
             j_luchador_tcg={
                 name="Luchador",
                 text={
-                    "Sell this card to reduce",
-                    "damage taken by {C:attention}#1#%",
+                    "Sell this card to",
+                    "reduce damage taken",
+                    "by {C:attention}#1#% this round",
+                    "{C:inactive}(Currently {C:attention}#2#{C:inactive}/#3#)",
                 },
             },
             j_chaos_tcg={
                 name="Chaos the Clown",
                 text={
-                    "Shuffles and flips",
-                    "{C:attention}Jokers{} when",
-                    "opponent starts"
+                    "Prevents your {C:attention}opponent{} from",
+                    "seeing any of your {C:attention}cards",
+                },
+            },
+            j_burnt_tcg={
+                name="Burnt Joker",
+                text={
+                    "Upgrade the level of",
+                    "every {C:attention}discarded",
+                    "poker hand",
                 },
             },
             j_throwback_tcg={
@@ -398,33 +527,175 @@ return {
                     "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
                 },
             },
+            j_8_ball_tcg={
+                name="8 Ball",
+                text={
+                    "{C:green}#1# in #2#{} chance for each",
+                    "played {C:attention}8{} to draw a {C:tarot}Tarot{}",
+                    "card from full deck when scored",
+                    "{C:inactive}(Must have room)",
+                },
+            },
             j_ceremonial_tcg={
                 name="Ceremonial Dagger",
                 text={
-                    "At start of round,",
-                    "destroy Joker to the right",
+                    "At start of {C:attention}Round{},",
+                    "destroy {C:attention}Joker{} to the right",
                     "and permanently add {C:attention}#1#x",
                     "its sell value to this {C:red}Mult",
                     "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)",
                 },
             },
+            j_marble_tcg={
+                name="Marble Joker",
+                text={
+                    "Adds one {C:attention}Stone{} card",
+                    "to deck at start of {C:attention}Round{}",
+                },
+            },
+            j_sixth_sense_tcg={
+                name="Sixth Sense",
+                text={
+                    "If {C:attention}first hand{} of round is",
+                    "a single {C:attention}6{}, destroy it and",
+                    "draw a {C:spectral}Spectral{} card",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            j_card_sharp_tcg={
+                name="Card Sharp",
+                text={
+                    "{X:mult,C:white} X#1# {} Mult if played {C:attention}poker hand{}",
+                    "is the same as the",
+                    "previous {C:attention}hand{} this game",
+                },
+            },
+            j_madness_tcg={
+                name="Madness",
+                text={
+                    "At start of {C:attention}Round{},",
+                    "gain {X:mult,C:white} X#1# {} Mult",
+                    "and {C:attention}destroy{} a random Joker",
+                    "{C:inactive}(Currently {X:mult,C:white} X#2# {C:inactive} Mult)",
+                },
+            },
+            j_seance_tcg={
+                name="Séance",
+                text={
+                    "If {C:attention}poker hand{} is a",
+                    "{C:attention}#1#{}, draw a random",
+                    "{C:spectral}Spectral{} card from full deck",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            j_fortune_teller_tcg={
+                name="Fortune Teller",
+                text={
+                    "{C:red}+#1#{} Mult per {C:purple}Tarot{}",
+                    "card used this game",
+                    "{C:inactive}(Currently {C:red}+#2#{C:inactive})",
+                },
+            },
+            j_hallucination_tcg={
+                name="Hallucination",
+                text={
+                    "{C:green}#1# in #2#{} chance to draw",
+                    "a {C:tarot}Tarot{} card when played hand",
+                    "contains a non playing card",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            j_astronomer_tcg={
+                name="Astronomer",
+                text={
+                    "All {C:planet}Planet{} cards",
+                    "are {C:attention}free and",
+                    "return your discard pile"
+                },
+            },
+            j_perkeo_tcg={
+                name="Perkeo",
+                text={
+                    "Creates a {C:dark_edition}Negative{} copy of {C:attention}1{}",
+                    "random {C:attention}consumable{} card in your",
+                    "possession to your hand",
+                    "at start of {C:attention}Round{},",
+                },
+            },
+            j_cartomancer_tcg={
+                name="Cartomancer",
+                text={
+                    "Draw a {C:tarot}Tarot{} card",
+                    "at start of {C:attention}Round{}",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            j_triboulet_tcg={
+                name="Triboulet",
+                text={
+                    "{C:attention}Queens{} score {X:mult,C:white} X#1# {} Mult",
+                    "for every {C:attention}King{} in full deck",
+                    "{C:inactive}(Currently {X:mult,C:white}X#2#{C:inactive})",
+                },
+            },
         },
         Other={
-            tcg_joker_health={
-                name="Health",
+            tcgb_sticker_hidden={
+                name="Hidden",
                 text={
-                    "Destroyed after taking",
-                    "{C:attention}#1#{} damage",
-                    "{C:inactive}({C:attention}#2#{C:inactive} remaining)",
+                    "Hidden from",
+                    "your opponent",
+                    "{C:inactive}({C:attention}#1#/#2#{C:inactive} health)",
+                },
+            },
+            tcgb_sticker_visible={
+                name="Visible",
+                text={
+                    "Visible to",
+                    "your opponent",
+                    "{C:inactive}({C:attention}#1#/#2#{C:inactive} health)",
+                },
+            },
+            blue_seal_tcg={
+                name="Blue Seal",
+                text={
+                    "Draws the {C:planet}Planet{} card",
+                    "for final played {C:attention}poker hand{}",
+                    "from full deck if {C:attention}held{} in hand",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            gold_seal_tcg={
+                name="Gold Seal",
+                text={
+                    "Earn {C:money}$3{} when this",
+                    "card is played",
+                    "and scores",
+                },
+            },
+            purple_seal_tcg={
+                name="Purple Seal",
+                text={
+                    "Draws a {C:tarot}Tarot{} card from",
+                    "full deck when {C:attention}discarded",
+                    "{C:inactive}(Must have room)",
                 },
             },
         },
         Spectral={
+            c_ankh_tcg={
+                name="Ankh",
+                text={
+                    "Create a copy of a",
+                    "random {C:attention}Joker{} and",
+                    "draws it to hand",
+                },
+            },
             c_soul_tcg={
                 name="The Soul",
                 text={
-                    "Removes {C:attention}Eternal{} from",
-                    "all {C:attention}Jokers{}, makes one {C:attention}Eternal{}",
+                    "One random {C:attention}Joker",
+                    "becomes {C:attention}Eternal and {C:attention}Rental",
                 },
             },
             c_wraith_tcg={
@@ -435,26 +706,258 @@ return {
                     "to hand",
                 },
             },
-            c_immolate={
+            c_black_hole_tcg={
+                name="Black Hole",
+                text={
+                    "Draw up to {C:attention}#1#{} random",
+                    "cards from your graveyard",
+                    "to your hand",
+                },
+            },
+            c_immolate_tcg={
                 name="Immolate",
                 text={
-                    "Destroys {C:attention}#1#{} random",
+                    "Destroys {C:attention}5{} random",
                     "cards in hand,"
                 },
             },
+            c_hex_tcg={
+                name="Hex",
+                text={
+                    "Add {C:dark_edition}Polychrome{}",
+                    "and {C:attention}perishable{} to a",
+                    "random {C:attention}Joker{}",
+                },
+            },
         },
-        TCG_Errors={
-        }
+        Tarot={
+            c_hermit_tcg={
+                name="The Hermit",
+                text={
+                    "Doubles money",
+                    "Can't return",
+                    "from graveyard",
+                    "{C:inactive}(Max of {C:money}$#1#{C:inactive})",
+                },
+            },
+            c_emperor_tcg={
+                name="The Emperor",
+                text={
+                    "Pulls up to {C:attention}2",
+                    "random {C:tarot}Tarot{} cards",
+                    "from your full deck",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            c_fool_tcg={
+                name="The Fool",
+                text={
+                    "Draws the last",
+                    "{C:tarot}Tarot{} or {C:planet}Planet{} card",
+                    "used during this game",
+                    "{s:0.8,C:tarot}The Fool{s:0.8} and {s:0.8,C:tarot}The Hermit{s:0.8} excluded",
+                },
+            },
+            c_high_priestess_tcg={
+                name="The High Priestess",
+                text={
+                    "Draws up to {C:attention}2",
+                    "random {C:planet}Planet{} cards",
+                    "from your full deck",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+            c_judgement={
+                name="Judgement",
+                text={
+                    "Draws a random",
+                    "{C:attention}Joker{} card",
+                    "from your full deck",
+                    "{C:inactive}(Must have room)",
+                },
+            },
+        },
+        Voucher={
+            v_clearance_sale_tcg={
+                name="Clearance Sale",
+                text={
+                    "All {C:attention}Items{}",
+                    "are {C:attention}#1#%{} off",
+                },
+            },
+            v_directors_cut_tcg={
+                name="Director's Cut",
+                text={
+                    "Spend {C:money}$#1#{} once per round",
+                    "to add {C:attention}#2#{} damage",
+                    "to your {C:attention}attack",
+                },
+            },
+            v_glow_up_tcg={
+                name="Glow Up",
+                text={
+                    "{C:attention}Jokers{} each give",
+                    "{X:red,C:white}#1#x{} Mult",
+                },
+            },
+            v_hieroglyph_tcg={
+                name="Hieroglyph",
+                text={
+                    "Reduce damage taken by {C:money}#1#",
+                    "{C:red}-1{} discard",
+                },
+            },
+            v_hone_tcg={
+                name="Hone",
+                text={
+                    "{C:attention}Jokers{} each give",
+                    "{C:blue}+#1#{} chips",
+                },
+            },
+            v_illusion_tcg={
+                name="Illusion",
+                text={
+                    "Scored cards give",
+                    "{X:red,C:white}#1#x{} Mult",
+                },
+            },
+            v_liquidation_tcg={
+                name="Liquidation",
+                text={
+                    "All {C:attention}Items{}",
+                    "are {C:attention}#1#%{} off",
+                },
+            },
+            v_magic_trick_tcg={
+                name="Magic Trick",
+                text={
+                    "{C:attention}Playing cards{} can",
+                    "be stored in your",
+                    "{C:attention}Inventory{} for {C:money}$1"
+                },
+            },
+            v_money_tree_tcg={
+                name="Money Tree",
+                text={
+                    "Gain {C:money}$1{} per round",
+                    "for every {C:attention}dollar",
+                    "lost from {C:attention}Seed Money",
+                    "{C:inactive}(Currently {C:money}$#1#{}{C:inactive})",
+                },
+            },
+            v_omen_globe_tcg={
+                name="Omen Globe",
+                text={
+                    "Start each round",
+                    "with {C:attention}#1# {C:spectral}Spectral{}",
+                    "in your inventory",
+                },
+            },
+            v_overstock_norm_tcg={
+                name="Overstock",
+                text={
+                    "{C:attention}Consumeables{} can be put",
+                    "in {C:attention}Joker{} slots",
+                },
+            },
+            v_overstock_plus_tcg={
+                name="Overstock Plus",
+                text={
+                    "{C:attention}Jokers{} can be put in",
+                    "your {C:attention}inventory",
+                },
+            },
+            v_petroglyph_tcg={
+                name="Petroglyph",
+                text={
+                    "Reduce damage taken by {C:money}#1#%",
+                    "{C:red}-1{} discard",
+                },
+            },
+            v_planet_merchant_tcg={
+                name="Planet Merchant",
+                text={
+                    "Start each round",
+                    "with {C:attention}#1# {C:planet}Planet{}",
+                    "in your inventory",
+                },
+            },
+            v_planet_tycoon_tcg={
+                name="Planet Tycoon",
+                text={
+                    "{C:planet}Planets{} don't take up",
+                    "inventory space",
+                },
+            },
+            v_reroll_glut_tcg={
+                name="Reroll Glut",
+                text={
+                    "Extra {C:red}discards{}",
+                    "cost {C:money}$#1#{}",
+                    "Increase cost by {C:money}$#2#{}",
+                },
+            },
+            v_reroll_surplus_tcg={
+                name="Reroll Surplus",
+                text={
+                    "Extra {C:red}discards{}",
+                    "cost {C:money}$#1#{}",
+                    "Increase cost by {C:money}$#2#{}",
+                },
+            },
+            v_retcon_tcg={
+                name="Retcon",
+                text={
+                    "Spend {C:money}$#1#{} once per round",
+                    "to add {C:attention}#2#{} damage",
+                    "to your {C:attention}attack",
+                },
+            },
+            v_seed_money_tcg={
+                name="Seed Money",
+                text={
+                    "Lose {C:money}$#1#{}",
+                    "per round?",
+                },
+            },
+            v_telescope_tcg={
+                name="Telescope",
+                text={
+                    "Always draw the {C:planet}Planet{}",
+                    "card for your most",
+                    "played {C:attention}poker hand",
+                },
+            },
+            v_tarot_merchant_tcg={
+                name="Tarot Merchant",
+                text={
+                    "Start each round",
+                    "with {C:attention}#1# {C:tarot}Tarot{}",
+                    "in your inventory",
+                },
+            },
+            v_tarot_tycoon_tcg={
+                name="Tarot Tycoon",
+                text={
+                    "{C:tarot}Tarots{} don't take up",
+                    "inventory space",
+                },
+            },
+        },
 	},
 	misc = {
 		dictionary = {
 			b_tcg_vanilla = "Vanilla",
 			b_tcg_tcg = "TCG",
+			b_tcg_tcg_lobby = "TCG Lobby",
             
             b_tcg_build = "Build",
+            b_tcg_copy = "Copy",
             b_tcg_delete = "Delete",
             
             b_tcg_jokercount = "Joker Count",
+
+            k_bleeding = "Bleeding",
             
             b_tcg_add = "Add",
             b_tcg_remove = "Remove",
@@ -464,20 +967,63 @@ return {
 			b_tcgtab_deck = "Build Deck",
 			b_tcgtab_online = "Online Match",
 			b_tcgtab_online_start = "Online Match",
-			b_tcgtab_online_cant = "Incompatible Server",
+			b_tcgtab_online_incompat = "Incompatible Server",
+			b_tcgtab_online_no_mp = "No Multiplayer Mod",
 			b_tcgtab_select = "Select Deck",
             
 			b_tcg_opponent = "Opponent",
 			b_tcg_healthopponent = "Health",
+			b_tcg_healthopponent = "Health",
+			b_tcg_return = "Return",
 
 			b_tcg_attack = "Attack",
+			b_tcg_attack_button = "Attack",
+			b_tcg_attack_cancel_button = "Cancel",
+			b_tcg_graveyard = "Graveyard",
 			b_tcg_buy = "Buy $",
 			b_tcg_bet = "Bet",
+
+			k_tcg_balance_desc = "Enable TCG Balance patches",
+			k_opponent_mirror_desc = "Mirror the opponent's display",
+
+			k_lobby_deck = "Deck Limitations",
+
+			b_opts_tcg_flip = "Mirror Opponent",
+			b_opts_tcg_balanced = "Use Balance Patches",
+			b_opts_tcg_hands = "Default Hands",
+			b_opts_tcg_discards = "Default Discards",
+			b_opts_tcg_health = "Starting Health",
+			b_opts_tcg_joker_health = "Joker Health",
+
+			b_opts_tcg_money_leak = "Enable Overtime Penalty",
+			b_opts_tcg_money_leak_desc = "Enable losing money per round after a set round number",
+			b_opts_tcg_money_leak_start = "Penalty Start Round",
+			b_opts_tcg_money_leak_increase = "Penalty Increase",
+
+			b_opts_tcg_game_round_limit = "Enable Round Limit",
+			b_opts_tcg_game_round_limit_desc = "Enable game ending at a set round",
+			b_opts_tcg_round_limit = "Round Limit",
+			b_opts_tcg_winner_type = "Win condition",
+
+			b_opts_tcg_deck_money_limit = "Deck Cost",
+			b_opts_tcg_deck_money_limit_desc = "Limit the deck cost",
+			b_opts_tcg_deck_size_limits = "Deck Size",
+			b_opts_tcg_deck_size_limits_desc = "Require decks to be a set size",
+			b_opts_tcg_deck_back_limits = "Deck Effects",
+			b_opts_tcg_deck_back_limits_desc = "Prevent decks having extra effects",
+			b_opts_tcg_deck_joker_limits = "Joker Limitations",
+			b_opts_tcg_deck_joker_limits_desc = "Limit Joker counts and rarity types",
+			b_opts_tcg_deck_consumeable_limits = "Consumeable Limitations",
+			b_opts_tcg_deck_consumeable_limits_desc = "Limit Consumeable counts",
 
 			k_tcg_bet = "Spend $ to go first?",
 			k_tcg_waiting = "Waiting for opponent...",
 
 		},
+        labels = {
+            tcgb_sticker_hidden = "Hidden",
+            tcgb_sticker_visible = "Visible",
+        },
         v_text = {
             tcg_err_none={
                 "No errors found",
@@ -485,8 +1031,11 @@ return {
             tcg_err_joker_count={
                 "Joker count too high (#1#), max count of #2#",
             },
+            tcg_err_deck_count={
+                "Back count too high (#1#), max count of #2#",
+            },
             tcg_err_cost={
-                "Deck too expensive, must be $#1# or less",
+                "Deck too expensive",
             },
             tcg_err_deck_big={
                 "Deck is too big (#1#), required count of #2#",
@@ -499,6 +1048,9 @@ return {
             },
             tcg_err_rares={
                 "Too many rares/legendaries (#1#), max count of #2#",
+            },
+            tcg_err_vouchers={
+                "Too many vouchers (#1#), max count of #2#",
             },
             tcg_err_consumables={
                 "Too many Consumeables (#1#), max count of #2#",

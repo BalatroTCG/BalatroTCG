@@ -1,3 +1,131 @@
+# 0.3.0
+## General
+- Consumeables and jokers are now visible when in slots
+- You can now attack consumeables
+- Added a lot of lobby tweaks.  Will establish the default settings later
+- Starting money is now $100
+- Damage calc is changed.  100 points counts as 1 damage, add 4 damage for every 10x to score (or 1 damage for every ~1.75x your score)
+## Decks
+- Added MP decks!
+    - Violet deck allows 4 extra vouchers in deck
+    - Indigo requires 70 card deck, allows one copy of any of item (excluding joker rarity limits)
+    - Orange destroys any playing cards discarded round one
+    - Oracle starts with clearance sale, capped at 90% starting money
+    - Gradient deck applies gradient to rank lower only, costs $10
+    - Heidelburg deck allows 2 rares and no uncommons
+    - Cocktail allows selecting any two deck types, start with one less hand or discard, depending on deck selected.  Costs $5 + other deck type costs.
+- Changed decks
+    - Total price required is $110
+    - All decks cost $0 unless stated
+    - Blue deck costs $5
+    - Magic deck now starts with Crystal ball and two random tarots in inventory
+    - Nebula deck allows 1 copy of planets and starts with Telescope
+    - Ghost deck starts with one spectral card, costs $5
+    - Abandoned deck costs $5
+    - Checkered deck costs $5
+    - Zodiac starts with Planet and Tarot merchant vouchers
+    - Plasma now reduces damage by 25%, costs $10
+    - Challenge deck costs $5
+## Spectral
+- Ankh draws copy to hand instead of placing in inventory
+- Soul makes eternal joker rental instead of removing all eternals
+- Black Hole draws 5 random cards from graveyard to hand
+- Hex doesn't destroy jokers, instead making affected joker perishable
+## Vouchers
+- Added vouchers!  The first tier voucher must be bought before the second tier will be purchaseable.
+- Blank/Antimatter cost $1/$19 respectively
+- Clearance sale/Liquidation costs $8 and $10 respectively
+- Crystal Ball costs $8, Omen globe starts round with one spectral from full deck, costs $12
+- Director's Cut/Retcon allow adding damage to final attack, both cost $6
+    - Director's Cut adds 15 damage for $10
+    - Retcon adds 24 damage for $8
+- Grabber and Nacho tongs cost $9
+- Heiroglyph reduces damage taken by 8 per round, Petroglyph reduces damage by 30%, Cost $5 and $13 respectively
+- Hone makes every joker score +50 chips, Glow up makes every joker score 1.5x mult, $5 and $14 respectively
+- Magic trick allows you to store playing cards in your inventory, Illusion makes cards score 1.5x mult, costs $6 and $18 respectively
+- Overstock allows items to enter joker slots, Overstock Plus allows the opposite.  Cost $6 and $14 respectively
+- Paint brush and Palette cost $8
+- Planet/Tarot merchant start round with one of their consumeable type in inventory, each costs $8
+- Planet/Tarot tycoon allows their consumeable type to not take any slots, each costs $12
+- Reroll Surplus allows extra discards for $2, increasing by $4 per discard.  Reroll glut lowers increase per discard to $2.  Both cost $8
+- Seed money removes one dollar per round.  Money Tree gives $1 per dollar lost from Seed money
+- Telescope allows you to draw your planet card of most played poker hand at start of round
+- Wasteful and Recyclomancy cost $7
+## Jokers
+- Abstract now gives +3 mult
+- Acrobat gains 0.25x mult
+- Arrowhead gives +125 chips
+- Baron makes Kings score 0.1x mult per Jack in full deck
+- Baseball gives 2.5x mult
+- Bloodstone gives 2 in 1 chance for 1.5x mult, decrease chance every round held (2 in 1 -> 2 in 2)
+- Bootstraps and Bull now return to normal values
+- Brainstorm costs $9
+- Burnt joker applies to every discard
+- Campfire gains 1.5x mult, reduces by 4% every hand and discard
+- Canio gains 3.5x mult
+- Card sharp gives 4x mult
+- Cavendish now gives 1 in 100 chance to break
+- Chaos the Clown now hides your cards
+- Chicot now heals jokers and consumeables by 10 damage
+- Cloud 9 reduces damage by 6% for every 9
+- Dagger gives 4x sell value
+- Dice costs $6
+- DNA applies to all hands
+- Driver's License gives 16x mult for 12 or more enhancements
+- Dusk works at $15 or less
+- Faceless gives $6
+- Flashcard gains +3 mult per item
+- Glass Joker gains 3x mult per card
+- Golden joker reduces damage taken by 4
+- Golden ticket now gives $1 for gold cards in hand per hand played.
+- Green joker gain +/- 3 mult
+- Half joker gives +35 mult
+- Hallucination gives a 1 in 2 chance to draw a tarot when a non playing card is in your full played hand
+- Droll joker gives +18 mult
+- Crafty joker gives +180 chips
+- Hit the road gain 4x mult
+- Icecream gives +250 chips, reduces by 50
+- Loyalty card gives 7.5x mult
+- Luchador prevents all damage, but requires waiting two turns
+- Lucky cat gains 1.5x mult
+- Matador redirects damage to jokers to the left or right
+- Merry Andy gives +3 discards
+- Misprint gives 0-40 mult
+- Mr. Bones reduces damage by 20% static
+- Mystic Summit gives +25 mult
+- Obelisk grows by 2x mult
+- Onyx agate gives +18 mult
+- Perkeo draws negative copy to hand
+- Popcorn gives +60, reduces by 20
+- Ramen gives 6x mult, reduces by .5
+- Red card gains +6 mult
+- Scholar gives +50 chips and +5 mult
+- Seeing Double gives 4x mult
+- Stone joker gives +40 chips
+- Stuntman gives +400 chips
+- Suit Mult jokers +6 mult
+- To do list gives $6, only pulls from hands played this game or planets in your deck
+- Triboulet makes Queens score 0.15x mult for every King in your full deck
+## Hand levels
+- Pluto gains +1 mult and +25 chips
+- Pair gains +2 mult and +30 chips
+- Two Pair gains +4 mult and +20 chips
+- Three of a Kind gains +5 mult and +40 chips
+- Flush gains +3 mult and +80 chips
+- Four of a Kind gains +4 mult and +90 chips
+- Full house gains +6 mult and +70 chips
+- Straight gains +10 mult and +110 chips
+- Flush Five gains +3 mult and +120 chips
+- Five of a Kind gains +6 mult and +100 chips
+- Flush House gains +12 mult and +80 chips
+- Straight Flush gains +18 mult and +150 chips
+## Enhancements
+- Lucky cards give a 1 in 6 chance for $20, destroy self when triggered.  No chance for mult
+- Glass have guaranteed break when retriggered.  No breakage otherwise.  Back to 2x mult
+## Mod Support
+- Now added classes for other mods to use in balancing or supporting their jokers/consumeables
+
+
 # 0.2.0
 - Chaos the Clown shuffles jokers at the start of your opponents turn
 - Luchador reduces damage taken by 50% for one round
@@ -70,7 +198,7 @@
 - Bull gives +50 chips
 - Blue joker gives +4 chips
 - Green Joker gives +4 and -4 mult respectively
-- Ride the buss gives +4 mult
+- Ride the bus gives +4 mult
 - Abstract gives +6 mult, includes opponent jokers
 - Even steven gives +6 mult
 - Popcorn starts with +30 mult decreases by -5

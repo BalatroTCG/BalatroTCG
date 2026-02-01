@@ -64,18 +64,27 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 ]]
 
 -- TODO:
--- 
+-- Add particles to deck backgrounds
+-- Swirl background by who's playing
+-- Add deck background class
+
+
+-- Receiving actions:
+-- 'startTcgBetting' Run when the host starts a TCG game.  Return with a 'startGame' with 'seed' for the seed
+-- 'tcgBet' Each player can bet money to go first.  Once all players have given their bet, send a 'tcgStartGame' action.  The player who won the bet will recieve their bet in the form of 'damage' with this command as well as 'starting' at true
+-- 'tcgPlayerStatus' is just an echo action.  Send to the other player as it comes in.
+-- 'tcgEndTurn' will happen when one player's turn ends.  Echo back to the other player with a 'tcgStartTurn' with the parameters passed through
 
 BalatroTCG = SMODS.current_mod
 
-local function init()
-    local maxVal = 0
-
-    for k, v in pairs(G.STATES) do
-        maxVal = math.max(maxVal, v + 1)
-    end
-    
+function splitlines(inputstr, sep)
+  local t = {}
+  for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+    table.insert(t, str)
+  end
+  return t
 end
+
 
 function BalatroTCG.load_file(file)
 	local chunk, err = SMODS.load_file(file, "tcgb")
@@ -114,8 +123,175 @@ end
 
 BalatroTCG.load_dir("ui")
 BalatroTCG.load_dir("src")
+BalatroTCG.load_dir("src/Backs")
+BalatroTCG.load_dir("src/Jokers")
+BalatroTCG.load_dir("src/Spectrals")
+BalatroTCG.load_dir("src/Tarots")
+BalatroTCG.load_dir("src/Vouchers")
 
-G.C.OPPONENT = HEX("AC3232")
+SMODS.Atlas({
+	key = "sticker_hidden",
+	path = "sticker_hidden.png",
+	px = 71,
+	py = 95,
+})
+SMODS.Atlas({
+	key = "sticker_visible",
+	path = "sticker_visible.png",
+	px = 71,
+	py = 95,
+})
+
+SMODS.Sticker{
+    key = "sticker_hidden",
+    atlas = "sticker_hidden",
+    badge_colour = HEX '4c4ec7',
+	default_compat = false,
+	needs_enable_flag = true,
+    loc_vars = function(self, info_queue, card)
+        return {vars = {card.ability.tcgb_health_amount or 0, card.ability.tcgb_max_health or (BalatroTCG.GameActive and BalatroTCG.Status_Current.params.joker_health or 15)}}
+    end,
+}
+SMODS.Sticker{
+    key = "sticker_visible",
+    atlas = "sticker_visible",
+    badge_colour = HEX 'ef4864',
+	default_compat = false,
+	needs_enable_flag = true,
+    loc_vars = function(self, info_queue, card)
+        return {vars = {card.ability.tcgb_health_amount or 0, card.ability.tcgb_max_health or (BalatroTCG.GameActive and BalatroTCG.Status_Current.params.joker_health or 15)}}
+    end,
+}
+
+BalatroTCG.config_tab = function()
+
+	-- MP.PREVIEW.text = SMODS.Mods["tcgb"].config.preview.text or ""
+	-- MP.PREVIEW.button = SMODS.Mods["tcgb"].config.preview.button or ""
+	local ret = {
+		n = G.UIT.ROOT,
+		config = {
+			r = 0.1,
+			minw = 5,
+			align = "cm",
+			padding = 0.2,
+			colour = G.C.BLACK,
+		},
+		nodes = {
+			{
+				n = G.UIT.R,
+				config = {
+					padding = 0,
+					align = "cm",
+					on_demand_tooltip = {
+						text = {
+							localize("k_tcg_balance_desc"),
+						},
+					},
+				},
+				nodes = {
+					create_toggle({
+						id = "balance_option",
+						label = localize("b_opts_tcg_balanced"),
+						ref_table = BalatroTCG.config,
+						ref_value = "Balance",
+					}),
+				},
+			},
+			{
+				n = G.UIT.R,
+				config = {
+					padding = 0,
+					align = "cm",
+					on_demand_tooltip = {
+						text = {
+							localize("k_opponent_mirror_desc"),
+						},
+					},
+				},
+				nodes = {
+					create_toggle({
+						id = "flip_opponent_option",
+						label = localize("b_opts_tcg_flip"),
+						ref_table = BalatroTCG.config,
+						ref_value = "FlipOpponent",
+					}),
+				},
+			},
+		},
+	}
+	return ret
+end
+
+SMODS.Atlas({
+	key = "player_blinds",
+	path = "player_blinds.png",
+	atlas_table = "ANIMATION_ATLAS",
+	frames = 21,
+	px = 34,
+	py = 34,
+})
+
+
+local _start_up = Game.start_up
+function Game:start_up()
+    _start_up(self)
+    reset_tcg_settings()
+end
+
+function reset_tcg_settings()
+    BalatroTCG.Settings = {
+        Unbalance = not BalatroTCG.config.Balance,
+        StartingMoney = 100,
+        DefaultHands = 2,
+        DefaultDiscards = 2,
+        JokerHealth = 20,
+        MoneyLeak = true,
+        MoneyLeakStart = 10,
+        MoneyLeakIncrease = 2,
+        EndingRound = true,
+        DamageCalc = "Linear",
+        RoundEnd = 15,
+        WinCondition = "Highest Money",
+        DeckLimitations = {
+            Money = true,
+            Size = true,
+            Jokers = true,
+            Consumeables = true,
+            BackCounts = true
+        }
+    }
+end
+
+reset_tcg_settings()
+
+function set_tcg_mp_settings()
+    BalatroTCG.Settings = {
+        Unbalance = not MP.LOBBY.config.tcg_balanced,
+        StartingMoney = MP.LOBBY.config.health_pool,
+        DefaultHands = MP.LOBBY.config.default_hands,
+        DefaultDiscards = MP.LOBBY.config.default_discards,
+        JokerHealth = MP.LOBBY.config.joker_health,
+        MoneyLeak = MP.LOBBY.config.money_leak,
+        MoneyLeakStart = MP.LOBBY.config.money_leak_start,
+        MoneyLeakIncrease = MP.LOBBY.config.money_leak_increase,
+        EndingRound = MP.LOBBY.config.game_round_limit,
+        RoundEnd = MP.LOBBY.config.round_limit,
+        DamageCalc = "Linear",
+        WinCondition = MP.LOBBY.config.winner_type,
+        DeckLimitations = {
+            Money = MP.LOBBY.config.deck_money_limit,
+            Size = MP.LOBBY.config.deck_size_limits,
+            Jokers = MP.LOBBY.config.deck_joker_limits,
+            Consumeables = MP.LOBBY.config.deck_consumeable_limits,
+            BackCounts = MP.LOBBY.config.deck_back_limits,
+        },
+    }
+
+    if not BalatroTCG.SelectedDeck or type(BalatroTCG.SelectedDeck) ~= 'table' or BalatroTCG.SelectedDeck:is_legal() ~= 'Legal' then
+        BalatroTCG.SelectedDeck = BalatroTCG.DefaultDecks[1]
+        MP.ACTIONS.unready_lobby()
+    end
+end
 
 function tableMerge(table1, table2)
 	local result = {}
@@ -128,12 +304,15 @@ function tableMerge(table1, table2)
 	return result
 end
 
+
 G.FUNCS.tcg_start_single = function(e)
 
     G.SETTINGS.paused = true
-
+    reset_tcg_settings()
     G.E_MANAGER:clear_queue()
     G.FUNCS.wipe_on()
+    ease_background_colour_blind(G.STATE, 'Small Blind')
+
     G.E_MANAGER:add_event(Event({
         no_delete = true,
         func = function()
@@ -157,6 +336,8 @@ G.FUNCS.tcg_start_multi = function(e)
     G.SETTINGS.paused = true
     G.E_MANAGER:clear_queue()
     G.FUNCS.wipe_on()
+    ease_background_colour_blind(G.STATE, 'Small Blind')
+
     G.E_MANAGER:add_event(Event({
         no_delete = true,
         func = function()
@@ -164,100 +345,26 @@ G.FUNCS.tcg_start_multi = function(e)
         return true
         end
     }))
+    
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
         no_delete = true,
         func = function()
-        G:start_tcg_game({ online = true, seed = e.seed, starting = e.starting == "true" })
+        G:start_tcg_game({ online = true, seed = e.seed })
         return true
         end
     }))
     G.FUNCS.wipe_off()
 end
 
-
-SMODS.Suit {
-    key = 'Joker',
-    card_key = 'Jk',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-SMODS.Suit {
-    key = 'Planet',
-    card_key = 'Pl',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-SMODS.Suit {
-    key = 'Tarot',
-    card_key = 'Tr',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-SMODS.Suit {
-    key = 'Spectral',
-    card_key = 'Sp',
-    pos = { y = 20 },
-    ui_pos = { x = 20, y = 20 },
-    hc_colour = HEX '000000',
-    lc_colour = HEX '000000',
-    max_nominal = {
-        value = 1000,
-    },
-    
-    in_pool = function(self, args)
-        if args and args.initial_deck then
-            return false
-        else
-            return true
-        end
-    end
-}
-
 function Game:start_tcg_game(args)
     args = args or {}
 
+    BalatroTCG.GameStarted = false
+
     G.SAVED_GAME = nil
     G.hand = nil
+    G.jokers = nil
 
     BalatroTCG.GameActive = true
     BalatroTCG.UseTCG_UI = true
@@ -269,33 +376,123 @@ function Game:start_tcg_game(args)
     G.STATE_COMPLETE = false
     G.RESET_BLIND_STATES = true
 
-    ease_background_colour_blind(G.STATE, 'Small Blind')
+    ease_background_colour_blind(G.STATES.SHOP)
     
     self.GAME = self:init_game_object()
     self.GAME.modifiers = {}
     self.GAME.stake = 1
     self.GAME.STOP_USE = 0
     self.GAME.selected_back = Back(G.P_CENTERS.b_red)
-
     
     self.GAME.pseudorandom.seed = args.seed or generate_starting_seed()
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
     self.GAME.pseudorandom.hashed_seed = pseudohash(self.GAME.pseudorandom.seed)
+    
+    G.GAME.facing_blind = true
 
-    print(self.GAME.pseudorandom.seed)
-    BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
+    --print(self.GAME.pseudorandom.seed)
+    --BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
 
-    local playerDeck = get_tcg_deck(BalatroTCG.SelectedDeck)
-    --local opponentDeck = get_tcg_deck(pseudorandom(generate_starting_seed(), 1, #BalatroTCG.DefaultDecks))
-    local opponentDeck = get_tcg_deck(1)
+    BalatroTCG.SelectedDeck = BalatroTCG.SelectedDeck or BalatroTCG.DefaultDecks[1]
+    local playerDeck = BalatroTCG.SelectedDeck
+    if playerDeck == 'random' then playerDeck = BalatroTCG.TabDecks[pseudorandom('asdf', 1, #BalatroTCG.TabDecks)] end
 
-    if args.online then
-        opponentDeck = BalatroTCG.Deck('empty', 'empty', {})
+    playerDeck:sort()
+    
+    self.GAME.hands["High Card"].visible = true
+    
+    for k, v in ipairs(playerDeck.cards) do
+        if v.type == 'c' and G.P_CENTERS[v.c].set == 'Planet' then
+            self.GAME.hands[G.P_CENTERS[v.c].config.hand_type].visible = true
+        end
     end
 
-    G.GAME.player_back = Back(get_deck_from_name(playerDeck.back))
-    G.GAME.opponent_back = Back(get_deck_from_name(opponentDeck.back))
+    local opponentDeck
+
+    if args.online then
+        opponentDeck = BalatroTCG.Deck('b_red', 'Custom_Deck', {
+            { type = 'p', r = 'A', s = 'S' },
+            { type = 'p', r = 'K', s = 'S' },
+            { type = 'p', r = 'Q', s = 'S' },
+            { type = 'p', r = 'J', s = 'S' },
+            { type = 'p', r = 'T', s = 'S' },
+            { type = 'p', r = '9', s = 'S' },
+            { type = 'p', r = '8', s = 'S' },
+            { type = 'p', r = '7', s = 'S' },
+            { type = 'p', r = '6', s = 'S' },
+            { type = 'p', r = '5', s = 'S' },
+            { type = 'p', r = '4', s = 'S' },
+            { type = 'p', r = '3', s = 'S' },
+            { type = 'p', r = '2', s = 'S' },
+
+            { type = 'p', r = 'A', s = 'H' },
+            { type = 'p', r = 'K', s = 'H' },
+            { type = 'p', r = 'Q', s = 'H' },
+            { type = 'p', r = 'J', s = 'H' },
+            { type = 'p', r = 'T', s = 'H' },
+            { type = 'p', r = '9', s = 'H' },
+            { type = 'p', r = '8', s = 'H' },
+            { type = 'p', r = '7', s = 'H' },
+            { type = 'p', r = '6', s = 'H' },
+            { type = 'p', r = '5', s = 'H' },
+            { type = 'p', r = '4', s = 'H' },
+            { type = 'p', r = '3', s = 'H' },
+            { type = 'p', r = '2', s = 'H' },
+            
+            { type = 'p', r = 'A', s = 'C' },
+            { type = 'p', r = 'K', s = 'C' },
+            { type = 'p', r = 'Q', s = 'C' },
+            { type = 'p', r = 'J', s = 'C' },
+            { type = 'p', r = 'T', s = 'C' },
+            { type = 'p', r = '9', s = 'C' },
+            { type = 'p', r = '8', s = 'C' },
+            { type = 'p', r = '7', s = 'C' },
+            { type = 'p', r = '6', s = 'C' },
+            { type = 'p', r = '5', s = 'C' },
+            { type = 'p', r = '4', s = 'C' },
+            { type = 'p', r = '3', s = 'C' },
+            { type = 'p', r = '2', s = 'C' },
+            
+            { type = 'p', r = 'A', s = 'D' },
+            { type = 'p', r = 'K', s = 'D' },
+            { type = 'p', r = 'Q', s = 'D' },
+            { type = 'p', r = 'J', s = 'D' },
+            { type = 'p', r = 'T', s = 'D' },
+            { type = 'p', r = '9', s = 'D' },
+            { type = 'p', r = '8', s = 'D' },
+            { type = 'p', r = '7', s = 'D' },
+            { type = 'p', r = '6', s = 'D' },
+            { type = 'p', r = '5', s = 'D' },
+            { type = 'p', r = '4', s = 'D' },
+            { type = 'p', r = '3', s = 'D' },
+            { type = 'p', r = '2', s = 'D' },
+            
+            { type = 'j', c = 'j_cavendish' },
+            { type = 'j', c = 'j_joker' },
+            { type = 'j', c = 'j_gros_michel' },
+            
+            { type = 'j', c = 'j_blueprint' },
+            
+            { type = 'c', c = 'c_fool' },
+            { type = 'c', c = 'c_hermit' },
+            { type = 'c', c = 'c_immolate' },
+            { type = 'c', c = 'c_ectoplasm' },
+        })
+    else
+        local validDecks = {}
+        for k, v in ipairs(BalatroTCG.DefaultDecks) do
+            if v:has_content() then
+                validDecks[#validDecks + 1] = v
+            end
+        end
+        opponentDeck = validDecks[pseudorandom('asdf', 1, #validDecks)]
+        --opponentDeck = BalatroTCG.DefaultDecks[1]
+        opponentDeck:sort()
+    end
+
+
+    G.GAME.player_back = Back(G.P_CENTERS[playerDeck.backs[1]])
     
     BalatroTCG.Player = TCG_PlayerStatus(playerDeck, true)
     BalatroTCG.Opponent = TCG_PlayerStatus(opponentDeck, false)
@@ -315,6 +512,7 @@ function Game:start_tcg_game(args)
         BalatroTCG.AI = nil
     else
         BalatroTCG.AI = TCG_AI()
+        BalatroTCG.Player.opponent_back = Back(G.P_CENTERS[opponentDeck.backs[1]])
     end
 
     G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
@@ -428,15 +626,7 @@ function Game:start_tcg_game(args)
     }
     
     BalatroTCG.PlayerActive = false
-    --switch_player(args.starting)
     
-    if G.SETTINGS.FN then
-        G.SETTINGS.FN.preview_score = false
-        G.SETTINGS.FN.preview_dollars = false
-        G.SETTINGS.FN.hide_face_down = true
-        G.SETTINGS.FN.show_min_max = true
-    end
-
     if true then
         G.E_MANAGER:add_event(Event({
             trigger = 'immediate',
@@ -457,14 +647,35 @@ function Game:start_tcg_game(args)
 
 end
 
-function TCG_GetDamage()
-
-    local value = G.GAME.chips
-
+function TCG_GetDamage(value)
+    
     if value > 0 then
         value = math.log10(value)
-        value = value * value
-        return math.floor(value)
+
+        -- What score equates to 1 damage?
+        local start = math.log10(100) - 1
+
+        value = value - start
+
+        if BalatroTCG.Settings.DamageCalc == "Quadratic" then
+            value = value * value
+        elseif BalatroTCG.Settings.DamageCalc == "Exponential" then
+            value = math.pow(2, value - 1)
+        -- TARGET: custom damage types
+        else
+            local scale = 4
+            value = (value * scale) - (scale - 1)
+        end
+            
+        local value = math.max(math.floor(value), 0)
+
+        for k, v in ipairs(BalatroTCG.Status_Current.backs) do
+            if v.name == 'Plasma Deck' then value = value * .75 end
+        end
+        
+        value = math.floor(value)
+        
+        return value
     else
         return 0
     end
@@ -475,19 +686,66 @@ G.FUNCS.chip_UI_damage = function(e)
     local new_chips_text = number_format(G.GAME.chips_damage)
 
     if G.GAME.chips_damage_text ~= new_chips_text then
-        e.config.scale = math.min(0.8, scale_number(value, 1.1))
+        e.config.scale = math.min(0.7, scale_number(value, 1.1))
         G.GAME.chips_damage_text = new_chips_text
     end
 end
 
 function end_tcg_round()
-    
+
     BalatroTCG.Switching = true
+    
+    local damage = TCG_GetDamage(G.GAME.chips) + G.GAME.chips_damage
+    local index = 0
+    
+    if damage > 0 then
+        table.sort(BalatroTCG.Status_Current.opponentJokers.cards, function(a,b) return a.T.x < b.T.x end)
+        if BalatroTCG.config.FlipOpponent then
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+                if joker.highlighted then
+                    index = i
+                end
+            end
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+                if joker.highlighted then
+                    index = i + #BalatroTCG.Status_Current.opponentJokers.cards
+                end
+            end
+        else
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+                if joker.highlighted then
+                    index = (#BalatroTCG.Status_Current.opponentJokers.cards - i) + 1
+                end
+            end
+            for i, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+                if joker.highlighted then
+                    index = (#BalatroTCG.Status_Current.opponentConsumeables.cards - i) + 1 + #BalatroTCG.Status_Current.opponentJokers.cards
+                end
+            end
+        end
+    end
+    BalatroTCG.Status_Current.last_attack = damage
+    BalatroTCG.Status_Current.last_target = index
+    
 
-    BalatroTCG.Player:send_message({ type = 'deck', deck = BalatroTCG.Player.back_key })
+    if BalatroTCG.MP_Lobby then
 
-    local damage = TCG_GetDamage()
+        Client.send({action = "tcgEndTurn", damage = damage, index = index })
+    else
 
+        BalatroTCG.Status_Current:send_message({type = 'attack', damage = damage, index = index, key = BalatroTCG.Status_Current.status.round })
+    end
+
+    BalatroTCG.Status_Current:add_play_stats('damage_given', damage, BalatroTCG.Status_Current.status.round)
+
+
+    if BalatroTCG.Settings.MoneyLeak and BalatroTCG.Status_Current.status.round >= BalatroTCG.Settings.MoneyLeakStart then
+        if BalatroTCG.Settings.MoneyLeakIncrease <= 0 then
+            BalatroTCG.Status_Current:damage(1)
+        else
+            BalatroTCG.Status_Current:damage((BalatroTCG.Status_Current.status.round - BalatroTCG.Settings.MoneyLeakStart + 1) * BalatroTCG.Settings.MoneyLeakIncrease)
+        end
+    end
 
     if BalatroTCG.PlayerActive then
         delay(0.2)
@@ -529,15 +787,13 @@ function end_tcg_round()
             G.GAME.chips_damage = 0
         end
 
-        SMODS.calculate_context({end_of_round = true, game_over = false })
+        SMODS.calculate_context({ end_of_round = true, game_over = false, status = BalatroTCG.Status_Current, full_deck = BalatroTCG.Status_Current.deck })
 
         for _,v in ipairs(SMODS.get_card_areas('playing_cards', 'end_of_round')) do
-            SMODS.calculate_end_of_round_effects({ cardarea = v, end_of_round = true })
+            SMODS.calculate_end_of_round_effects({ cardarea = v, end_of_round = true, status = BalatroTCG.Status_Current, full_deck = BalatroTCG.Status_Current.deck })
         end
+        
         delay(0.3)
-        if BalatroTCG.Status_Current.back.calculate_deck then
-            BalatroTCG.Status_Current.back.calculate_deck({ end_of_round = true, status = BalatroTCG.Status_Current, full_deck = BalatroTCG.Status_Current.deck})
-        end
         
         BalatroTCG.Status_Current.status.unused_discards = (BalatroTCG.Status_Current.status.unused_discards or 0) + G.GAME.current_round.discards_left
 
@@ -551,41 +807,34 @@ function end_tcg_round()
             v.ability.forced_selection = nil
         end
 
-        if damage > 0 then
-            local index = 0
-            table.sort(BalatroTCG.Status_Current.opponentJokers.cards, function(a,b) return a.T.x < b.T.x end)
-            for i, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
-                if joker.highlighted then
-                    index = i
-                end
-            end
-            BalatroTCG.Status_Current:send_message({ type = 'attack', damage = damage, index = index })
-            if BalatroTCG.Status_Current.back.calculate_deck then
-                BalatroTCG.Status_Current.back.calculate_deck({ damaging = true, status = BalatroTCG.Status_Current, damage = damage})
-            end
-        end
-        BalatroTCG.Status_Current:send_message({ type = 'jokers', jokers = #BalatroTCG.Status_Current.jokers.cards })
-        BalatroTCG.Status_Current:send_message({ type = "health", health = BalatroTCG.Status_Current.status.dollars })
-        
-        local cost = 0
-        for _, joker in ipairs(G.jokers.cards) do
-            joker:set_cost()
-            cost = joker.sell_cost
-        end
-        BalatroTCG.Status_Current:send_message({ type = 'joker_cost', amount = cost })
-        
-        for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
-            joker:highlight(false)
-        end
         
         
         G.E_MANAGER:add_event(Event({
             trigger = 'after',
             delay = 1.5,
             func = function()
-                if MP and MP.LOBBY and MP.LOBBY.code then
-                    Client.send({action = "tcgEndTurn" })
+                
+                if damage > 0 then
+                    SMODS.calculate_context({ damaging = true, status = BalatroTCG.Status_Current, damage = damage})
                 end
+                BalatroTCG.Status_Current:send_message({ type = 'jokers', jokers = #BalatroTCG.Status_Current.jokers.cards })
+                BalatroTCG.Status_Current:send_message({ type = "health", health = BalatroTCG.Status_Current.status.dollars })
+                
+                for _, joker in ipairs(BalatroTCG.Status_Current.opponentJokers.cards) do
+                    joker:highlight(false)
+                    if joker.children.price then
+                        joker.children.price:remove()
+                        joker.children.price = nil
+                    end
+                end
+                for _, joker in ipairs(BalatroTCG.Status_Current.opponentConsumeables.cards) do
+                    joker:highlight(false)
+                    if joker.children.price then
+                        joker.children.price:remove()
+                        joker.children.price = nil
+                    end
+                end
+                
                 
                 G.E_MANAGER:add_event(Event({
                     trigger = 'ease',
@@ -607,9 +856,25 @@ function end_tcg_round()
     }))
 end
 
+G.FUNCS.tcg_add_attack = function(e)
+    G.GAME.chips_damage = G.GAME.chips_damage + G.GAME.modifiers.tcg_attack
+    BalatroTCG.Status_Current.can_reroll = false
+    BalatroTCG.Status_Current.has_rerolled = true
+    BalatroTCG.Status_Current:damage(G.GAME.modifiers.tcg_attack_cost)
+end
 
+G.FUNCS.tcg_can_add_attack = function(e)
+    if BalatroTCG.PlayerActive and G.GAME.modifiers.tcg_attack and BalatroTCG.Player.can_reroll then
+        e.config.colour = G.C.RED
+        e.config.button = 'tcg_add_attack'
+    else
+        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+        e.config.button = nil
+    end
+end
 
 function switch_player(playerActive)
+    
     
     BalatroTCG.GameStarted = true
     if BalatroTCG.Status_Current then
@@ -617,30 +882,26 @@ function switch_player(playerActive)
     end
     
     BalatroTCG.PlayerActive = playerActive
-    if BalatroTCG.PlayerActive then
-        G.SETTINGS.GAMESPEED = BalatroTCG.SavedSpeed or G.SETTINGS.GAMESPEED
 
+    if BalatroTCG.PlayerActive then
+
+        if BalatroTCG.Status_Current then BalatroTCG.Opponent:pass_over() end
+        
         BalatroTCG.Status_Current = BalatroTCG.Player
         BalatroTCG.Status_Other = BalatroTCG.Opponent
-        BalatroTCG.Opponent:pass_over()
+        
         BalatroTCG.Player:apply()
     else
         
-        BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
-        if _RELEASE_MODE and not (MP and MP.LOBBY and MP.LOBBY.code) then
-            G.SETTINGS.GAMESPEED = 1000
-        end
+        if BalatroTCG.Status_Current then BalatroTCG.Player:pass_over() end
 
         BalatroTCG.Status_Current = BalatroTCG.Opponent
         BalatroTCG.Status_Other = BalatroTCG.Player
-        BalatroTCG.Player:pass_over()
         BalatroTCG.Opponent:apply()
     end
     
     G.RESET_JIGGLES = nil
     BalatroTCG.Switching = false
-
-    --print("Setting state: " .. tostring(BalatroTCG.PlayerActive))
     
 end
 
@@ -660,6 +921,9 @@ if MP then
 end
 
 function end_tcg_game(win)
+    if not BalatroTCG.GameStarted then return end
+
+    BalatroTCG.GameStarted = false
     
     G.E_MANAGER:add_event(Event({
         trigger = 'immediate',
@@ -690,53 +954,113 @@ function end_tcg_game(win)
     }))
 end
 
-function create_tcg_end_box(win)
-  local show_lose_cta = false
-  local eased_green = copy_table(win and G.C.GREEN or G.C.RED)
-  eased_green[4] = 0
-  ease_value(eased_green, 4, 0.5, nil, nil, true)
-  local t = create_UIBox_generic_options({ padding = 0, bg_colour = eased_green , colour = G.C.BLACK, outline_colour = G.C.EDITION, no_back = true, no_esc = true, contents = {
-    {n=G.UIT.R, config={align = "cm"}, nodes={
-      win and {n=G.UIT.O, config={object = DynaText({string = {localize('ph_you_win')}, colours = {G.C.EDITION},shadow = true, float = true, spacing = 10, rotate = true, scale = 1.5, pop_in = 0.4, maxw = 6.5})}}
-      or      {n=G.UIT.O, config={object = DynaText({string = {localize('ph_game_over')}, colours = {G.C.RED},shadow = true, float = true, spacing = 10, scale = 1.5, pop_in = 0.4, maxw = 6.5})}},
+
+function create_UIBox_tcg_stats_row(score, text_colour)
+  local label = localize('ph_tcg_score_'..score)
+  local score_tab = {}
+  local label_w, score_w, h = ({damage=true,attack=true})[score] and 3.5 or 2.9, ({damage=true,attack=true})[score] and 3.5 or 1, 0.5
+
+  if score == 'spent' then
+    --label_w = 1.9
+    label = 'Money Spent'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_purchase)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.05,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_purchase / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+      --{n=G.UIT.O, config={object = DynaText({string = {}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+    }
+  end
+  if score == 'damage' then
+    --label_w = 1.9
+    label = 'Damage Taken'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_damage_taken)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.15,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_damage_taken / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+    }
+  end
+  if score == 'attack' then
+    --label_w = 1.9
+    label = 'Damage Given'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_damage_given)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.15,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_damage_given / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+    }
+  end
+  if score == 'jokers' then
+    --label_w = 1.9
+    label = 'Joker Damage'
+
+    score_tab = {
+      {n=G.UIT.O, config={object = DynaText({string = {number_format(BalatroTCG.Player.play_stats.total_joker_damage)}, colours = {text_colour or G.C.FILTER},shadow = true, float = true, scale = 0.45})}},
+      {n=G.UIT.B, config={w=0.05,h=0.1}},
+      {n=G.UIT.T, config={text = " ("..number_format((BalatroTCG.Player.play_stats.total_joker_damage / (#BalatroTCG.Player.play_stats.rounds - 1)))..")", scale = 0.35, colour = G.C.JOKER_GREY}}
+    }
+  end
+
+  local label_scale = 0.5
+
+  return {n=G.UIT.R, config={align = "cm", padding = 0.05, r = 0.1, colour = darken(G.C.JOKER_GREY, 0.1), emboss = 0.05, func = nil, id = score}, nodes={
+    {n=G.UIT.C, config={align = "cm", padding = 0.02, minw = label_w, maxw = label_w}, nodes={
+        {n=G.UIT.T, config={text = label, scale = label_scale, colour = G.C.UI.TEXT_LIGHT, shadow = true}},
     }},
-    {n=G.UIT.R, config={align = "cm", padding = 0.15}, nodes={
-      {n=G.UIT.C, config={align = "cm"}, nodes={
-    {n=G.UIT.R, config={align = "cm", padding = 0.08}, nodes={
-      create_UIBox_round_scores_row('hand'),
-      create_UIBox_round_scores_row('poker_hand'),
+    {n=G.UIT.C, config={align = "cr"}, nodes={
+      {n=G.UIT.C, config={align = "cm", minh = h, r = 0.1, minw = score_w, colour = G.C.BLACK, emboss = 0.05}, nodes={
+        {n=G.UIT.C, config={align = "cm", padding = 0.05, r = 0.1, minw = score_w}, nodes=score_tab},
+      }}
     }},
-    {n=G.UIT.R, config={align = "cm"}, nodes={
-      {n=G.UIT.C, config={align = "cm", padding = 0.08}, nodes={
-        create_UIBox_round_scores_row('cards_played', G.C.BLUE),
-        create_UIBox_round_scores_row('cards_discarded', G.C.RED),
-        create_UIBox_round_scores_row('cards_purchased', G.C.MONEY),
-      }},
-      BalatroTCG.MP_Lobby and 
-      {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
-        UIBox_button({id = 'from_game_won', button = 'mp_return_to_lobby', label = {localize('b_return_lobby')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
-        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
-      }}
-      or 
-      {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
-        UIBox_button({id = 'from_game_won', button = 'start_campaign', label = {localize('b_start_new_run')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
-        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
-      }}
-    }}
   }}
-  }}
-  }}) 
-  t.nodes[1] = {n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
-      {n=G.UIT.C, config={align = "cm", padding = 2}, nodes={
-        {n=G.UIT.O, config={padding = 0, id = 'jimbo_spot', object = Moveable(0,0,G.CARD_W*1.1, G.CARD_H*1.1)}},
-      }},
-      {n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={t.nodes[1]}
-    }}
-  }
-  --t.nodes[1].config.mid = true
-  t.config.id = 'you_win_UI'
-  return t
 end
-
-init()
-
+  
+function create_tcg_end_box(win)
+    local show_lose_cta = false
+    local eased_green = copy_table(win and G.C.GREEN or G.C.RED)
+    eased_green[4] = 0
+    ease_value(eased_green, 4, 0.5, nil, nil, true)
+    local t = create_UIBox_generic_options({ padding = 0, bg_colour = eased_green , colour = G.C.BLACK, outline_colour = G.C.EDITION, no_back = true, no_esc = true, contents = {
+        {n=G.UIT.R, config={align = "cm"}, nodes={
+            win and {n=G.UIT.O, config={object = DynaText({string = {localize('ph_you_win')}, colours = {G.C.EDITION},shadow = true, float = true, spacing = 10, rotate = true, scale = 1.5, pop_in = 0.4, maxw = 6.5})}}
+            or      {n=G.UIT.O, config={object = DynaText({string = {localize('ph_game_over')}, colours = {G.C.RED},shadow = true, float = true, spacing = 10, scale = 1.5, pop_in = 0.4, maxw = 6.5})}},
+        }},
+        {n=G.UIT.R, config={align = "cm", padding = 0.15}, nodes={
+            {n=G.UIT.C, config={align = "cm"}, nodes={
+                {n=G.UIT.R, config={align = "cm", padding = 0.08}, nodes={
+                    create_UIBox_tcg_stats_row('damage'),
+                    create_UIBox_tcg_stats_row('attack'),
+                }},
+                {n=G.UIT.R, config={align = "cm"}, nodes={
+                    {n=G.UIT.C, config={align = "cm", padding = 0.08}, nodes={
+                        create_UIBox_round_scores_row('cards_played', G.C.BLUE),
+                        create_UIBox_round_scores_row('cards_discarded', G.C.RED),
+                        create_UIBox_tcg_stats_row('jokers'),
+                        create_UIBox_tcg_stats_row('spent'),
+                    }},
+                    BalatroTCG.MP_Lobby and 
+                    {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
+                        UIBox_button({id = 'from_game_won', button = 'mp_return_to_lobby', label = {localize('b_return_lobby')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
+                        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
+                    }}
+                    or 
+                    {n=G.UIT.C, config={align = "tr", padding = 0.08}, nodes={
+                        UIBox_button({id = 'from_game_won', button = 'start_campaign', label = {localize('b_start_new_run')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide', snap_to = true}}),
+                        UIBox_button({button = 'go_to_menu', label = {localize('b_main_menu')}, minw = 2.5, maxw = 2.5, minh = 1, focus_args = {nav = 'wide'}}),
+                    }}
+                }}
+            }}
+        }}
+    }}) 
+    t.nodes[1] = {n=G.UIT.R, config={align = "cm", padding = 0.1}, nodes={
+        {n=G.UIT.C, config={align = "cm", padding = 2}, nodes={
+            {n=G.UIT.O, config={padding = 0, id = 'jimbo_spot', object = Moveable(0,0,G.CARD_W*1.1, G.CARD_H*1.1)}},
+        }},
+        {n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={t.nodes[1]}
+        }}
+    }
+    --t.nodes[1].config.mid = true
+    t.config.id = 'you_win_UI'
+    return t
+end

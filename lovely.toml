@@ -21,6 +21,54 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
+target = 'functions/common_events.lua'
+pattern = "-- TARGET: evaluate your own general effects"
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    if card.ability.set == 'Joker' and context.joker_main and not context.blueprint then
+        ret.playing_card = ret.playing_card or {}
+        --[[
+        for k, voucher in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
+            
+            if voucher.ability.name == 'Hone' then
+                ret.playing_card.h_chips = voucher.ability.extra
+            elseif voucher.ability.name == 'Glow Up' then
+                ret.playing_card.x_mult = voucher.ability.extra
+            end
+        end
+        ]]
+    elseif context.destroy_card and context.cardarea == G.play and context.destroy_card == card then
+        if card.lucky_trigger then
+            ret.playing_card = ret.playing_card or {}
+            ret.playing_card.remove = true
+        end
+    end
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = "-- TARGET: main scoring on played cards"
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    for k, voucher in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
+        
+        if card:is_playing_card() and voucher.ability.name == 'Illusion' then
+            ret.playing_card.x_mult = (ret.playing_card.x_mult or 1) * voucher.ability.extra
+        end
+    end
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
 target = 'game.lua'
 pattern = "if G.GAME.chips - G.GAME.blind.chips >= 0 or G.GAME.current_round.hands_left < 1 then"
 position = "at"
@@ -43,7 +91,45 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     new_chips_text = '0'
 end
 '''
-match_indent = false
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/button_callbacks.lua'
+pattern = "else draw_card(G.hand, G.play, 1, 'up', true, card, nil, mute) end"
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    BalatroTCG.Status_Current.visual_delay = 1000
+    BalatroTCG.Status_Current:check_visuals()
+    
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/button_callbacks.lua'
+pattern = "if card.ability.set == 'Voucher' then"
+position = "at"
+payload = '''if card.ability.set == 'Voucher' and not BalatroTCG.GameActive then 
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/button_callbacks.lua'
+pattern = "ease_dollars(-c1.cost)"
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    BalatroTCG.Status_Current:add_play_stats('purchase', c1.cost, BalatroTCG.Status_Current.status.round)
+end
+'''
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -56,7 +142,7 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     -- new_mult_text = '0'
 end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -69,7 +155,7 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     -- new_chip_text = '0'
 end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -82,7 +168,7 @@ if BalatroTCG.GameActive and not BalatroTCG.PlayerActive then
     G.GAME.current_round.current_hand.handname_text = ''
 end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 
@@ -96,7 +182,7 @@ position = "at"
 payload = '''
 if self == G.hand and (BalatroTCG.PlayerActive or not BalatroTCG.GameActive) then
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -120,22 +206,36 @@ position = "at"
 payload = '''
 if not self.deck_preview and not G.OVERLAY_MENU and (
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
 [patches.pattern]
 target = 'functions/common_events.lua'
-pattern = "function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)"
+pattern = '''function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end, card)'''
 position = "after"
 payload = '''
-    if BalatroTCG.UseTCG_UI and card then
-        if card.tcg_loc_vars and type(card.tcg_loc_vars) == 'function' then
-            specific_vars = card:tcg_loc_vars({}, self)
-        else
-            specific_vars = TCG_Override_Desc(card, specific_vars)
+
+if BalatroTCG.UseTCG_UI then
+    
+
+    if not _c.use_original_desc and G.localization.descriptions[_c.set] and G.localization.descriptions[_c.set][_c.key .. '_tcg'] then
+        local center = {}
+        for k, v in pairs(_c) do
+            center[k] = v
         end
+        _c = center
+        
+        _c.key = _c.key .. '_tcg'
     end
+
+    if card and card.tcg_loc_vars and type(card.tcg_loc_vars) == 'function' then
+        specific_vars = card:tcg_loc_vars(_c) or specific_vars
+    else
+        specific_vars = TCG_Override_Desc(card, _c) or specific_vars
+    end
+    
+end
 '''
 match_indent = true
 overwrite = true
@@ -158,12 +258,52 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
+target = 'functions/state_events.lua'
+pattern = '''check_for_unlock({type = 'run_card_replays'})'''
+position = "before"
+payload = '''
+if BalatroTCG.GameActive then
+    G.E_MANAGER:add_event(Event({
+        trigger = 'immediate',
+        func = function()
+            BalatroTCG.Player.visual_delay = 1000
+            BalatroTCG.Player:check_visuals()
+            return true
+        end
+    }))
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+pattern = "ease_discard(-1)"
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    if G.GAME.current_round.discards_left > 0 then
+        ease_discard(-1)
+    else
+        ease_dollars(-G.GAME.modifiers.extra_discard_cost)
+        G.GAME.modifiers.extra_discard_cost = G.GAME.modifiers.extra_discard_cost + G.GAME.modifiers.extra_discard_increase
+    end
+else
+    ease_discard(-1)
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
 target = 'card.lua'
 pattern = "function Card:get_chip_mult()"
 position = "at"
 payload = '''function Card:get_chip_mult(context)
     context = context or { }'''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -173,29 +313,28 @@ pattern = "function Card:get_p_dollars()"
 position = "at"
 payload = '''function Card:get_p_dollars(context)
     context = context or { }'''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
 pattern = '''
-        if SMODS.pseudorandom_probability(self, 'lucky_mult', 1, 5) then
-            self.lucky_trigger = true
-            ret = ret + self.ability.mult
-        end'''
+if SMODS.pseudorandom_probability(self, 'lucky_mult', 1, 5) then
+    self.lucky_trigger = true
+    ret = ret + self.ability.mult
+end
+'''
 position = "at"
 payload = '''
-        if context.tcg_predict then
-            ret = ret + self.ability.mult / 5
-        else
-            if SMODS.pseudorandom_probability(self, 'lucky_mult', 1, 5) then
-                self.lucky_trigger = true
-                ret = ret + self.ability.mult
-            end
-        end
+if not BalatroTCG.GameActive then
+    if SMODS.pseudorandom_probability(self, 'lucky_mult', 1, 5) then
+        self.lucky_trigger = true
+        ret = ret + self.ability.mult
+    end
+end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 
@@ -213,29 +352,30 @@ payload = '''
             return ret
         end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
 pattern = '''
-        if SMODS.pseudorandom_probability(self, 'lucky_mult', 1, 15) then
+        if SMODS.pseudorandom_probability(self, 'lucky_money', 1, 15) then
             self.lucky_trigger = true
             ret = ret +  self.ability.p_dollars
         end'''
 position = "at"
 payload = '''
-        if context.tcg_predict then
-            ret = ret + self.ability.p_dollars / 15
-        else
-            if SMODS.pseudorandom_probability(self, 'lucky_mult', 1, 15) then
-                self.lucky_trigger = true
-                ret = ret +  self.ability.p_dollars
-            end
-        end
+local amount = BalatroTCG.GameActive and not BalatroTCG.Settings.Unbalance and 6 or 15
+if context.tcg_predict then
+    ret = ret + self.ability.p_dollars / amount
+else
+    if SMODS.pseudorandom_probability(self, 'lucky_money', 1, amount) then
+        self.lucky_trigger = true
+        ret = ret +  self.ability.p_dollars
+    end
+end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -244,11 +384,24 @@ target = 'functions/common_events.lua'
 pattern = "G.GAME.round = G.GAME.round + mod"
 position = "after"
 payload = '''
-        if BalatroTCG.GameActive then
-            BalatroTCG.Status_Current.status.round = G.GAME.round
-        end
+if BalatroTCG.GameActive then
+    BalatroTCG.Status_Current.status.round = G.GAME.round
+end
 '''
-match_indent = false
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = "for _, v in ipairs(info_queue) do"
+position = "after"
+payload = '''
+    if BalatroTCG.UseTCG_UI then
+        --v = create_tcg_center(v)
+    end
+'''
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -261,7 +414,7 @@ payload = '''
         G.ARGS.flame_handler = {}
     end
 '''
-match_indent = false
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -274,7 +427,20 @@ payload = '''
         return true
     end
 '''
-match_indent = false
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
+pattern = "card.lucky_trigger = nil"
+position = "at"
+payload = '''
+if not BalatroTCG.GameActive or BalatroTCG.Settings.Unbalance then
+    card.lucky_trigger = nil
+end
+'''
+match_indent = true
 overwrite = true
 
 [[patches]]
@@ -301,14 +467,78 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = '=[SMODS _ "src/overrides.lua"]'
-pattern = '''for k, v in ipairs(rank_name_mapping) do'''
+target = 'card.lua'
+pattern = '''::skip_game_actions_during_remove::'''
 position = "before"
 payload = '''
-hidden_suits['tcgb_Joker'] = true
-hidden_suits['tcgb_Planet'] = true
-hidden_suits['tcgb_Tarot'] = true
-hidden_suits['tcgb_Spectral'] = true
+if BalatroTCG.GameActive and not (self.tcg_extra and self.tcg_extra.virtual) then
+    for k, v in ipairs(G.playing_cards) do
+        if v == self then
+            G.graveyard:emplace(self)
+            
+            
+            table.remove(G.playing_cards, k)
+            for k2, v2 in ipairs(G.playing_cards) do
+                v.playing_card = k2
+            end
+            return
+        end
+    end
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''if not copier then set_consumeable_usage(self) end'''
+position = "at"
+payload = '''
+if not copier and not BalatroTCG.GameActive then set_consumeable_usage(self) end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''
+if self.ability.consumeable then
+    G.consumeables.config.card_limit = G.consumeables.config.card_limit - 1
+else
+    G.jokers.config.card_limit = G.jokers.config.card_limit - 1
+end'''
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    if self.area then
+        self.area.config.card_limit = self.area.config.card_limit + 1
+    end
+else
+    if self.ability.consumeable then
+        G.consumeables.config.card_limit = G.consumeables.config.card_limit - 1
+    else
+        G.jokers.config.card_limit = G.jokers.config.card_limit - 1
+    end
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''
+local eval = function(card) return not card.REMOVED end
+'''
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    local eval = function(card) return card.area and not (card.area == G.graveyard or card.area == G.discard) end
+else
+    local eval = function(card) return not card.REMOVED end
+end
 '''
 match_indent = true
 overwrite = true
@@ -317,13 +547,15 @@ overwrite = true
 [patches.pattern]
 target = 'card.lua'
 pattern = '''::skip_game_actions_during_remove::'''
-position = "before"
+position = "after"
 payload = '''
-if BalatroTCG.GameActive then
+SMODS.multiplicative_stacking(self.ability.x_mult or 1, (not self.ability.extra_enhancement and self.ability.perma_x_mult) or 0)
+if BalatroTCG.GameActive and not (self.tcg_extra and self.tcg_extra.virtual) then
     for k, v in ipairs(G.playing_cards) do
         if v == self then
             G.graveyard:emplace(self)
-            self:set_ability(G.P_CENTERS[self.config.center.key])
+            --self:set_ability(G.P_CENTERS[self.config.center.key])
+            
             table.remove(G.playing_cards, k)
             for k2, v2 in ipairs(G.playing_cards) do
                 v.playing_card = k2
@@ -342,7 +574,7 @@ target = 'card.lua'
 pattern = '''if self.params.viewed_back then self.back = 'viewed_back' '''
 position = "at"
 payload = '''
-if self.params.tcg_back then self.back = self.params.tcg_back.is_player and 'player_back' or 'opponent_back'
+if self.params.tcg_back then self.tcg_back = self.params.tcg_back == "#selection" and self.params.tcg_back or G.P_CENTERS[self.params.tcg_back]
 elseif self.params.viewed_back then self.back = 'viewed_back'
 '''
 match_indent = true
@@ -378,76 +610,27 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'functions/state_events.lua'
-pattern = '''-- TARGET: effects before deck final_scoring_step'''
-position = "after"
-payload = '''
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
 target = 'card.lua'
 pattern = '''
-local card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, '8ba')
-card:add_to_deck()
-G.consumeables:emplace(card)
-G.GAME.consumeable_buffer = 0'''
+if self.ability.consumeable then
+    G.consumeables.config.card_limit = G.consumeables.config.card_limit + 1
+else
+    G.jokers.config.card_limit = G.jokers.config.card_limit + 1
+end
+'''
 position = "at"
 payload = '''
-local card = nil
 if BalatroTCG.GameActive then
-    if pick_from_areas(function (c) return c.ability.set == 'Tarot' end, {G.deck, G.discard, G.graveyard}, G.consumeables) then
-        G.GAME.consumeable_buffer = 0
+    if self.area then
+        self.area.config.card_limit = self.area.config.card_limit + 1
     end
 else
-    card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, '8ba')
-    card:add_to_deck()
-    G.consumeables:emplace(card)
-    G.GAME.consumeable_buffer = 0
+    if self.ability.consumeable then
+        G.consumeables.config.card_limit = G.consumeables.config.card_limit + 1
+    else
+        G.jokers.config.card_limit = G.jokers.config.card_limit + 1
+    end
 end
-G.GAME.consumeable_buffer = 0
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = 'card.lua'
-pattern = '''if G.GAME.last_hand_played then'''
-position = "at"
-payload = '''
-local card
-if G.GAME.last_hand_played and BalatroTCG.GameActive then
-    local card = nil
-    for k, v in ipairs(G.deck.cards) do
-        if v.ability.set == 'Planet' then
-            if not card or v.ability.consumeable.hand_type == G.GAME.last_hand_played then
-                card = v
-            end
-        end
-    end
-    for k, v in ipairs(G.discard.cards) do
-        if v.ability.set == 'Planet' then
-            if v.ability.consumeable.hand_type == G.GAME.last_hand_played then
-                card = v
-            end
-        end
-    end
-    for k, v in ipairs(G.hand.cards) do
-        if v.ability.set == 'Planet' then
-            if v.ability.consumeable.hand_type == G.GAME.last_hand_played then
-                card = v
-            end
-        end
-    end
-    if card then
-        card:add_to_deck()
-        draw_from_graveyard_to_area(card, G.consumeables)
-    end
-    G.GAME.consumeable_buffer = 0
-elseif G.GAME.last_hand_played then
 '''
 match_indent = true
 overwrite = true
@@ -462,10 +645,18 @@ elseif parsedAction.action == "tcgPlayerStatus" then
     BalatroTCG.Player:receive_message(parsedAction)
 elseif parsedAction.action == "tcgStartTurn" then
     switch_player(true)
+    parsedAction.type = 'startTurn'
+    BalatroTCG.Player:receive_message(parsedAction)
 elseif parsedAction.action == "startGame" and BalatroTCG.MP_Lobby then
-    G.FUNCS.tcg_start_multi({ starting = parsedAction.starting })
+    G.FUNCS.tcg_start_multi({ starting = parsedAction.starting, seed = parsedAction.seed })
 elseif parsedAction.action == "tcg_compatible" then
     BalatroTCG.MultiCompat = true
+elseif parsedAction.action == "tcgStartGame" then
+    G.SETTINGS.paused = false
+    G.FUNCS.exit_overlay_menu()
+    parsedAction.damage = tonumber(parsedAction.damage)
+    BalatroTCG.Player:receive_message({type = 'attack', damage = parsedAction.damage, key = 'start'})
+    switch_player(parsedAction.starting == 'true' or parsedAction.starting == true)
 '''
 match_indent = true
 overwrite = true
@@ -473,10 +664,35 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
-pattern = '''if parsedAction.action == "connected" then'''
+pattern = '''or k == "timer_forgiveness"'''
+position = "after"
+payload = '''
+or tonumber(v)
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''elseif parsedAction.action == "version" then'''
 position = "after"
 payload = '''
     BalatroTCG.MultiCompat = false
+    Client.send({action = "tcgServerVersion", version = 1 })
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''action_lobby_options(parsedAction)'''
+position = "after"
+payload = '''
+if MP.LOBBY.config.gamemode == "gamemode_mp_tcg" then
+    set_tcg_mp_settings()
+end
 '''
 match_indent = true
 overwrite = true
@@ -487,10 +703,21 @@ target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
 pattern = '''elseif parsedAction.action == "joinedLobby" then'''
 position = "after"
 payload = '''
-    print("##### " .. parsedAction.type .. " #####")
     if parsedAction.type == 'tcg' then
         BalatroTCG.MP_Lobby = true
     end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "objects/decks/ZZ_cocktail.lua"]'
+pattern = '''localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })'''
+position = "after"
+payload = '''
+else
+    localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
 '''
 match_indent = true
 overwrite = true
@@ -501,31 +728,93 @@ target = 'functions/UI_definitions.lua'
 pattern = "local use = nil"
 position = "after"
 payload = '''
-if BalatroTCG.GameActive and card.area == G.hand then
-    return {
-    n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
-        {n=G.UIT.R, config={ref_table = card, r = 0.08, padding = 0.1, align = "bmi", minw = 0.5*card.T.w - 0.15, minh = 0.8*card.T.h, maxw = 0.7*card.T.w - 0.15, hover = true, shadow = true, colour = G.C.UI.BACKGROUND_INACTIVE, one_press = true, button = 'buy_from_shop', func = 'can_buy_tcg'}, nodes={
-        --{n=G.UIT.T, config={text = localize('b_buy'),colour = G.C.UI.TEXT_LIGHT, scale = 0.55, shadow = true}},
-        {n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = card, ref_value = 'cost'}}, colours = {G.C.UI.TEXT_LIGHT},shadow = true, silent = true, bump = true, pop_in = 0, scale = 0.5})}},
-        }},
-    }}
+if BalatroTCG.GameActive then
+    if card.area == G.hand then
+        return {
+        n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
+            {n=G.UIT.R, config={ref_table = card, r = 0.08, padding = 0.1, align = "bmi", minw = 0.5*card.T.w - 0.15, minh = 0.8*card.T.h, maxw = 0.7*card.T.w - 0.15, hover = true, shadow = true, colour = G.C.UI.BACKGROUND_INACTIVE, one_press = true, button = 'buy_from_shop', func = 'can_buy_tcg'}, nodes={
+            {n=G.UIT.O, config={object = DynaText({string = {{prefix = localize('$'), ref_table = card, ref_value = 'cost'}}, colours = {G.C.UI.TEXT_LIGHT},shadow = true, silent = true, bump = true, pop_in = 0, scale = 0.5})}},
+            }},
+        }}
+    elseif card:is_playing_card() and card.area == G.consumeables then
+        return {
+        n=G.UIT.ROOT, config = {padding = 0, colour = G.C.CLEAR}, nodes={
+            {n=G.UIT.R, config={ref_table = card,  align = "cr",padding = 0.1, r=0.08, minw = 1.25, minh = 1, hover = true, shadow = true, colour = G.C.ORANGE, one_press = true, button = 'playing_card_to_hand'}, nodes={
+                {n=G.UIT.T, config={text = localize('b_tcg_return'),colour = G.C.UI.TEXT_LIGHT, scale = 0.4, shadow = true}}
+            }},
+        }}
+    end
 end
 '''
 match_indent = true
 overwrite = true
 
-
 [[patches]]
 [patches.pattern]
-target = 'card.lua'
-pattern = "self.cost = math.max(1, math.floor((self.base_cost + self.extra_cost + 0.5)*(100-G.GAME.discount_percent)/100))"
+target = 'functions/UI_definitions.lua'
+pattern = '''
+{
+    label = localize('b_full_deck'),
+    tab_definition_function = G.UIDEF.view_deck
+},
+'''
 position = "at"
 payload = '''
-if BalatroTCG.GameActive then
-    self.cost = math.max(1, math.ceil((self.base_cost + self.extra_cost)*(100-G.GAME.discount_percent)/100))
-else
-    self.cost = math.max(1, math.floor((self.base_cost + self.extra_cost + 0.5)*(100-G.GAME.discount_percent)/100))
-end
+{
+    label = localize('b_full_deck'),
+    tab_definition_function = G.UIDEF.view_deck
+},
+(BalatroTCG.GameActive and {
+    label = localize('b_tcg_graveyard'),
+    tab_definition_function = G.UIDEF.view_deck,
+    tab_definition_function_args = 'graveyard'
+} or nil)
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''definition = G.GAME.selected_back:generate_UI(nil, 0.7, 0.5, G.GAME.challenge), config = {offset = { x = 0, y = 0 } }'''
+position = "at"
+payload = '''definition = BalatroTCG.GameActive and BalatroTCG.Player.backs[1]:generate_tcg_UI(nil, 0.7, 0.5) or G.GAME.selected_back:generate_UI(nil, 0.7, 0.5, G.GAME.challenge), config = {offset = { x = 0, y = 0 } }'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = "elseif self.ability.name == 'Misprint' then"
+position = "before"
+payload = '''
+elseif self.ability.name == 'Misprint' and BalatroTCG.UseTCG_UI then
+    local r_mults = {}
+    for i = self.ability.extra.min, self.ability.extra.max do
+        r_mults[#r_mults+1] = tostring(i)
+    end
+    local loc_mult = ' '..(localize('k_mult'))..' '
+    main_start = {
+        {n=G.UIT.T, config={text = '  +',colour = G.C.MULT, scale = 0.32}},
+
+        {n=G.UIT.O, config={object = DynaText({string = r_mults, colours = {G.C.RED},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.5, scale = 0.32, min_cycle_time = 0})}},
+        self.area == G.jokers and
+        {n=G.UIT.O, config={object = DynaText({string = {
+            {string = 'rand()', colour = G.C.JOKER_GREY},
+            {string = "#@".. 
+            (G.deck and G.deck.cards[1] and (G.deck.cards[#G.deck.cards]:is_playing_card() and 
+                (G.deck.cards[#G.deck.cards].base.id .. G.deck.cards[#G.deck.cards].base.suit:sub(1,1)) or 
+                (G.deck.cards[#G.deck.cards].ability.set:sub(1, 1))) or '11D'), colour = G.C.RED},
+            loc_mult, loc_mult, loc_mult, loc_mult },
+            colours = {G.C.UI.TEXT_DARK},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.2011, scale = 0.32, min_cycle_time = 0})}}
+        or
+        {n=G.UIT.O, config={object = DynaText({string = {
+            {string = 'rand()', colour = G.C.JOKER_GREY},
+            {string = "#@"..'NOPE', colour = G.C.RED},
+            loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult, loc_mult},
+        colours = {G.C.UI.TEXT_DARK},pop_in_rate = 9999999, silent = true, random_element = true, pop_delay = 0.2011, scale = 0.32, min_cycle_time = 0})}},
+            
+    }
 '''
 match_indent = true
 overwrite = true
@@ -533,14 +822,26 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'card.lua'
-pattern = "elseif name_to_check == 'Erratic Deck' then"
-position = "after"
-payload = '''
-elseif name_to_check == 'Challenge Deck' then key_override = res.key .. '_tcg'
+pattern = "if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) then"
+position = "at"
+payload = '''if self.ability.consumeable or self.ability.set == 'Joker' or (self.area and self.area == G.pack_cards) or (BalatroTCG.GameActive and self.ability.set == 'Voucher') or (G.GAME.modifiers.buy_cards and self:is_playing_card()) then
 '''
 match_indent = true
 overwrite = true
 
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''
+if context.repetition then
+    if self.seal == 'Red' then'''
+position = "at"
+payload = '''
+if context.repetition then
+    if self.seal == 'Red' then
+'''
+match_indent = true
+overwrite = true
 
 [[patches]]
 [patches.regex]
@@ -570,6 +871,17 @@ pattern = '''restart = UIBox_button{id = 'restart_button', label = {localize('b_
 position = "at"
 payload = '''
 restart = UIBox_button{id = 'restart_button', label = {localize('b_start_new_run')}, button = BalatroTCG.GameActive and "start_campaign" or "setup_run", minw = 5}
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/misc_functions.lua'
+pattern = '''if not G.jokers or not G.jokers.cards then return {} end'''
+position = "at"
+payload = '''
+if not G.jokers or not G.jokers.cards or not G.consumeables or not G.consumeables.cards then return {} end
 '''
 match_indent = true
 overwrite = true
@@ -620,22 +932,47 @@ target = 'functions/common_events.lua'
 pattern = '''if v == 'eternal' then info_queue[#info_queue+1] = {key = 'eternal', set = 'Other'} end'''
 position = "after"
 payload = '''
-if v == 'tcg_health' then info_queue[#info_queue+1] = {key = 'tcg_joker_health', set = 'Other', vars = {25, specific_vars.health_amount or 0}} end
+if v == 'tcg_health' then info_queue[#info_queue+1] = {key = 'tcg_health', set = 'Other', vars = {specific_vars.health_amount or -20}} end
 '''
 match_indent = true
 overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'card.lua'
-pattern = '''if self.ability.eternal then badges[#badges + 1] = 'eternal' end'''
+target = 'functions/common_events.lua'
+pattern = '''local colour = (not fool_c or fool_c.name == 'The Fool') and G.C.RED or G.C.GREEN'''
 position = "after"
 payload = '''
-if self.ability.has_health and not self.ability.eternal then
-    loc_vars = loc_vars or {}; loc_vars.health_amount = self.ability.health_amount
-    badges[#badges + 1] = 'tcg_health'
+if BalatroTCG.GameActive and not BalatroTCG.Settings.Unbalance and fool_c and fool_c.name == 'The Hermit' then
+    colour = G.C.RED
 end
 '''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''new_card:set_base(other.config.card)'''
+position = "after"
+payload = '''
+if other.tcg_extra then
+    new_card.tcg_extra = copy_table(other.tcg_extra)
+    new_card.ability.set = other.ability.set
+    new_card.consumable = other.consumable
+
+    new_card:set_sprites()
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/common_events.lua'
+pattern = '''if MP.GAME.ce_cache == false then'''
+position = "after"
+payload = '''if MP.GAME.ce_cache == false and not BalatroTCG.GameActive'''
 match_indent = true
 overwrite = true
 
@@ -655,7 +992,34 @@ pattern = '''if G.FUNCS.draw_from_deck_to_hand(nil) then'''
 position = "before"
 payload = '''
 BalatroTCG.MuteAudio = not (MP and MP.LOBBY and MP.LOBBY.code) and BalatroTCG.GameActive and not BalatroTCG.PlayerActive
-if BalatroTCG.GameActive and G.hand and #G.hand.cards > 0 then
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'game.lua'
+pattern = '''ease_background_colour_blind(G.STATES.DRAW_TO_HAND)'''
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    if not BalatroTCG.GameStarted then
+        ease_background_colour_blind(G.STATE, 'Small Blind')
+    else
+
+        local data = BalatroTCG.DeckData.get(BalatroTCG.Status_Current.back_key)
+        local bg = data.background
+
+        ease_background_colour{new_colour = bg.main, special_colour = bg.special, tertiary_colour = bg.tertiary, contrast = bg.contrast}
+        
+        data = BalatroTCG.DeckData.get(BalatroTCG.Opponent.back_key)
+
+        ease_colour(G.C.DYN_UI.MAIN, data.ui.main)
+        ease_colour(G.C.DYN_UI.DARK, data.ui.secondary)
+    end
+
+else
+    ease_background_colour_blind(G.STATES.DRAW_TO_HAND)
 end
 '''
 match_indent = true
@@ -668,7 +1032,7 @@ pattern = '''if self.STATE == self.STATES.SELECTING_HAND then'''
 position = "at"
 payload = '''
 if G.hand and self.STATE == self.STATES.SELECTING_HAND then
-    if BalatroTCG.GameActive then
+    if BalatroTCG.GameStarted then
         BalatroTCG.Status_Current:take_attacks()
     end
 '''
@@ -678,10 +1042,16 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'game.lua'
-pattern = '''function Game:update_selecting_hand(dt)'''
-position = "after"
+pattern = '''if #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 then'''
+position = "at"
 payload = '''
-    if BalatroTCG.GameActive and (not G.deck.cards[1]) then return end
+if #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 and BalatroTCG.GameActive then
+    if (BalatroTCG.PlayerActive or BalatroTCG.AI) and not G.STATE_COMPLETE then
+        end_tcg_round()
+    end
+    G.STATE_COMPLETE = true
+    return
+elseif #G.hand.cards < 1 and #G.deck.cards < 1 and #G.play.cards < 1 then
 '''
 match_indent = true
 overwrite = true
@@ -692,11 +1062,12 @@ target = '=[SMODS _ "src/overrides.lua"]'
 pattern = '''if self.children.back then self.children.back:remove() end'''
 position = "after"
 payload = '''
-if self.back == 'opponent_back' or self.back == 'player_back' then
-    local center = G.GAME[self.back] or G.P_CENTERS['b_red']
-    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, 
-        G.ASSET_ATLAS[center.atlas or 'centers'],
-        (self.playing_card and center.pos))
+if self.tcg_back then
+    local center = self.tcg_back == '#selection' and 
+        ((BalatroTCG.SelectedDeck == 'new' or BalatroTCG.TabDecks[BalatroTCG.DeckIndex] == 'new') and {atlas = 'centers', pos = {x = 4, y = 0}} or G.P_CENTERS[BalatroTCG.TabDecks[BalatroTCG.DeckIndex].backs[1]])
+        or self.tcg_back
+
+    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ASSET_ATLAS[center.atlas or 'centers'], (center.pos))
     self.children.back.states.hover = self.states.hover
     self.children.back.states.click = self.states.click
     self.children.back.states.drag = self.states.drag
@@ -710,19 +1081,150 @@ overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'card.lua'
-pattern = '''if G.STAGE == G.STAGES.RUN then'''
-position = "at"
-payload = '''if G.STAGE == G.STAGES.RUN and BalatroTCG.GameStarted and (not BalatroTCG.GameActive or not (self.area and self.area.config.type == 'joker' and self.area ~= G.jokers)) then'''
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''G.VIEWING_DECK = true'''
+position = "after"
+payload = '''
+local temp_playing = G.playing_cards
+if BalatroTCG.GraveyardView then
+    G.playing_cards = G.graveyard.cards
+elseif BalatroTCG.GameActive then
+    G.playing_cards = BalatroTCG.Player.playing_cards
+end
+'''
 match_indent = true
 overwrite = true
 
 [[patches]]
 [patches.pattern]
-target = 'functions/utils.lua'
-pattern = '''cards[i]:start_dissolve()'''
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''
+greyed = true
+'''
+position = "at"
+payload = '''
+if not BalatroTCG.GameActive or BalatroTCG.PlayerActive then
+    greyed = true
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/overrides.lua"]'
+pattern = '''
+local suit_options = {}
+for i = 1, math.ceil(#visible_suit / 4) do
+    table.insert(suit_options,
+        localize('k_page') .. ' ' .. tostring(i) .. '/' .. tostring(math.ceil(#visible_suit / 4)))
+end
+'''
 position = "after"
-payload = '''print('destroying')'''
+payload = '''
+
+if BalatroTCG.GameActive then
+    suit_options = {}
+    local amount = math.max((math.ceil(#visible_suit / 4) + 1), 2)
+
+	for i = 1, amount do
+		table.insert(suit_options,
+			localize('k_page') .. ' ' .. tostring(i) .. '/' .. tostring(amount))
+	end
+
+
+    if args and args.cycle_config and args.cycle_config.current_option == amount then
+        local items = {}
+        for k, v in ipairs(G.playing_cards) do
+            if not v:is_playing_card() then
+                items[#items + 1] = v
+            end
+        end
+        local rows = math.max(math.min(math.ceil(#items / 13), 1), 4)
+        local parts = rows
+
+        deck_tables = {}
+        for j = 1, parts do
+            local columns = math.ceil(#items / rows)
+
+            local view_deck = CardArea(
+                G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h,
+                6.5*G.CARD_W,
+                0.6*G.CARD_H,
+                {card_limit = columns, type = 'title', view_deck = true, highlight_limit = 0, card_w = G.CARD_W*0.7, draw_layers = {'card'}})
+                table.insert(deck_tables, 
+                {n=G.UIT.R, config={align = "cm", padding = 0}, nodes={
+                {n=G.UIT.O, config={object = view_deck}}
+            }})
+
+            for i = 1, columns do
+                local greyed, _scale = nil, 0.7
+                if unplayed_only and not (items[1].area and items[1].area == G.deck) then
+                    if BalatroTCG.PlayerActive then
+                        greyed = true
+                    end
+                end
+                local copy = copy_card(items[1], nil, _scale)
+                copy.greyed = greyed
+                copy.T.x = view_deck.T.x + view_deck.T.w/2
+                copy.T.y = view_deck.T.y
+
+                copy:hard_set_T()
+                view_deck:emplace(copy)
+
+                table.remove(items, 1)
+            end
+            
+            rows = rows - 1
+        end
+
+    end
+
+    visible_suit = {'a', 'b', 'c', 'd', 'e'}
+
+end
+
+G.playing_cards = temp_playing
+
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''if G.STAGE == G.STAGES.RUN then'''
+position = "at"
+payload = '''
+if G.STAGE == G.STAGES.RUN and (BalatroTCG.GameStarted or not BalatroTCG.GameActive) then
+    if BalatroTCG.GameActive and self.config.center.tcg_modifier and self.config.center.tcg_modifier.calculate_context then
+        
+        if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+            BalatroTCG.Player:set_card_areas()
+        end
+        local value = self.config.center.tcg_modifier.calculate_context(self, { updating = true }, not BalatroTCG.Settings.Unbalance )
+        
+        if BalatroTCG.GameStarted and not BalatroTCG.PlayerActive then
+            BalatroTCG.Status_Current:set_card_areas()
+        end
+
+        return value
+    end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = '''local obj = center or self.config.center'''
+position = "after"
+payload = '''
+if obj.tcg_modifier and obj.tcg_modifier.redeem then
+    obj.tcg_modifier.redeem(self, not BalatroTCG.Settings.Unbalance)
+    return
+end
+'''
 match_indent = true
 overwrite = true
 
@@ -747,3 +1249,67 @@ end
 '''
 match_indent = true
 overwrite = true
+
+
+
+[[patches]]
+[patches.pattern]
+target = 'main.lua'
+pattern = '''new_preview_text = " " .. FN.PRE.format_number(FN.PRE.data.score.min) .. " "'''
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    new_preview_text = "(" .. FN.PRE.format_number(TCG_GetDamage(FN.PRE.data.score.min + G.GAME.chips)) .. ")" .. new_preview_text
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'main.lua'
+pattern = '''new_preview_text = FN.PRE.format_number(FN.PRE.data.score.min) .. " - "'''
+position = "after"
+payload = '''
+if BalatroTCG.GameActive then
+    new_preview_text = "(" .. FN.PRE.format_number(TCG_GetDamage(FN.PRE.data.score.min + G.GAME.chips)) .. ")" .. " " .. new_preview_text
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'main.lua'
+pattern = '''new_preview_text = FN.PRE.format_number(FN.PRE.data.score.max)'''
+position = "at"
+payload = '''
+new_preview_text = ""
+if BalatroTCG.GameActive then
+    new_preview_text = "(" .. FN.PRE.format_number(TCG_GetDamage(FN.PRE.data.score.max + G.GAME.chips)) .. ")" .. " "
+end
+new_preview_text = new_preview_text .. FN.PRE.format_number(FN.PRE.data.score.max)
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/game_object.lua"]'
+pattern = '''if context.destroy_card and context.cardarea == G.play and context.destroy_card == card and SMODS.pseudorandom_probability(card, 'glass', 1, card.ability.extra) then'''
+position = "at"
+payload = '''
+if BalatroTCG.GameActive then
+    if context.before then
+        card.glass_trigger_count = 0
+    elseif context.main_scoring then
+        card.glass_trigger_count = (card.glass_trigger_count or 0) + 1
+    elseif context.destroy_card and context.cardarea == G.play and context.destroy_card == card and card.glass_trigger_count > 1 then
+        card.glass_trigger = true
+        return { remove = true }
+    end
+elseif context.destroy_card and context.cardarea == G.play and context.destroy_card == card and SMODS.pseudorandom_probability(card, 'glass', 1, card.ability.extra) then
+'''
+match_indent = true
+overwrite = true
+
