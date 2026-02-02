@@ -1253,6 +1253,7 @@ end
 -- I'm scared this will break something
 local emplace_Index = 0
 
+
 local CardArea_emplace_ref = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
     emplace_Index = emplace_Index + 1
@@ -1274,6 +1275,11 @@ function CardArea:emplace(card, location, stay_flipped)
     
 
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
+        if BalatroTCG.GameActive and card.dissolve and (self == G.consumeable or self == G.jokers or self == G.hand) then
+            card.states.hover.can = true
+            card.dissolve = nil
+        end
+
         if self == G.discard or self == G.graveyard then
 
             card.ability.tcgb_sticker_hidden = false
@@ -1283,14 +1289,6 @@ function CardArea:emplace(card, location, stay_flipped)
                 card:dissolve()
                 return
             end
-
-            -- Fixes a bug where objects break when thrown into the graveyard.  Dunno why but this works ig
-            G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                blockable = false,
-                delay =  1,
-                func = (function() card.states.hover.can = true; card.dissolve = nil; return true end)
-            }))
             
         end
         if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then
