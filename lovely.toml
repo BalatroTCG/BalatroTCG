@@ -475,7 +475,10 @@ if BalatroTCG.GameActive and not (self.tcg_extra and self.tcg_extra.virtual) the
     for k, v in ipairs(G.playing_cards) do
         if v == self then
             G.graveyard:emplace(self)
-            
+            G.graveyard:hard_set_cards()
+            self:start_materialize(nil, true, 0.01)
+            self.front_hidden = nil
+            self.removed = false
             
             table.remove(G.playing_cards, k)
             for k2, v2 in ipairs(G.playing_cards) do

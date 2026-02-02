@@ -4,6 +4,13 @@ BalatroTCG.ConsumeableMod {
     modify = function(self, balanced)
         
     end,
+    can_use_consumeable = function(self, any_state, skip_check, balanced, original_value)
+        if balanced then
+            if G.GAME.last_tarot_planet == 'c_hermit' then return false end
+        end
+
+        return original_value
+    end,
     use_consumeable = function(self, area, copier, balanced, original_func)
         
         if G.GAME.last_tarot_planet == 'c_fool' then return end

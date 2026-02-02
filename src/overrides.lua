@@ -1275,9 +1275,9 @@ function CardArea:emplace(card, location, stay_flipped)
     
 
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
-        if BalatroTCG.GameActive and card.dissolve and (self == G.consumeable or self == G.jokers or self == G.hand) then
+        if BalatroTCG.GameActive and (self == G.consumeable or self == G.jokers or self == G.hand) then
             card.states.hover.can = true
-            card.dissolve = nil
+            card.states.visible = true
         end
 
         if self == G.discard or self == G.graveyard then
@@ -1286,7 +1286,7 @@ function CardArea:emplace(card, location, stay_flipped)
             card.ability.tcgb_sticker_visible = false
 
             if card.tcg_extra.virtual then
-                card:dissolve()
+                card:start_dissolve()
                 return
             end
             

@@ -9,7 +9,7 @@ BalatroTCG.ConsumeableMod {
                 if not v:is_playing_card() then return false end
             end
         end
-        return true
+        return original_value
     end,
     use_consumeable = function(self, area, copier, balanced, original_func)
         

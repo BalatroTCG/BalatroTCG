@@ -22,7 +22,7 @@ BalatroTCG.VoucherMod {
     get_cost = function(original, balanced) return 6 end,
     
     calculate_context = function(self, context, balanced)
-        if not context.cardarea and not context.repetition and not context.individual and context.end_of_round then
+        if not context.cardarea and not context.repetition and not context.individual and context.end_of_round and BalatroTCG.Status_Current.status.seed_reduction > 0 then
             ease_dollars(BalatroTCG.Status_Current.status.seed_reduction)
         end
     end
