@@ -5,10 +5,10 @@ BalatroTCG.ConsumeableMod {
         
         local copyable_jokers = {}
         for i, v in ipairs(G.jokers.cards) do
-            if v.ability.set == 'Joker' and not v.edition or v.edition.type ~= "mp_phantom" then copyable_jokers[#copyable_jokers + 1] = v end
+            if v.ability.set == 'Joker' and (not v.edition or v.edition.type ~= "mp_phantom") then copyable_jokers[#copyable_jokers + 1] = v end
         end
         for i, v in ipairs(G.consumeables.cards) do
-            if v.ability.set == 'Joker' and not v.edition or v.edition.type ~= "mp_phantom" then copyable_jokers[#copyable_jokers + 1] = v end
+            if v.ability.set == 'Joker' and (not v.edition or v.edition.type ~= "mp_phantom") then copyable_jokers[#copyable_jokers + 1] = v end
         end
         local chosen_joker = pseudorandom_element(copyable_jokers, pseudoseed('ankh_choice'))
         
