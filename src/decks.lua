@@ -1624,6 +1624,9 @@ function BalatroTCG.Deck:has_content()
     for k, v in ipairs(self.backs) do
         if not G.P_CENTERS[v] then return false end
     end
+    for k, v in ipairs(self.cards) do
+        if v.type ~= 'p' and not G.P_CENTERS[v.c] then return false end
+    end
 
     return true
 end
@@ -1781,9 +1784,11 @@ function BalatroTCG.Deck:set_cost()
 
     for i, card in ipairs(self.cards) do
         if card.type ~= 'p' then
-            local consumable = create_tcg_center(G.P_CENTERS[card.c])
+            if G.P_CENTERS[card.c] then
+                local consumable = create_tcg_center(G.P_CENTERS[card.c])
 
-            self.cost = self.cost + consumable.cost
+                self.cost = self.cost + consumable.cost
+            end
         end
     end
     
@@ -2035,27 +2040,30 @@ function BalatroTCG.Deck:is_legal()
         elseif card.type == 'j' then
             local joker = G.P_CENTERS[card.c]
 
-
-            stats.jokers = stats.jokers + 1
-
-            -- for now, ban any exclusive rarity types.  May find a way around this later.
-            if false then
-            -- TARGET: Check TCG rarities
-            elseif type(joker.rarity) == 'string' then 
-                errors['tcg_err_consumeable_banned'] = {}
-            elseif joker.rarity == 2 then
-                stats.uncommons = stats.uncommons + 1
-            elseif joker.rarity >= 3 then
-                stats.rares = stats.rares + 1
-            end
-
-            if joker.name == 'Showman' then
-                limits.total_copies = limits.total_copies + 1
-                jokers[card.c] = 1
-            else
-                jokers[card.c] = (jokers[card.c] or 0) + 1
-            end
+            if joker then
             
+                stats.jokers = stats.jokers + 1
+
+                -- for now, ban any exclusive rarity types.  May find a way around this later.
+                if type(joker.rarity) == 'string' then
+                    errors['tcg_err_consumeable_banned'] = {}
+                -- TARGET: Check TCG rarities
+                elseif joker.rarity == 2 then
+                    stats.uncommons = stats.uncommons + 1
+                elseif joker.rarity >= 3 then
+                    stats.rares = stats.rares + 1
+                end
+
+                if joker.name == 'Showman' then
+                    limits.total_copies = limits.total_copies + 1
+                    jokers[card.c] = 1
+                else
+                    jokers[card.c] = (jokers[card.c] or 0) + 1
+                end
+            else
+                print(card.c)
+                errors['tcg_err_unknown_type'] = {}
+            end
         else
             errors['tcg_err_unknown_type'] = {}
         end

@@ -592,16 +592,17 @@ end
 
 G.FUNCS.merge_stats = function(a, b)
 
+    b = b or {}
     for k, v in pairs(b) do
-        if type(b[k]) == 'table' then
+        if type(v) == 'table' then
             if not a[k] then
                 a[k] = {}
             end
-            G.FUNCS.merge_stats(a[k], b[k])
+            G.FUNCS.merge_stats(a[k], v)
         elseif k == 'x_mult' then
-            a[k] = (a[k] or 1) * b[k]
+            a[k] = (a[k] or 1) * v
         else
-            a[k] = (a[k] or 0) + b[k]
+            a[k] = (a[k] or 0) + v
         end
     end
 end
@@ -630,7 +631,7 @@ G.FUNCS.hand_chance = function(e)
             ranks[e.rank] = true
         else
             for k, v in ipairs(e.hand) do
-                ranks[v.base.rank]
+                --ranks[v.base.rank]
             end
         end
     end
