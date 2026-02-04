@@ -961,21 +961,7 @@ end
 
 
 function CardArea:chance(check_func, pulls, need)
-    need = need or 1
-    pulls = pulls or 5
-
-    if need > pulls then return 0 end
-
-    local total = #self.cards
-    local has = 0
-
-    for k, v in ipairs(self.cards) do
-        if check_func(v) then
-            has = has + 1
-        end
-    end
-
-    return get_chance(need, pulls, has, total)
+    return tcg_chance(self.cards, check_func, pulls, need)
 end
 
 function CardArea:chance_rank(rank, pulls, need)
@@ -990,13 +976,102 @@ end
 function CardArea:chance_suit(suit, pulls, need)
     return self:chance(
         (function(c)
-            return c:is_playing_card() and c.base.suit == suit
+            return c:is_playing_card() and c:is_suit(suit)
         end),
         pulls, need
     )
 end
 
 function CardArea:chance_card(rank, suit, pulls, need)
+    return self:chance(
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank and c:is_suit(suit)
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance(cards, check_func, pulls, need)
+    need = need or 1
+    pulls = pulls or 5
+
+    if need > pulls then return 0 end
+
+    local total = #self.cards
+    local has = 0
+
+    for k, v in ipairs(cards) do
+        if check_func(v) then
+            has = has + 1
+        end
+    end
+
+    return get_chance(need, pulls, has, total)
+end
+
+function tcg_chance_rank(cards, rank, pulls, need)
+    return tcg_chance(cards,
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_suit(cards, suit, pulls, need)
+    return tcg_chance(cards,
+        (function(c)
+            return c:is_playing_card() and c.base.suit == suit
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_card(cards, rank, suit, pulls, need)
+    return tcg_chance(cards,
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank and c.base.suit == suit
+        end),
+        pulls, need
+    )
+end
+function tcg_chance(cards, check_func, pulls, need)
+    need = need or 1
+    pulls = pulls or 5
+
+    if need > pulls then return 0 end
+
+    local total = #self.cards
+    local has = 0
+
+    for k, v in ipairs(cards) do
+        if check_func(v) then
+            has = has + 1
+        end
+    end
+
+    return get_chance(need, pulls, has, total)
+end
+
+function tcg_chance_rank(cards, rank, pulls, need)
+    return self:chance(
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_suit(cards, suit, pulls, need)
+    return self:chance(
+        (function(c)
+            return c:is_playing_card() and c.base.suit == suit
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_card(cards, rank, suit, pulls, need)
     return self:chance(
         (function(c)
             return c:is_playing_card() and c:get_id() == rank and c.base.suit == suit
@@ -1270,6 +1345,7 @@ end
 -- I'm scared this will break something
 local emplace_Index = 0
 
+
 local CardArea_emplace_ref = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
     emplace_Index = emplace_Index + 1
@@ -1291,23 +1367,20 @@ function CardArea:emplace(card, location, stay_flipped)
     
 
     if BalatroTCG.GameActive and BalatroTCG.Status_Current then
+        if BalatroTCG.GameActive and (self == G.consumeable or self == G.jokers or self == G.hand) then
+            card.states.hover.can = true
+            card.states.visible = true
+        end
+
         if self == G.discard or self == G.graveyard then
 
             card.ability.tcgb_sticker_hidden = false
             card.ability.tcgb_sticker_visible = false
 
             if card.tcg_extra.virtual then
-                card:dissolve()
+                card:start_dissolve()
                 return
             end
-
-            -- Fixes a bug where objects break when thrown into the graveyard.  Dunno why but this works ig
-            G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                blockable = false,
-                delay =  1,
-                func = (function() card.states.hover.can = true; card.dissolve = nil; return true end)
-            }))
             
         end
         if BalatroTCG.GameStarted and not BalatroTCG.MP_Lobby or BalatroTCG.PlayerActive then

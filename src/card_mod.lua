@@ -113,6 +113,8 @@ function Card:use_consumeable(area, copier)
         if self.config.center.tcg_modifier then
             self.config.center.tcg_modifier.use_consumeable(self, area, copier, not BalatroTCG.Settings.Unbalance, use_consumeable_ref)
             return
+        else
+            use_consumeable_ref(self, area, copier)
         end
     else
         use_consumeable_ref(self, area, copier)

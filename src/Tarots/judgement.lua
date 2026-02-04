@@ -5,9 +5,9 @@ BalatroTCG.ConsumeableMod {
         
     end,
     can_use_consumeable = function(self, any_state, skip_check, balanced, original_value)
-        G.consumeable_buffer = G.consumeable_buffer - 1
+        G.GAME.consumeable_buffer = G.GAME.consumeable_buffer - 1
         original_value = BalatroTCG.joker_slots_available() > 0
-        G.consumeable_buffer = G.consumeable_buffer + 1
+        G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
         
         return original_value
     end,

@@ -35,7 +35,7 @@ BalatroTCG.DeckData {
     calculate_context = function(context)
         if context.setting_blind and not context.cardarea then
             -- Fixes a crash I guess
-            G.GAME.modifiers.mp_cocktail = {}
         end
+        G.GAME.modifiers.mp_cocktail = {}
     end
 }

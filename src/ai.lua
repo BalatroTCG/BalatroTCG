@@ -81,12 +81,36 @@ function TCG_AI:run()
                         money_now = 0,
                         money_next_hand = 0,
                         money_per_round = 0,
+                        joker = {
+                            any = {
+                                chips = 0,
+                                mult = 0,
+                                x_mult = 1,
+                                dollars = 0,
+                            }
+                        },
+                        hand = {
+                            any = {
+                                chips = 0,
+                                mult = 0,
+                                x_mult = 1,
+                                dollars = 0,
+                            }
+                        },
+                        play = {
+                            any = {
+                                chips = 0,
+                                mult = 0,
+                                x_mult = 1,
+                                dollars = 0,
+                            }
+                        },
                     }
                     
-                    G.FUNCS.merge_stats(stats, card:estimate_score({ purchase = card, full_deck = full_deck, round_stats = round_stats }))
+                    G.FUNCS.merge_stats(stats, card:estimate_score({ value_eval = card, full_deck = full_deck, round_stats = round_stats }))
                     
                     for _, joker in ipairs(G.jokers.cards) do
-                        G.FUNCS.merge_stats(stats, joker:estimate_score({ purchase = card, full_deck = full_deck, round_stats = round_stats }))
+                        G.FUNCS.merge_stats(stats, joker:estimate_score({ value_eval = card, full_deck = full_deck, round_stats = round_stats }))
                     end
 
                     stats.money_total = stats.money_now + (rounds_left > 1 and stats.money_next_hand or 0) + (stats.money_per_round * rounds_left) - stats.cost
@@ -458,7 +482,7 @@ function TCG_AI:run()
                 local best_hand = nil
                 for card, stat in pairs(card_stats) do
                     if card:can_buy_tcg() and ((card.ability.consumeable and BalatroTCG.consumeable_slots_available() > 0) or (card.ability.set == 'Joker' and BalatroTCG.joker_slots_available() > 0)) then
-                        if stat.money_total > 0 or stat.buy_stat > 0 or true then
+                        if stat.money_total > 0 or stat.buy_stat > 0 then
                             best_hand = { hand = 'purchase', card = card }
                             break
                         end
@@ -567,24 +591,53 @@ G.FUNCS.get_card_amount = function(cards, func)
 end
 
 G.FUNCS.merge_stats = function(a, b)
-    if not a or not b then return end
+
     for k, v in pairs(b) do
-        if a[k] then
-            if type(a[k]) == 'table' then
-                G.FUNCS.merge_stats(a[k], b[k])
-            elseif k == 'x_mult' then
-                a[k] = a[k] * b[k]
-            else
-                a[k] = a[k] + b[k]
+        if type(b[k]) == 'table' then
+            if not a[k] then
+                a[k] = {}
             end
+            G.FUNCS.merge_stats(a[k], b[k])
+        elseif k == 'x_mult' then
+            a[k] = (a[k] or 1) * b[k]
+        else
+            a[k] = (a[k] or 0) + b[k]
         end
     end
 end
 
 G.FUNCS.hand_chance = function(e)
-    if e == 'High card' then return 1 end
+    e.hand = e.hand or {}
+    e.pull = e.pull or 0
 
-    return 0
+    if e.hand == 'High Card' then
+        if e.rank then
+            for k, v in ipairs(e.hand) do
+                if v.base.rank == e.rank then
+                    return { chance = 1, rank = e.rank }
+                end
+            end
+            return { chance = tcg_chance_rank(e.deck, e.rank, e.pull, 1), rank = e.rank }
+        else
+            return { chance = 1 }
+        end
+    end
+    
+    if e.hand == 'Pair' then
+        local ranks = {}
+
+        if e.rank then
+            ranks[e.rank] = true
+        else
+            for k, v in ipairs(e.hand) do
+                ranks[v.base.rank]
+            end
+        end
+    end
+
+    if e.hand == 'Two Pair' then return 0 end
+
+    return { chance = 0 }
 end
 
 G.FUNCS.card_vision = function(e, hand_remove, discard_remove)
@@ -598,9 +651,9 @@ function Card:estimate_score(context)
     local obj = self.config.center
     local round_stats = context.round_stats
 
-    if obj.tcg_estimate and type(obj.tcg_estimate) == 'function' then
-        --print('Custom Function for ' .. self.ability.name)
-        return obj.tcg_estimate(self, context)
+    if obj.tcg_modifier and obj.tcg_modifier.ai_calculate then
+        
+        return obj.tcg_modifier.ai_calculate(self, context, not BalatroTCG.Settings.Unbalance)
     elseif self.ability.set == 'Joker' then
 
         if context.set_round_stats then
@@ -609,31 +662,6 @@ function Card:estimate_score(context)
             if context.purchase == self then
                 if self.ability.name == 'Ancient Joker' then
                     
-                    local card_vision = G.FUNCS.card_vision(round_stats, 0, 0)
-
-                    if self.tcg_extra.suit then
-
-                        local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.suit == self.tcg_extra.suit end)
-
-                        return {
-                            x_mult = math.pow(self.ability.extra, amount * card_vision / #context.full_deck)
-                        }
-                    else
-
-                        local total = 0
-                        for suit, _ in pairs(SMODS.Suits) do
-                            local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e:is_playing_card() and e.base.suit == suit end)
-    
-                            --print(amount)
-                            total = total + amount * card_vision / #context.full_deck
-                        end
-
-                        total = total / 4
-
-                        return {
-                            x_mult = math.pow(self.ability.extra, total)
-                        }
-                    end
                 end
                 if self.ability.name == 'Mail-In Rebate' then
 
