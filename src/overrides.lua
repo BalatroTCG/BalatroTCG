@@ -1041,7 +1041,7 @@ function tcg_chance(cards, check_func, pulls, need)
 
     if need > pulls then return 0 end
 
-    local total = #self.cards
+    local total = #cards
     local has = 0
 
     for k, v in ipairs(cards) do
