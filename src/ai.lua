@@ -630,7 +630,7 @@ G.FUNCS.hand_chance = function(e)
             ranks[e.rank] = true
         else
             for k, v in ipairs(e.hand) do
-                ranks[v.base.rank]
+                --ranks[v.base.rank]
             end
         end
     end
