@@ -1154,23 +1154,40 @@ function reset_mail_rank()
     end
 end
 
+local reset_idol_card_ref = reset_idol_card
+function reset_idol_card()
+    if BalatroTCG.Settings.Unbalance then return reset_idol_card_ref() end
 
-local reset_castle_card_ref = reset_castle_card
-function reset_castle_card()
-    if not BalatroTCG.GameActive then return reset_castle_card_ref() end
+    G.GAME.current_round.idol_card.rank = 'Ace'
+    G.GAME.current_round.idol_card.suit = 'Spades'
 
-    G.GAME.current_round.castle_card.suit = 'Spades'
-    local valid_castle_cards = {}
+    local history = BalatroTCG.Status_Current.status.idol_history
+
+    local valid_cards = 0
+    local valid_idol_cards = {}
     for k, v in ipairs(G.playing_cards) do
-        if v.ability.effect ~= 'Stone Card' and v:is_playing_card() then
-            if not SMODS.has_no_suit(v) then
-                valid_castle_cards[#valid_castle_cards+1] = v
+        if v.ability.effect ~= 'Stone Card' then
+            if not SMODS.has_no_suit(v) and not SMODS.has_no_rank(v) then
+                valid_cards = valid_cards + 1
+                
+                for _, rank in ipairs(history) do
+                    if rank == v.base.id then goto continue end
+                end
+
+                valid_idol_cards[#valid_idol_cards+1] = v
+                ::continue::
             end
         end
     end
-    if valid_castle_cards[1] then
-        local castle_card = pseudorandom_element(valid_castle_cards, pseudoseed('cas'..G.GAME.round_resets.ante))
-        G.GAME.current_round.castle_card.suit = castle_card.base.suit
+    if valid_idol_cards[1] then 
+        local idol_card = pseudorandom_element(valid_idol_cards, pseudoseed('idol'..G.GAME.round_resets.ante))
+        G.GAME.current_round.idol_card.rank = idol_card.base.value
+        G.GAME.current_round.idol_card.suit = idol_card.base.suit
+        G.GAME.current_round.idol_card.id = idol_card.base.id
+        history[#history] = idol_card.base.id
+    elseif valid_cards > 0 then
+        BalatroTCG.Status_Current.status.idol_history = {}
+        reset_idol_card()
     end
 end
 

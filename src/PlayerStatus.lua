@@ -443,6 +443,8 @@ function TCG_PlayerStatus:pass_over()
     self.opponentJokers.config.highlighted_limit = 0
     self.opponentConsumeables.config.highlighted_limit = 0
     self.status.discount = G.GAME.discount_percent
+    
+    self.status.idol_history = {}
 
     self.visual_transfer = {
         index = '',
