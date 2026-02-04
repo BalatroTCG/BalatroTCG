@@ -141,6 +141,12 @@ SMODS.Atlas({
 	px = 71,
 	py = 95,
 })
+SMODS.Atlas({
+    key = 'logo',
+    path = 'logo.png',
+    px = 390,
+    py = 320,
+})
 
 SMODS.Sticker{
     key = "sticker_hidden",
