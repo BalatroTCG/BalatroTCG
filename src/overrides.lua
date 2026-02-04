@@ -961,21 +961,7 @@ end
 
 
 function CardArea:chance(check_func, pulls, need)
-    need = need or 1
-    pulls = pulls or 5
-
-    if need > pulls then return 0 end
-
-    local total = #self.cards
-    local has = 0
-
-    for k, v in ipairs(self.cards) do
-        if check_func(v) then
-            has = has + 1
-        end
-    end
-
-    return get_chance(need, pulls, has, total)
+    return tcg_chance(self.cards, check_func, pulls, need)
 end
 
 function CardArea:chance_rank(rank, pulls, need)
@@ -990,13 +976,102 @@ end
 function CardArea:chance_suit(suit, pulls, need)
     return self:chance(
         (function(c)
-            return c:is_playing_card() and c.base.suit == suit
+            return c:is_playing_card() and c:is_suit(suit)
         end),
         pulls, need
     )
 end
 
 function CardArea:chance_card(rank, suit, pulls, need)
+    return self:chance(
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank and c:is_suit(suit)
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance(cards, check_func, pulls, need)
+    need = need or 1
+    pulls = pulls or 5
+
+    if need > pulls then return 0 end
+
+    local total = #self.cards
+    local has = 0
+
+    for k, v in ipairs(cards) do
+        if check_func(v) then
+            has = has + 1
+        end
+    end
+
+    return get_chance(need, pulls, has, total)
+end
+
+function tcg_chance_rank(cards, rank, pulls, need)
+    return tcg_chance(cards,
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_suit(cards, suit, pulls, need)
+    return tcg_chance(cards,
+        (function(c)
+            return c:is_playing_card() and c.base.suit == suit
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_card(cards, rank, suit, pulls, need)
+    return tcg_chance(cards,
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank and c.base.suit == suit
+        end),
+        pulls, need
+    )
+end
+function tcg_chance(cards, check_func, pulls, need)
+    need = need or 1
+    pulls = pulls or 5
+
+    if need > pulls then return 0 end
+
+    local total = #self.cards
+    local has = 0
+
+    for k, v in ipairs(cards) do
+        if check_func(v) then
+            has = has + 1
+        end
+    end
+
+    return get_chance(need, pulls, has, total)
+end
+
+function tcg_chance_rank(cards, rank, pulls, need)
+    return self:chance(
+        (function(c)
+            return c:is_playing_card() and c:get_id() == rank
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_suit(cards, suit, pulls, need)
+    return self:chance(
+        (function(c)
+            return c:is_playing_card() and c.base.suit == suit
+        end),
+        pulls, need
+    )
+end
+
+function tcg_chance_card(cards, rank, suit, pulls, need)
     return self:chance(
         (function(c)
             return c:is_playing_card() and c:get_id() == rank and c.base.suit == suit
