@@ -394,8 +394,11 @@ function Game:start_tcg_game(args)
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
     self.GAME.pseudorandom.hashed_seed = pseudohash(self.GAME.pseudorandom.seed)
+    self.GAME.round_resets.pvp_blind_choices = {}
     
     G.GAME.facing_blind = true
+
+    
 
     --print(self.GAME.pseudorandom.seed)
     --BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
