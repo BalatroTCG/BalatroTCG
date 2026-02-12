@@ -177,6 +177,8 @@ function TCG_PlayerStatus:init(deck, player)
     self.status.mail_card = {}
     self.status.castle_card = {}
     self.status.ancient_card = {}
+    
+    self.status.idol_history = {}
 
     self.attacks = {}
 
@@ -444,7 +446,6 @@ function TCG_PlayerStatus:pass_over()
     self.opponentConsumeables.config.highlighted_limit = 0
     self.status.discount = G.GAME.discount_percent
     
-    self.status.idol_history = {}
 
     self.visual_transfer = {
         index = '',

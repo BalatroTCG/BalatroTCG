@@ -1231,7 +1231,7 @@ end
 
 local reset_idol_card_ref = reset_idol_card
 function reset_idol_card()
-    if BalatroTCG.Settings.Unbalance then return reset_idol_card_ref() end
+    if BalatroTCG.Settings.Unbalance or not BalatroTCG.GameActive then return reset_idol_card_ref() end
 
     G.GAME.current_round.idol_card.rank = 'Ace'
     G.GAME.current_round.idol_card.suit = 'Spades'
@@ -1259,7 +1259,7 @@ function reset_idol_card()
         G.GAME.current_round.idol_card.rank = idol_card.base.value
         G.GAME.current_round.idol_card.suit = idol_card.base.suit
         G.GAME.current_round.idol_card.id = idol_card.base.id
-        history[#history] = idol_card.base.id
+        history[#history + 1] = idol_card.base.id
     elseif valid_cards > 0 then
         BalatroTCG.Status_Current.status.idol_history = {}
         reset_idol_card()
@@ -1344,7 +1344,6 @@ end
 
 -- I'm scared this will break something
 local emplace_Index = 0
-
 
 local CardArea_emplace_ref = CardArea.emplace
 function CardArea:emplace(card, location, stay_flipped)
