@@ -1,3 +1,98 @@
+local create_UIBox_debug_tools_ref = create_UIBox_debug_tools
+
+function create_UIBox_debug_tools()
+	if BalatroTCG.GameStarted then
+		G.debug_tool_config = G.debug_tool_config or {}
+
+		G.FUNCS.DT_add_money = function() if G.STAGE == G.STAGES.RUN then ease_dollars(10) end end
+		G.FUNCS.DT_add_round = function() if G.STAGE == G.STAGES.RUN then ease_round(1) end end
+		G.FUNCS.DT_add_ante = function() if G.STAGE == G.STAGES.RUN then ease_ante(1) end end
+		G.FUNCS.DT_add_hand = function() if G.STAGE == G.STAGES.RUN then ease_hands_played(1) end end
+		G.FUNCS.DT_add_discard = function() if G.STAGE == G.STAGES.RUN then ease_discard(1) end end
+		G.FUNCS.DT_add_hands = function() if G.STAGE == G.STAGES.RUN then ease_hands_played(10) end end
+		G.FUNCS.DT_add_discards = function() if G.STAGE == G.STAGES.RUN then ease_discard(10) end end
+		G.FUNCS.DT_reroll_boss = function() if G.STAGE == G.STAGES.RUN and G.blind_select_opts then G.from_boss_tag = true; G.FUNCS.reroll_boss(); G.from_boss_tag = nil end end
+		G.FUNCS.DT_toggle_background = function() G.debug_background_toggle = not G.debug_background_toggle end
+		G.FUNCS.DT_add_chips = function() if G.STAGE == G.STAGES.RUN then update_hand_text({delay = 0}, {chips = 10 + G.GAME.current_round.current_hand.chips}); play_sound('chips1') end end
+		G.FUNCS.DT_add_mult = function() if G.STAGE == G.STAGES.RUN then update_hand_text({delay = 0}, {mult = 10 + G.GAME.current_round.current_hand.mult}); play_sound('multhit1') end end
+		G.FUNCS.DT_x_chips = function() if G.STAGE == G.STAGES.RUN then update_hand_text({delay = 0}, {chips = 2*G.GAME.current_round.current_hand.chips}); play_sound('chips1') end end
+		G.FUNCS.DT_x_mult = function() if G.STAGE == G.STAGES.RUN then update_hand_text({delay = 0}, {mult = 10*G.GAME.current_round.current_hand.mult}); play_sound('multhit2') end end
+		G.FUNCS.DT_chip_mult_reset = function() if G.STAGE == G.STAGES.RUN then update_hand_text({delay = 0}, {mult = 0, chips = 0}) end end
+		G.FUNCS.DT_win_game = function() if G.STAGE == G.STAGES.RUN then end_tcg_game(true) end end
+		G.FUNCS.DT_lose_game = function() if G.STAGE == G.STAGES.RUN then end_tcg_game(false) end end
+		
+		local t = {n=G.UIT.ROOT, config = {align = 'cm', r = 0.1}, nodes={
+			UIBox_dyn_container({
+			{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "While in collection, hover over a card", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "and press the following keys:", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.C, config={align = "cm", padding = 0.05, colour = G.C.BLUE, emboss = 0.05, r = 0.1}, nodes={
+					{n=G.UIT.T, config={text = "[1] Unlock", scale = 0.25, colour = G.C.WHITE}}
+				}},
+				{n=G.UIT.C, config={align = "cm", padding = 0.05, colour = G.C.BLUE, emboss = 0.05, r = 0.1}, nodes={
+					{n=G.UIT.T, config={text = "[2] Discover", scale = 0.25, colour = G.C.WHITE}}
+				}},
+				{n=G.UIT.C, config={align = "cm", padding = 0.05, colour = G.C.BLUE, emboss = 0.05, r = 0.1}, nodes={
+					{n=G.UIT.T, config={text = "[3] Spawn", scale = 0.25, colour = G.C.WHITE}}
+				}}
+				}}
+			}},
+			{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "Hover over any Joker/Playing card", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "and press [Q] to cycle Edition", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+			}},
+			{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "Press [H] to isolate background", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+			}},
+			{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "Press [J] to play splash animation", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+			}},
+			{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "Press [8] to toggle cursor", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+			}},
+			{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={                  
+				{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={
+				{n=G.UIT.T, config={text = "Press [9] to toggle all tooltips", scale = 0.25, colour = G.C.WHITE, shadow = true}}
+				}},
+			}},
+			{n=G.UIT.R, config={align = "cm", padding = 0.15}, nodes={
+				{n=G.UIT.C, config={align = "cm", padding = 0.15}, nodes={
+					UIBox_button{ label = {"$10"}, button = "DT_add_money", minw = 1.7, minh = 0.4, scale = 0.35},
+					UIBox_button{ label = {"+1 Round"}, button = "DT_add_round", minw = 1.7, minh = 0.4, scale = 0.35},
+					UIBox_button{ label = {"+1 Hand"}, button = "DT_add_hand", minw = 1.7, minh = 0.4, scale = 0.35},
+					UIBox_button{ label = {"+1 Discard"}, button = "DT_add_discard", minw = 1.7, minh = 0.4, scale = 0.35},
+					UIBox_button{ label = {"+10 Hands"}, button = "DT_add_hands", minw = 1.7, minh = 0.4, scale = 0.35},
+					UIBox_button{ label = {"+10 Discards"}, button = "DT_add_discards", minw = 1.7, minh = 0.4, scale = 0.35},
+				}},
+				{n=G.UIT.C, config={align = "cm", padding = 0.15}, nodes={
+					UIBox_button{ label = {"Win this Run"}, button = "DT_win_game", minw = 1.7, minh = 0.4, scale = 0.35},
+					UIBox_button{ label = {"Lose this Run"}, button = "DT_lose_game", minw = 1.7, minh = 0.4, scale = 0.35},
+					UIBox_button{ label = {"Reset"}, button = "DT_chip_mult_reset", minw = 1.7, minh = 0.4, scale = 0.35},
+				}}
+			}}
+			}, true)
+		}}
+		return t
+	else
+		return create_UIBox_debug_tools_ref()
+	end
+end
+
 
 local ref_override_main_menu_play_button = G.UIDEF.override_main_menu_play_button
 
@@ -1031,6 +1126,16 @@ G.FUNCS.create_tcg_builder_cocktail = function(e)
 	})
 	
 	return t
+end
+
+local Controller_update_cursor_ref = Controller.update_cursor
+
+function Controller:update_cursor(hard_set_T)
+
+	Controller_update_cursor_ref(self, hard_set_T)
+    if self.focused.target then 
+		
+	end
 end
 
 -- Just stealing a ton of stuff from multiplayer (sorry)

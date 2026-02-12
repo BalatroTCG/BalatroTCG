@@ -2061,7 +2061,6 @@ function BalatroTCG.Deck:is_legal()
                     jokers[card.c] = (jokers[card.c] or 0) + 1
                 end
             else
-                print(card.c)
                 errors['tcg_err_unknown_type'] = {}
             end
         else
