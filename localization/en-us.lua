@@ -957,6 +957,9 @@ return {
             
             b_tcg_jokercount = "Joker Count",
 
+            b_tcg_copydeck = "Copy to Clipboard",
+            b_tcg_pastedeck = "Overwrite from Clipboard",
+
             k_bleeding = "Bleeding",
             
             b_tcg_add = "Add",
@@ -1015,7 +1018,14 @@ return {
 			b_opts_tcg_deck_joker_limits_desc = "Limit Joker counts and rarity types",
 			b_opts_tcg_deck_consumeable_limits = "Consumeable Limitations",
 			b_opts_tcg_deck_consumeable_limits_desc = "Limit Consumeable counts",
-
+            
+            k_tcg_standard = "Standard",
+			k_tcg_standard_description = "This ruleset is your basic TCG ruleset.\n\nThis ruleset allows a lot of settings adjustments.",
+			k_tcg_majorleague = "Major League",
+			k_tcg_majorleague_description = "This is the official ruleset for Major League TCG Balatro.\n\nThis ruleset is the same as the Standard ruleset, just with set rules.",
+			k_tcg_ranked = "Ranked",
+			k_tcg_ranked_description = "This is the official ruleset for playing Ranked TCG Balatro Multiplayer.\n\nThis ruleset is the same as the Standard ruleset, just with set rules.",
+			
 			k_tcg_bet = "Spend $ to go first?",
 			k_tcg_waiting = "Waiting for opponent...",
 

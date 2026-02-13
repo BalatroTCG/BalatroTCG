@@ -1622,10 +1622,16 @@ end
 function BalatroTCG.Deck:has_content()
 
     for k, v in ipairs(self.backs) do
-        if not G.P_CENTERS[v] then return false end
+        if not G.P_CENTERS[v] then
+            print('Deck ' .. self.name ..  ' is missing deck ' .. v)
+            return false
+        end
     end
     for k, v in ipairs(self.cards) do
-        if v.type ~= 'p' and not G.P_CENTERS[v.c] then return false end
+        if v.type ~= 'p' and not G.P_CENTERS[v.c] then
+            print('Deck ' .. self.name  ..  ' is missing card ' .. v.c)
+            return false
+        end
     end
 
     return true
@@ -1645,7 +1651,7 @@ function load_custom_decks()
             local decks = read_decks(file_string)
 
             for _, data in pairs(decks) do
-                BalatroTCG.CustomDecks[#BalatroTCG.CustomDecks + 1] = BalatroTCG.Deck(data.back, data.name, data.cards)
+                BalatroTCG.CustomDecks[#BalatroTCG.CustomDecks + 1] = data
             end
         end
     end
@@ -1656,70 +1662,127 @@ function load_custom_decks()
 end
 
 
+
+function BalatroTCG.Deck:serialize(compress)
+    self:sanitize()
+
+    local endString = ';'
+
+    if not compress then endString = ';\n' end
+
+    local toWrite = ''
+    
+    toWrite = toWrite .. self.name .. endString
+    for k, back in ipairs(self.backs) do
+        toWrite = toWrite .. back .. ':'
+    end
+    toWrite = string.sub(toWrite, 1, #toWrite - 1)  .. endString
+
+    for k, card in ipairs(self.cards) do
+        toWrite = toWrite .. card.type .. ':'
+        if card.type =='p' then
+            toWrite = toWrite .. card.r .. ':' .. card.s
+        else
+            toWrite = toWrite .. card.c
+        end
+        toWrite = toWrite .. endString
+    end
+
+    toWrite = toWrite .. '#end#'
+
+    return toWrite
+end
+
+function BalatroTCG.Deck.deserialize(data, write_to)
+    
+
+    local split = splitlines(data, ';')
+
+    local index = 1
+    
+    local name = split[index]
+    local deckdata = splitlines(split[index + 1], ':')
+    index = index + 2
+
+    local cards = {}
+    while index <= #split and split[index] ~= '#end#' do
+
+        local cd = splitlines(split[index], ':')
+        if cd[1] == 'p' then
+            cards[#cards + 1] = {type = cd[1], r = cd[2], s = cd[3]}
+        else
+            cards[#cards + 1] = {type = cd[1], c = cd[2]}
+        end
+        index = index + 1
+    end
+
+    print(#deckdata)
+
+    if write_to then
+        write_to.backs = deckdata
+        write_to.cards = cards
+        write_to.name = name
+    else
+        return BalatroTCG.Deck(deckdata, name, cards)
+    end
+end
+
+function BalatroTCG.Deck:sanitize()
+    self.name = self.name:gsub(':', '_'):gsub(';', '_'):gsub('\n', '_')
+end
+
 function read_decks(file_string)
     local split = splitlines(file_string, '\n')
 
     local decks = {}
 
-    local index = 1
+    if split[1] == 'format-1.1' then
+        local index = 2
 
-    while index <= #split and split[index] ~= '###' do
-        local name = split[index]
-        local deckdata = splitlines(string.sub(split[index + 1], 2, string.len(split[index + 1])), ':')
-        index = index + 2
+        while index <= #split and split[index] ~= '###' do
+            
+            decks[#decks + 1] = BalatroTCG.Deck.deserialize(split[index])
 
-        local cards = {}
-        while string.sub(split[index], 1, 1) == '\t' do
-            local cd = splitlines(string.sub(split[index], 2, string.len(split[index])), ':')
-            if cd[1] == 'p' then
-                cards[#cards + 1] = {type = cd[1], r = cd[2], s = cd[3]}
-            else
-                cards[#cards + 1] = {type = cd[1], c = cd[2]}
-            end
             index = index + 1
         end
+    else
+        local index = 1
+    
+        while index <= #split and split[index] ~= '###' do
+            local name = split[index]
+            local deckdata = splitlines(string.sub(split[index + 1], 2, string.len(split[index + 1])), ';')
+            index = index + 2
+    
+            local cards = {}
+            while string.sub(split[index], 1, 1) == '\t' do
+                local cd = splitlines(string.sub(split[index], 2, string.len(split[index])), ':')
+                if cd[1] == 'p' then
+                    cards[#cards + 1] = {type = cd[1], r = cd[2], s = cd[3]}
+                else
+                    cards[#cards + 1] = {type = cd[1], c = cd[2]}
+                end
+                index = index + 1
+            end
+            
+            decks[#decks + 1] = BalatroTCG.Deck(deckdata, name, cards)
+        end
 
-        decks[#decks + 1] = {
-            back = deckdata[1], 
-            cards = cards,
-            name = name
-        }
-
+        save_decks({decks})
     end
 
     return decks
 
 end
 
-function BalatroTCG.Deck:sanitize()
-    self.name = self.name:gsub(':', '_')
-end
-
 function save_decks(decks)
     decks = decks or {BalatroTCG.CustomDecks}
     local table = {}
 
-    local toWrite = ''
+    local toWrite = 'format-1.1\n'
 
     for _, extra in ipairs(decks) do
         for k, v in ipairs(extra) do
-            v:sanitize()
-            toWrite = toWrite .. v.name .. '\n'
-            toWrite = toWrite .. '\t'
-            for k, back in ipairs(v.backs) do
-                toWrite = toWrite .. back .. ';'
-            end
-            toWrite = string.sub(toWrite, 1, #toWrite - 1)  .. '\n'
-
-            for k, card in ipairs(v.cards) do
-                toWrite = toWrite .. '\t' .. card.type .. ':'
-                if card.type =='p' then
-                    toWrite = toWrite .. card.r .. ':' .. card.s
-                else
-                    toWrite = toWrite .. card.c
-                end
-                toWrite = toWrite .. '\n'
-            end
+            toWrite = toWrite .. v:serialize(true) .. '\n'
         end
     end
 
