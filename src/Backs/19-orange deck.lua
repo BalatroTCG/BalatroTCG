@@ -1,6 +1,6 @@
 BalatroTCG.DeckData {
     key_override = 'b_mp_orange',
-    icon_pos = {x = 0, y = 16},
+    icon_pos = {x = 0, y = 19},
     background = {
         main = HEX("FFFFFF"),
         special = HEX("fc802b"),

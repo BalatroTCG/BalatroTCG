@@ -217,7 +217,7 @@ function Back:generate_tcg_UI(other, ui_scale, min_dims)
 
 	local key_override
 	
-	if BalatroTCG.TabDecks[BalatroTCG.DeckIndex] == 'new' then
+	if BalatroTCG.TabDecks and BalatroTCG.TabDecks[BalatroTCG.DeckIndex] == 'new' then
 		key_override = 'null'
 	end
 
