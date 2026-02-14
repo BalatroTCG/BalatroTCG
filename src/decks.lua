@@ -5,7 +5,7 @@ function BalatroTCG.Deck:init(backs, name, cards)
     if type(backs) == 'table' then
         self.backs = backs
     else
-        self.backs = splitlines(backs, ';')
+        self.backs = splitlines(backs, ':')
         for i = 1, #self.backs do
             if not G.P_CENTERS[self.backs[i]] then
                 
@@ -1178,8 +1178,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_eris' },
         { type = 'c', c = 'c_earth' },
     }),
-    
-    BalatroTCG.Deck('b_mp_violet', "Voucher Deck", 
+    BalatroTCG.Deck('b_mp_violet', 'Voucher Deck',
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -1189,7 +1188,6 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'S' },
         { type = 'p', r = '8', s = 'S' },
         { type = 'p', r = '7', s = 'S' },
-
         { type = 'p', r = 'A', s = 'H' },
         { type = 'p', r = 'K', s = 'H' },
         { type = 'p', r = 'Q', s = 'H' },
@@ -1197,7 +1195,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = 'T', s = 'H' },
         { type = 'p', r = '9', s = 'H' },
         { type = 'p', r = '8', s = 'H' },
-        
+        { type = 'p', r = '7', s = 'H' },
         { type = 'p', r = 'A', s = 'C' },
         { type = 'p', r = 'K', s = 'C' },
         { type = 'p', r = 'Q', s = 'C' },
@@ -1206,7 +1204,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'C' },
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
-        
+        { type = 'p', r = '6', s = 'C' },
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
         { type = 'p', r = 'Q', s = 'D' },
@@ -1220,12 +1218,10 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '4', s = 'D' },
         { type = 'p', r = '3', s = 'D' },
         { type = 'p', r = '2', s = 'D' },
-        
-        { type = 'j', c = 'j_mail' },
         { type = 'j', c = 'j_ticket' },
+        { type = 'j', c = 'j_mail' },
         { type = 'j', c = 'j_golden' },
         { type = 'j', c = 'j_rough_gem' },
-
         { type = 'c', c = 'c_chariot' },
         { type = 'c', c = 'c_high_priestess' },
         { type = 'c', c = 'c_hermit' },
@@ -1235,22 +1231,17 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_death' },
         { type = 'c', c = 'c_devil' },
         { type = 'c', c = 'c_judgement' },
-
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_planet_x' },
+        { type = 'c', c = 'c_mars' },
         { type = 'c', c = 'c_deja_vu' },
         { type = 'c', c = 'c_talisman' },
-
-        { type = 'c', c = 'c_jupiter' },
-        { type = 'c', c = 'c_mercury' },
-        { type = 'c', c = 'c_pluto' },
-        { type = 'c', c = 'c_uranus' },
-        { type = 'c', c = 'c_mars' },
-        
         { type = 'c', c = 'v_illusion' },
         { type = 'c', c = 'v_hone' },
         { type = 'c', c = 'v_magic_trick' },
         { type = 'c', c = 'v_glow_up' },
     }),
-    BalatroTCG.Deck('b_mp_indigo', "Jokerless Deck", 
+    BalatroTCG.Deck('b_mp_indigo', 'Hologram Deck',
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -1261,7 +1252,8 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'S' },
         { type = 'p', r = '7', s = 'S' },
         { type = 'p', r = '6', s = 'S' },
-
+        { type = 'p', r = '5', s = 'S' },
+        { type = 'p', r = '4', s = 'S' },
         { type = 'p', r = 'A', s = 'H' },
         { type = 'p', r = 'K', s = 'H' },
         { type = 'p', r = 'Q', s = 'H' },
@@ -1271,7 +1263,8 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'H' },
         { type = 'p', r = '7', s = 'H' },
         { type = 'p', r = '6', s = 'H' },
-        
+        { type = 'p', r = '5', s = 'H' },
+        { type = 'p', r = '4', s = 'H' },
         { type = 'p', r = 'A', s = 'C' },
         { type = 'p', r = 'K', s = 'C' },
         { type = 'p', r = 'Q', s = 'C' },
@@ -1281,7 +1274,8 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
         { type = 'p', r = '6', s = 'C' },
-        
+        { type = 'p', r = '5', s = 'C' },
+        { type = 'p', r = '4', s = 'C' },
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
         { type = 'p', r = 'Q', s = 'D' },
@@ -1291,33 +1285,34 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'D' },
         { type = 'p', r = '7', s = 'D' },
         { type = 'p', r = '6', s = 'D' },
-        
-        { type = 'c', c = 'c_fool' },
-        { type = 'c', c = 'c_magician' },
-        { type = 'c', c = 'c_high_priestess' },
-        { type = 'c', c = 'c_emperor' },
-        { type = 'c', c = 'c_lovers' },
-        { type = 'c', c = 'c_chariot' },
+        { type = 'p', r = '5', s = 'D' },
+        { type = 'p', r = '4', s = 'D' },
+        { type = 'j', c = 'j_faceless' },
+        { type = 'j', c = 'j_todo_list' },
+        { type = 'j', c = 'j_hallucination' },
+        { type = 'j', c = 'j_hallucination' },
+        { type = 'j', c = 'j_drunkard' },
+        { type = 'j', c = 'j_drunkard' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_blue_joker' },
+        { type = 'j', c = 'j_supernova' },
+        { type = 'j', c = 'j_card_sharp' },
+        { type = 'j', c = 'j_sixth_sense' },
+        { type = 'j', c = 'j_hologram' },
+        { type = 'j', c = 'j_dna' },
         { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_fool' },
         { type = 'c', c = 'c_hermit' },
-        { type = 'c', c = 'c_strength' },
-        { type = 'c', c = 'c_hanged_man' },
-        { type = 'c', c = 'c_death' },
-        { type = 'c', c = 'c_devil' },
-
-        { type = 'c', c = 'c_talisman' },
-        { type = 'c', c = 'c_aura' },
-        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_emperor' },
         { type = 'c', c = 'c_immolate' },
-        { type = 'c', c = 'c_deja_vu' },
-        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_immolate' },
         { type = 'c', c = 'c_medium' },
         { type = 'c', c = 'c_cryptid' },
-        { type = 'c', c = 'c_black_hole' },
-        
-        { type = 'c', c = 'c_ceres' },
-        { type = 'c', c = 'c_eris' },
-        { type = 'c', c = 'c_earth' },
+        { type = 'c', c = 'c_cryptid' },
     }),
     BalatroTCG.Deck('b_mp_orange', "Jokerless Deck", 
     {
@@ -1689,6 +1684,33 @@ function BalatroTCG.Deck:serialize(compress)
     end
 
     toWrite = toWrite .. '#end#'
+
+    return toWrite
+end
+
+function BalatroTCG.Deck:serialize_lua()
+    self:sanitize()
+
+    local endString = '\n'
+
+    local toWrite = "BalatroTCG.Deck('"
+    
+    for k, back in ipairs(self.backs) do
+        toWrite = toWrite .. back .. ':'
+    end
+    toWrite = string.sub(toWrite, 1, #toWrite - 1)
+    toWrite = toWrite .. "', '" .. self.name .. "'," .. endString .. '{\n'
+
+    for k, card in ipairs(self.cards) do
+        toWrite = toWrite .. "\t{ type = '" .. card.type .. "', "
+        if card.type == 'p' then
+            toWrite = toWrite .. "r = '" .. card.r .. "', s = '" .. card.s .. "' },\n"
+        else
+            toWrite = toWrite .. "c = '" .. card.c .. "' },\n"
+        end
+    end
+
+    toWrite = toWrite .. '})'
 
     return toWrite
 end

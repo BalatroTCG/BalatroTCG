@@ -296,7 +296,11 @@ local function copy_to_clipboard(text)
 end
 
 G.FUNCS.tcg_copy_deck = function(e)
-    copy_to_clipboard(BalatroTCG.BuildingDeck:serialize(true))
+	if BalatroTCG.BuildingDeck.is_vanilla then
+    	copy_to_clipboard(BalatroTCG.BuildingDeck:serialize_lua())
+	else
+    	copy_to_clipboard(BalatroTCG.BuildingDeck:serialize(true))
+	end
 end
 G.FUNCS.tcg_paste_deck = function(e)
     local deck = get_from_clipboard()
