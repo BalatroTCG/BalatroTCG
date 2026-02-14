@@ -5,7 +5,7 @@ BalatroTCG.ConsumeableMod {
         
         G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
             play_sound('tarot1')
-            used_tarot:juice_up(0.3, 0.5)
+            self:juice_up(0.3, 0.5)
             return true end }))
 
         for i=1, #G.hand.cards do

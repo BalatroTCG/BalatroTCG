@@ -669,6 +669,17 @@ overwrite = true
 [[patches]]
 [patches.pattern]
 target = 'functions/UI_definitions.lua'
+pattern = "{tabs = _show_remaining and {"
+position = "at"
+payload = '''
+{tabs = (_show_remaining or BalatroTCG.GameActive) and {
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/UI_definitions.lua'
 pattern = '''
 {
     label = localize('b_full_deck'),

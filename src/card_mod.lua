@@ -594,7 +594,7 @@ function TCG_Override_Desc(self, _c)
     if _c.use_original_desc then return end
 
     if _c.tcg_modifier and _c.tcg_modifier.loc_vars then
-        loc_vars = _c.tcg_modifier.loc_vars(ability, card, not BalatroTCG.Settings.Unbalance)
+        loc_vars = _c.tcg_modifier.loc_vars(ability, card, not BalatroTCG.Settings.Unbalance) or loc_vars
     elseif _c.name == 'Ancient Joker' and self then loc_vars = {ability.extra, localize(self:get_ability_suit(G.GAME.current_round.ancient_card.suit), 'suits_singular'), colours = {G.C.SUITS[self:get_ability_suit(G.GAME.current_round.ancient_card.suit)]}}
     elseif _c.name == 'Campfire' then loc_vars = {ability.extra, ability.reduce, ability.x_mult}
     elseif _c.name == 'Acrobat' then loc_vars = { ability.scaling, ((BalatroTCG.Status_Current and (BalatroTCG.Status_Current.status.round - 1) or 0) * ability.scaling + ability.initial)}

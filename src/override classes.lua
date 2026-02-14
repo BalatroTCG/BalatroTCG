@@ -66,7 +66,7 @@ BalatroTCG.JokerMod = BalatroTCG.BalancePatchObject:extend{
     calculate_context = function(self, context, balanced)
 
     end,
-    loc_vars = function(card, balance)
+    loc_vars = function(ability, card, balance)
         
     end,
     ]]
@@ -131,7 +131,7 @@ BalatroTCG.VoucherMod = BalatroTCG.BalancePatchObject:extend{
     calculate_context = function(self, context, balanced)
 
     end,
-    loc_vars = function(self, balance)
+    loc_vars = function(ability, card, balance)
         
     end,
     ]]
@@ -149,7 +149,7 @@ BalatroTCG.SealMod = BalatroTCG.BalancePatchObject:extend{
     calculate_context = function(self, context, balanced)
 
     end,
-    loc_vars = function(self, balance)
+    loc_vars = function(ability, card, balance)
         
     end,
     ]]
