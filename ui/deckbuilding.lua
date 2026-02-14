@@ -300,10 +300,16 @@ G.FUNCS.tcg_copy_deck = function(e)
 end
 G.FUNCS.tcg_paste_deck = function(e)
     local deck = get_from_clipboard()
+
+	local deckCopy = BalatroTCG.Deck('b_red', 'empty', {})
     
-    if pcall(function() BalatroTCG.Deck.deserialize(deck, BalatroTCG.BuildingDeck) end) then
+    if pcall(function() BalatroTCG.Deck.deserialize(deck, deckCopy) end) and deckCopy:has_content() and #deckCopy.cards > 0 then
+		BalatroTCG.BuildingDeck = deckCopy
         refresh_builder_page()
     else
+		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.06*G.SETTINGS.GAMESPEED, blockable = false, blocking = false, func = function()
+			play_sound('tarot2', 0.76, 0.4);return true end}))
+		play_sound('tarot2', 1, 0.4)
         print('Unable to copy deck')
     end
 
