@@ -59,20 +59,32 @@ target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
 pattern = '''action_lobby_options(parsedAction)'''
 position = "after"
 payload = '''
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
-print(MP.LOBBY.config.gamemode)
 
 if MP.Gamemodes[MP.LOBBY.config.gamemode].is_tcg_gamemode then
     set_tcg_mp_settings()
 end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''if not MP.Rulesets[v] then'''
+position = "at"
+payload = '''
+if BalatroTCG.Rulesets[v] then
+    local disabled = BalatroTCG.Rulesets[v].is_disabled()
+    if disabled then
+        G.FUNCS.lobby_leave(nil)
+        MP.UTILS.overlay_message(
+            localize({ type = "variable", key = "k_failed_to_join_lobby", vars = { disabled } })
+        )
+        return
+    end
+    MP.LOBBY.config.ruleset = v
+    goto continue
+elseif not MP.Rulesets[v] then
 '''
 match_indent = true
 overwrite = true
