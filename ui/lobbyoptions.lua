@@ -96,6 +96,7 @@ function G.UIDEF.tcg_selection_options()
 
 	MP.LOBBY.config.gamemode = "gamemode_mp_tcg_classic"
 	MP.LOBBY.config.ruleset = 'tcgruleset_tcgb_ranked'
+	
 
 	local default_ruleset_area = UIBox({
 		definition = G.UIDEF.tcgruleset_info("ranked"),
@@ -174,7 +175,6 @@ end
 function G.FUNCS.create_tcg_lobby(e)
 	
 	G.SETTINGS.paused = true
-
 
 	G.FUNCS.overlay_menu({
 		definition = G.UIDEF.tcg_selection_options(),
@@ -390,19 +390,10 @@ end
 function G.FUNCS.start_tcg_lobby(e)
 	
 	G.SETTINGS.paused = false
+	
 	MP.reset_lobby_config(true)
 
 	
-	print('----')
-	print('----')
-	print('----')
-	print('----')
-	print(MP.LOBBY.config.gamemode)
-	print(MP.LOBBY.config.ruleset)
-	print('----')
-	print('----')
-	print('----')
-	print('----')
 	
 	-- Check if the current gamemode is valid. If it's not, default to attrition.
 	local gamemode_check = false

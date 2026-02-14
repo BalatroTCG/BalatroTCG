@@ -1056,9 +1056,6 @@ function G.UIDEF.create_UIBox_lobby_menu()
 	if MP.Gamemodes[MP.LOBBY.config.gamemode].is_tcg_gamemode then
 		BalatroTCG.MP_Lobby = true
 
-		-- for i = #t.nodes[1].nodes[2].nodes[2].nodes, 3, -1 do
-		-- 	t.nodes[1].nodes[2].nodes[2].nodes[i + 1] = t.nodes[1].nodes[2].nodes[2].nodes[i]
-		-- end
 		if not MP.LOBBY.config.forced_config then
 			
 			t.nodes[1].nodes[2].nodes[2].nodes[1].nodes[1].config.button = 'tcg_lobby_options'
@@ -1121,6 +1118,7 @@ end
 local MP_reset_lobby_config_ref = MP.reset_lobby_config
 function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 	
+
 	MP_reset_lobby_config_ref(persist_ruleset_and_gamemode)
 
 	if MP.Gamemodes[MP.LOBBY.config.gamemode].is_tcg_gamemode then
@@ -1129,25 +1127,25 @@ function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 		MP.LOBBY.config.timer = false
 		MP.LOBBY.config.disable_live_and_timer_hud = true
 		
-		-- MP.LOBBY.config.tcg_balanced = true
-		-- MP.LOBBY.config.health_pool = 100
-		-- MP.LOBBY.config.joker_health = 20
-		-- MP.LOBBY.config.default_hands = 2
-		-- MP.LOBBY.config.default_discards = 2
+		MP.LOBBY.config.tcg_balanced = true
+		MP.LOBBY.config.health_pool = 100
+		MP.LOBBY.config.joker_health = 20
+		MP.LOBBY.config.default_hands = 2
+		MP.LOBBY.config.default_discards = 2
 
-		-- MP.LOBBY.config.money_leak = true
-		-- MP.LOBBY.config.money_leak_start = 10
-		-- MP.LOBBY.config.money_leak_increase = 2
+		MP.LOBBY.config.money_leak = true
+		MP.LOBBY.config.money_leak_start = 10
+		MP.LOBBY.config.money_leak_increase = 2
 
-		-- MP.LOBBY.config.game_round_limit = true
-		-- MP.LOBBY.config.round_limit = 15
-		-- MP.LOBBY.config.winner_type = "Highest Money"
+		MP.LOBBY.config.game_round_limit = true
+		MP.LOBBY.config.round_limit = 15
+		MP.LOBBY.config.winner_type = "Highest Money"
 
-		-- MP.LOBBY.config.deck_money_limit = true
-		-- MP.LOBBY.config.deck_joker_limits = true
-		-- MP.LOBBY.config.deck_size_limits = true
-		-- MP.LOBBY.config.deck_back_limits = true
-		-- MP.LOBBY.config.deck_consumeable_limits = true
+		MP.LOBBY.config.deck_money_limit = true
+		MP.LOBBY.config.deck_joker_limits = true
+		MP.LOBBY.config.deck_size_limits = true
+		MP.LOBBY.config.deck_back_limits = true
+		MP.LOBBY.config.deck_consumeable_limits = true
 	end
 end
 
