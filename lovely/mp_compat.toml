@@ -101,6 +101,18 @@ else
 match_indent = true
 overwrite = true
 
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "objects/decks/ZZ_cocktail.lua"]'
+pattern = '''calculate = function(self, back, context)'''
+position = "after"
+payload = '''
+if not G.GAME.modifiers.mp_cocktail then return end
+
+'''
+match_indent = true
+overwrite = true
+
 
 
 [[patches]]
