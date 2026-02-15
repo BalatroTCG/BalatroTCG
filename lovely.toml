@@ -28,7 +28,7 @@ payload = '''
 if BalatroTCG.GameActive then
     if card.ability.set == 'Joker' and context.joker_main and not context.blueprint then
         ret.playing_card = ret.playing_card or {}
-        --[[
+        
         for k, voucher in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
             
             if voucher.ability.name == 'Hone' then
@@ -37,7 +37,7 @@ if BalatroTCG.GameActive then
                 ret.playing_card.x_mult = voucher.ability.extra
             end
         end
-        ]]
+        
     elseif context.destroy_card and context.cardarea == G.play and context.destroy_card == card then
         if card.lucky_trigger then
             ret.playing_card = ret.playing_card or {}

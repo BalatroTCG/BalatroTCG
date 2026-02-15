@@ -1716,8 +1716,6 @@ function BalatroTCG.Deck.deserialize(data, write_to)
         index = index + 1
     end
 
-    print(#deckdata)
-
     if write_to then
         write_to.backs = deckdata
         write_to.cards = cards
