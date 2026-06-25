@@ -522,13 +522,13 @@ function TCG_PlayerStatus:apply()
     self.status.hands_left = G.GAME.current_round.hands_left
     self.status.discards_left = G.GAME.current_round.discards_left
     
-    G.GAME.selected_back_key = self.back_key
-    G.GAME.selected_back:change_to(G.P_CENTERS[self.back_key])
-    if G.GAME.viewed_back then
-        G.GAME.viewed_back:change_to(G.P_CENTERS[self.back_key])
-    else
-        G.GAME.viewed_back = Back(G.P_CENTERS[self.back_key])
-    end
+    -- G.GAME.selected_back_key = self.back_key
+    -- G.GAME.selected_back:change_to(G.P_CENTERS[self.back_key])
+    -- if G.GAME.viewed_back then
+    --     G.GAME.viewed_back:change_to(G.P_CENTERS[self.back_key])
+    -- else
+    --     G.GAME.viewed_back = Back(G.P_CENTERS[self.back_key])
+    -- end
 
     G.GAME.discount_percent = self.status.discount
     

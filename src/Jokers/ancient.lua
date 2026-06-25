@@ -47,6 +47,18 @@ BalatroTCG.JokerMod {
                     }}
                 }
             end
+        elseif context.in_hand then
+            local suit = self.tcg_extra.suit or G.GAME.current_round.ancient_card.suit
+            
+            if context.other_card:is_suit(suit) then
+                return {
+                    play = {
+                        any = {
+                            x_mult = self.ability.extra
+                        }
+                    }
+                }
+            end
         end
     end,
 }

@@ -13,7 +13,7 @@ BalatroTCG.ConsumeableMod {
         return true
     end,
     
-    loc_vars = function(card, balance)
+    loc_vars = function(ability, card, balance)
         if balance then return { 5 } end
 
     end,

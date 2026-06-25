@@ -650,6 +650,14 @@ function BalatroTCG.joker_slots_available()
     return val
 end
 
+local SMODS_trigger_effects = SMODS.trigger_effects
+-- Used to calculate a table of effects generated in evaluate_play
+SMODS.trigger_effects = function(effects, card)
+    local value = SMODS_trigger_effects(effects, card)
+    
+    return value
+end
+
 local calculate_card_areas_ref = SMODS.calculate_card_areas
 function SMODS.calculate_card_areas(_type, context, return_table, args)
     local flags = {}

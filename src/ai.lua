@@ -6,6 +6,10 @@ function TCG_AI:init()
     self.chip_power = 1
     self.mult_power = 5
     self.x_mult_power = 20
+    self.tarot_gen_power = 10
+    self.spectral_gen_power = 10
+    self.planet_gen_power = 10
+    self.retrigger_power = 10
     self.money_power = 10
     self.purchase_fear = 25
 
@@ -39,9 +43,9 @@ function TCG_AI:run()
                 
             end
         else
-            -- if BalatroTCG.Opponent.opponentJokers.cards[1] then
-            --     BalatroTCG.Opponent.opponentJokers.cards[1]:highlight(true)
-            -- end
+            if BalatroTCG.Opponent.opponentJokers.cards[1] then
+                BalatroTCG.Opponent.opponentJokers.cards[1]:highlight(true)
+            end
             local button = G.buttons:get_UIE_by_ID(self.button)
             button:click()
         end
@@ -71,7 +75,21 @@ function TCG_AI:run()
                 local hand_amount = (G.GAME.current_round.hands_left - 1) * hand_power
                 local discard_amount = G.GAME.current_round.discards_left * discard_power
 
-                local rounds_left = math.min(status.status.dollars, other.status.dollars) / lerp((status.status.round) / 15, 1, 3)  
+                local rounds_left = math.min(status.status.dollars, other.status.dollars) / lerp((status.status.round) / 15, 1, 3)
+
+                local hands = evaluate_poker_hand(G.hand.cards)
+                local card_stats = { }
+                local full_deck = tableMerge(G.hand.cards, tableMerge(G.discard.cards, G.deck.cards))
+                local round_stats = get_TCG_params(status.back_key)
+
+                round_stats.discard_power = discard_power
+                round_stats.hand_power = hand_power
+                round_stats.rounds_left = rounds_left
+                round_stats.current_round = status.status.round
+
+                for _, joker in ipairs(G.jokers.cards) do
+                    G.FUNCS.merge_stats(round_stats, joker:estimate_score({ set_round_stats = true, round_stats = round_stats, full_deck = full_deck }))
+                end
 
                 for _, card in ipairs(G.consumeables.cards) do
                     
@@ -162,29 +180,28 @@ function TCG_AI:run()
                 end
                 
 
-                local hands = evaluate_poker_hand(G.hand.cards)
-                local card_stats = { }
-                local full_deck = tableMerge(G.hand.cards, tableMerge(G.discard.cards, G.deck.cards))
-                local round_stats = get_TCG_params(status.back_key)
-
-                round_stats.discard_power = discard_power
-                round_stats.hand_power = hand_power
-
-                for _, joker in ipairs(G.jokers.cards) do
-                    G.FUNCS.merge_stats(round_stats, joker:estimate_score({ set_round_stats = true, round_stats = round_stats, full_deck = full_deck }))
-                end
 
                 for k, v in ipairs(G.hand.cards) do
                     local stats = nil
                     if v:is_playing_card() then
                         stats = {
                             card = v,
+                            retrigger = {
+                                generic = 0,
+                                suit = {},
+                                rank = {},
+                                position_start = {},
+                                position_end = {}
+                            },
                             play = {
                                 any = {
                                     chips = v:get_chip_bonus({tcg_predict = true}),
                                     mult = v:get_chip_mult({tcg_predict = true}),
                                     x_mult = math.max(v:get_chip_x_mult({tcg_predict = true}), 1),
-                                    dollars = v:get_p_dollars({tcg_predict = true})
+                                    dollars = v:get_p_dollars({tcg_predict = true}),
+                                    tarot_gen = 0,
+                                    spectral_gen = 0,
+                                    planet_gen = 0,
                                 }
                             },
                             hold = {
@@ -192,7 +209,10 @@ function TCG_AI:run()
                                     chips = v:get_chip_h_bonus({tcg_predict = true}),
                                     mult = v:get_chip_h_mult({tcg_predict = true}),
                                     x_mult = math.max(v:get_chip_h_x_mult({tcg_predict = true}), 1),
-                                    dollars = v:get_h_dollars({tcg_predict = true})
+                                    dollars = v:get_h_dollars({tcg_predict = true}),
+                                    tarot_gen = 0,
+                                    spectral_gen = 0,
+                                    planet_gen = 0,
                                 }
                             },
                             discard = {
@@ -201,6 +221,9 @@ function TCG_AI:run()
                                     mult = 0,
                                     x_mult = 1,
                                     dollars = 0,
+                                    tarot_gen = 0,
+                                    spectral_gen = 0,
+                                    planet_gen = 0,
                                 }
                             },
                             buy_stat = -1,
@@ -214,13 +237,13 @@ function TCG_AI:run()
                         local play_stat = 0
                         
 		                for _, data in pairs(stats.play) do
-                            play_stat = play_stat + (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power)
+                            play_stat = play_stat + (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power + data.tarot_gen * self.tarot_gen_power + data.spectral_gen * self.spectral_gen_power + data.planet_gen * self.planet_gen_power)
                         end
 		                for _, data in pairs(stats.hold) do
-                            play_stat = play_stat - (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power)
+                            play_stat = play_stat - (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power + data.tarot_gen * self.tarot_gen_power + data.spectral_gen * self.spectral_gen_power + data.planet_gen * self.planet_gen_power)
                         end
 		                for _, data in pairs(stats.discard) do
-                            play_stat = play_stat - (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power)
+                            play_stat = play_stat - (data.chips * self.chip_power + data.mult * self.mult_power + math.log(math.max(data.x_mult, 1)) * self.x_mult_power + data.dollars * self.money_power + data.tarot_gen * self.tarot_gen_power + data.spectral_gen * self.spectral_gen_power + data.planet_gen * self.planet_gen_power)
                         end
                         stats.play_stat = play_stat
 
@@ -238,6 +261,9 @@ function TCG_AI:run()
                             mult = 0,
                             x_mult = 1,
                             retriggers = 0,
+                            tarot_gen = 0,
+                            spectral_gen = 0,
+                            planet_gen = 0,
                         }
                         
                         G.FUNCS.merge_stats(stats, v:estimate_score({ purchase = v, full_deck = full_deck, round_stats = round_stats }))
@@ -248,7 +274,7 @@ function TCG_AI:run()
                         
                         stats.money_total = stats.money_now + (rounds_left > 1 and stats.money_next_hand or 0) + (stats.money_per_round * rounds_left) - stats.cost
                         
-                        stats.buy_stat = (stats.chips * self.chip_power + stats.mult * self.mult_power + math.log(math.max(stats.x_mult, 1)) * self.x_mult_power) - (stats.cost / budget) * self.purchase_fear
+                        stats.buy_stat = (stats.chips * self.chip_power + stats.mult * self.mult_power + math.log(math.max(stats.x_mult, 1)) * self.x_mult_power + stats.tarot_gen * self.tarot_gen_power + stats.spectral_gen * self.spectral_gen_power + stats.planet_gen * self.planet_gen_power + stats.retriggers * self.retrigger_power) - (stats.cost / budget) * self.purchase_fear
                         
                         --print(v.ability.name .. ', ' .. tostring(stats.buy_stat))
                     end
@@ -660,75 +686,9 @@ function Card:estimate_score(context)
         if context.set_round_stats then
 
         elseif context.purchase then
-            if context.purchase == self then
-                if self.ability.name == 'Ancient Joker' then
-                    
-                end
-                if self.ability.name == 'Mail-In Rebate' then
-
-                    if round_stats.discards == 0 then return end
-                    local card_vision = G.FUNCS.card_vision(round_stats, 0, 1)
-
-                    if self.tcg_extra.rank then
-                        local rank = self.tcg_extra.rank
-
-                        local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.id == rank end)
-
-                        return {
-                            money_per_round = amount * self.ability.extra * card_vision / #context.full_deck
-                        }
-                    else
-                        local ranks = {}
-
-                        for _, k in ipairs(context.full_deck) do
-                            if k:is_playing_card() and not ranks[k.base.id] then
-                                ranks[k.base.id] = true
-                            end
-                        end
-
-                        local total = 0
-                        
-                        for rank, _ in pairs(ranks) do
-                            local amount = G.FUNCS.get_card_amount(context.full_deck, function(e) return e.base.id == rank end)
-    
-                            total = total + amount * self.ability.extra * card_vision / #context.full_deck
-                        end
-
-                        total = total / #ranks
-
-                        return {
-                            money_per_round = total
-                        }
-                    end
-                end
-            else
-
-            end
 
         elseif context.in_hand then
-            if self.ability.name == 'Ancient Joker' then
-                local suit = self.tcg_extra.suit or G.GAME.current_round.ancient_card.suit
-                
-                if context.other_card:is_suit(suit) then
-                    return {
-                        play = {
-                            any = {
-                                x_mult = self.ability.extra
-                            }
-                        }
-                    }
-                end
-            end
             if self.ability.name == 'Mail-In Rebate' then
-                local rank = self.tcg_extra.rank or G.GAME.current_round.mail_card.id
-
-                if context.other_card:get_id() == rank then
-                    return {
-                        discard = {
-                            dollars = self.ability.extra
-                        }
-                    }
-                end
             end
         else
 

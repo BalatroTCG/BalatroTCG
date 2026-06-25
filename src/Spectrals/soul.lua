@@ -22,7 +22,7 @@ BalatroTCG.ConsumeableMod {
 
         if #applicable > 0 then
             local card = pseudorandom_element(applicable, pseudoseed('soul'))
-            used_tarot:juice_up(0.3, 0.5)
+            self:juice_up(0.3, 0.5)
             play_sound('gold_seal', 1.2, 0.4)
             card:set_eternal(true)
             card:set_rental(true)

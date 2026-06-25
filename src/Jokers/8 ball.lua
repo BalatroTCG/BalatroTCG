@@ -37,4 +37,29 @@ BalatroTCG.JokerMod {
             end
         end
     end,
+    ai_calculate = function(self, context, balanced)
+
+        if context.purchase == self then
+            local rank = self.tcg_extra.rank or 8
+            local card_vision = G.FUNCS.card_vision(round_stats, 0, 0)
+            
+            return {
+                money_per_round = amount * self.ability.extra * card_vision / #context.full_deck
+            }
+
+        elseif context.in_hand then
+            local rank = self.tcg_extra.rank or 8
+            if context.other_card:is_rank_joker(rank) then
+                
+                return {
+                    play = {
+                        any = {
+                            tarot_gen = G.GAME.probabilities.normal / self.ability.extra
+                        }
+                    }
+                }
+                
+            end
+        end
+    end
 }

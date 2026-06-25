@@ -5,7 +5,7 @@ function BalatroTCG.Deck:init(backs, name, cards)
     if type(backs) == 'table' then
         self.backs = backs
     else
-        self.backs = splitlines(backs, ';')
+        self.backs = splitlines(backs, ':')
         for i = 1, #self.backs do
             if not G.P_CENTERS[self.backs[i]] then
                 
@@ -1178,8 +1178,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_eris' },
         { type = 'c', c = 'c_earth' },
     }),
-    
-    BalatroTCG.Deck('b_mp_violet', "Voucher Deck", 
+    BalatroTCG.Deck('b_mp_violet', 'Voucher Deck',
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -1189,7 +1188,6 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'S' },
         { type = 'p', r = '8', s = 'S' },
         { type = 'p', r = '7', s = 'S' },
-
         { type = 'p', r = 'A', s = 'H' },
         { type = 'p', r = 'K', s = 'H' },
         { type = 'p', r = 'Q', s = 'H' },
@@ -1197,7 +1195,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = 'T', s = 'H' },
         { type = 'p', r = '9', s = 'H' },
         { type = 'p', r = '8', s = 'H' },
-        
+        { type = 'p', r = '7', s = 'H' },
         { type = 'p', r = 'A', s = 'C' },
         { type = 'p', r = 'K', s = 'C' },
         { type = 'p', r = 'Q', s = 'C' },
@@ -1206,7 +1204,7 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '9', s = 'C' },
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
-        
+        { type = 'p', r = '6', s = 'C' },
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
         { type = 'p', r = 'Q', s = 'D' },
@@ -1220,12 +1218,10 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '4', s = 'D' },
         { type = 'p', r = '3', s = 'D' },
         { type = 'p', r = '2', s = 'D' },
-        
-        { type = 'j', c = 'j_mail' },
         { type = 'j', c = 'j_ticket' },
+        { type = 'j', c = 'j_mail' },
         { type = 'j', c = 'j_golden' },
         { type = 'j', c = 'j_rough_gem' },
-
         { type = 'c', c = 'c_chariot' },
         { type = 'c', c = 'c_high_priestess' },
         { type = 'c', c = 'c_hermit' },
@@ -1235,22 +1231,17 @@ BalatroTCG.DefaultDecks = {
         { type = 'c', c = 'c_death' },
         { type = 'c', c = 'c_devil' },
         { type = 'c', c = 'c_judgement' },
-
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_planet_x' },
+        { type = 'c', c = 'c_mars' },
         { type = 'c', c = 'c_deja_vu' },
         { type = 'c', c = 'c_talisman' },
-
-        { type = 'c', c = 'c_jupiter' },
-        { type = 'c', c = 'c_mercury' },
-        { type = 'c', c = 'c_pluto' },
-        { type = 'c', c = 'c_uranus' },
-        { type = 'c', c = 'c_mars' },
-        
         { type = 'c', c = 'v_illusion' },
         { type = 'c', c = 'v_hone' },
         { type = 'c', c = 'v_magic_trick' },
         { type = 'c', c = 'v_glow_up' },
     }),
-    BalatroTCG.Deck('b_mp_indigo', "Jokerless Deck", 
+    BalatroTCG.Deck('b_mp_indigo', 'Hologram Deck',
     {
         { type = 'p', r = 'A', s = 'S' },
         { type = 'p', r = 'K', s = 'S' },
@@ -1261,7 +1252,8 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'S' },
         { type = 'p', r = '7', s = 'S' },
         { type = 'p', r = '6', s = 'S' },
-
+        { type = 'p', r = '5', s = 'S' },
+        { type = 'p', r = '4', s = 'S' },
         { type = 'p', r = 'A', s = 'H' },
         { type = 'p', r = 'K', s = 'H' },
         { type = 'p', r = 'Q', s = 'H' },
@@ -1271,7 +1263,8 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'H' },
         { type = 'p', r = '7', s = 'H' },
         { type = 'p', r = '6', s = 'H' },
-        
+        { type = 'p', r = '5', s = 'H' },
+        { type = 'p', r = '4', s = 'H' },
         { type = 'p', r = 'A', s = 'C' },
         { type = 'p', r = 'K', s = 'C' },
         { type = 'p', r = 'Q', s = 'C' },
@@ -1281,7 +1274,8 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'C' },
         { type = 'p', r = '7', s = 'C' },
         { type = 'p', r = '6', s = 'C' },
-        
+        { type = 'p', r = '5', s = 'C' },
+        { type = 'p', r = '4', s = 'C' },
         { type = 'p', r = 'A', s = 'D' },
         { type = 'p', r = 'K', s = 'D' },
         { type = 'p', r = 'Q', s = 'D' },
@@ -1291,33 +1285,34 @@ BalatroTCG.DefaultDecks = {
         { type = 'p', r = '8', s = 'D' },
         { type = 'p', r = '7', s = 'D' },
         { type = 'p', r = '6', s = 'D' },
-        
-        { type = 'c', c = 'c_fool' },
-        { type = 'c', c = 'c_magician' },
-        { type = 'c', c = 'c_high_priestess' },
-        { type = 'c', c = 'c_emperor' },
-        { type = 'c', c = 'c_lovers' },
-        { type = 'c', c = 'c_chariot' },
+        { type = 'p', r = '5', s = 'D' },
+        { type = 'p', r = '4', s = 'D' },
+        { type = 'j', c = 'j_faceless' },
+        { type = 'j', c = 'j_todo_list' },
+        { type = 'j', c = 'j_hallucination' },
+        { type = 'j', c = 'j_hallucination' },
+        { type = 'j', c = 'j_drunkard' },
+        { type = 'j', c = 'j_drunkard' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_blue_joker' },
+        { type = 'j', c = 'j_supernova' },
+        { type = 'j', c = 'j_card_sharp' },
+        { type = 'j', c = 'j_sixth_sense' },
+        { type = 'j', c = 'j_hologram' },
+        { type = 'j', c = 'j_dna' },
         { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_fool' },
         { type = 'c', c = 'c_hermit' },
-        { type = 'c', c = 'c_strength' },
-        { type = 'c', c = 'c_hanged_man' },
-        { type = 'c', c = 'c_death' },
-        { type = 'c', c = 'c_devil' },
-
-        { type = 'c', c = 'c_talisman' },
-        { type = 'c', c = 'c_aura' },
-        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_emperor' },
         { type = 'c', c = 'c_immolate' },
-        { type = 'c', c = 'c_deja_vu' },
-        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_immolate' },
         { type = 'c', c = 'c_medium' },
         { type = 'c', c = 'c_cryptid' },
-        { type = 'c', c = 'c_black_hole' },
-        
-        { type = 'c', c = 'c_ceres' },
-        { type = 'c', c = 'c_eris' },
-        { type = 'c', c = 'c_earth' },
+        { type = 'c', c = 'c_cryptid' },
     }),
     BalatroTCG.Deck('b_mp_orange', "Jokerless Deck", 
     {
@@ -1597,6 +1592,1578 @@ BalatroTCG.DefaultDecks = {
     }),
 }
 
+BalatroTCG.AIDecks = {
+    BalatroTCG.Deck('b_red', "Ancient Deck", -- Done
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_droll' },
+        { type = 'j', c = 'j_crafty' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_business' },
+        { type = 'j', c = 'j_gros_michel' },
+        
+        { type = 'j', c = 'j_sock_and_buskin' },
+        { type = 'j', c = 'j_four_fingers' },
+        { type = 'j', c = 'j_merry_andy' },
+        
+        { type = 'j', c = 'j_ancient' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_wheel_of_fortune' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_hanged_man' },
+        
+        { type = 'c', c = 'c_ceres' },
+        { type = 'c', c = 'c_jupiter' },
+        { type = 'c', c = 'c_eris' },
+        
+        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_wraith' },
+
+    }),
+    BalatroTCG.Deck('b_blue', "Green Joker Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_green_joker' },
+        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_jolly' },
+        { type = 'j', c = 'j_delayed_grat' },
+        { type = 'j', c = 'j_reserved_parking' },
+        { type = 'j', c = 'j_banner' },
+        
+        { type = 'j', c = 'j_burglar' },
+        { type = 'j', c = 'j_astronomer' },
+        { type = 'j', c = 'j_constellation' },
+        
+        { type = 'j', c = 'j_stuntman' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_fool' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_mercury' },
+        
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_yellow', "Hiker Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+        { type = 'p', r = '5', s = 'S' },
+        { type = 'p', r = '4', s = 'S' },
+        { type = 'p', r = '3', s = 'S' },
+        { type = 'p', r = '2', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        
+        { type = 'j', c = 'j_8_ball' },
+        { type = 'j', c = 'j_splash' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_business' },
+        { type = 'j', c = 'j_riff_raff' },
+        { type = 'j', c = 'j_drunkard' },
+        
+        { type = 'j', c = 'j_oops' },
+        { type = 'j', c = 'j_hiker' },
+        { type = 'j', c = 'j_space' },
+        
+        { type = 'j', c = 'j_dna' },
+        
+        { type = 'c', c = 'c_judgement' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_justice' },
+        
+        { type = 'c', c = 'c_jupiter' },
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_planet_x' },
+        
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_ankh' },
+        { type = 'c', c = 'c_cryptid' },
+
+    }),
+    BalatroTCG.Deck('b_green', "Bootstraps Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_blue_joker' },
+        { type = 'j', c = 'j_juggler' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_ticket' },
+        { type = 'j', c = 'j_splash' },
+        { type = 'j', c = 'j_riff_raff' },
+        
+        { type = 'j', c = 'j_throwback' },
+        { type = 'j', c = 'j_bootstraps' },
+        { type = 'j', c = 'j_midas_mask' },
+        
+        { type = 'j', c = 'j_obelisk' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_moon' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_medium' },
+
+    }),
+    BalatroTCG.Deck('b_black', "Baseball Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_abstract' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_gros_michel' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_golden' },
+        
+        { type = 'j', c = 'j_stone' },
+        { type = 'j', c = 'j_sixth_sense' },
+        { type = 'j', c = 'j_constellation' },
+        
+        { type = 'j', c = 'j_baseball' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_tower' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_mercury' },
+        { type = 'c', c = 'c_uranus' },
+        
+        { type = 'c', c = 'c_ankh' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_soul' },
+
+    }),
+    BalatroTCG.Deck('b_magic', "Vagabond Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_credit_card' },
+        { type = 'j', c = 'j_fortune_teller' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_gros_michel' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_banner' },
+        
+        { type = 'j', c = 'j_burglar' },
+        { type = 'j', c = 'j_steel_joker' },
+        { type = 'j', c = 'j_cloud_9' },
+        
+        { type = 'j', c = 'j_vagabond' },
+        
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_judgement' },
+        { type = 'c', c = 'c_tower' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_nebula', "Constellation Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_green_joker' },
+        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_gros_michel' },
+        { type = 'j', c = 'j_abstract' },
+        
+        { type = 'j', c = 'j_card_sharp' },
+        { type = 'j', c = 'j_astronomer' },
+        { type = 'j', c = 'j_constellation' },
+        
+        { type = 'j', c = 'j_brainstorm' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        { type = 'c', c = 'c_mercury' },
+        
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_ghost', "Stencil Deck", 
+    {
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        { type = 'p', r = '5', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_green_joker' },
+        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_droll' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_gros_michel' },
+        
+        { type = 'j', c = 'j_mime' },
+        { type = 'j', c = 'j_cloud_9' },
+        { type = 'j', c = 'j_stencil' },
+        
+        { type = 'j', c = 'j_brainstorm' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_hanged_man' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        
+        { type = 'c', c = 'c_ectoplasm' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_soul' },
+        { type = 'c', c = 'c_ankh' },
+
+    }),
+    BalatroTCG.Deck('b_abandoned', "Bus Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        { type = 'p', r = '5', s = 'D' },
+        { type = 'p', r = '4', s = 'D' },
+        { type = 'p', r = '3', s = 'D' },
+        { type = 'p', r = '2', s = 'D' },
+        
+        { type = 'j', c = 'j_ride_the_bus' },
+        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_gros_michel' },
+        { type = 'j', c = 'j_droll' },
+        
+        { type = 'j', c = 'j_card_sharp' },
+        { type = 'j', c = 'j_rough_gem' },
+        { type = 'j', c = 'j_burglar' },
+        
+        { type = 'j', c = 'j_brainstorm' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_moon' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_checkered', "Bloodstone Deck", 
+    {
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        { type = 'p', r = '5', s = 'H' },
+        { type = 'p', r = '5', s = 'H' },
+        { type = 'p', r = '4', s = 'H' },
+        { type = 'p', r = '4', s = 'H' },
+        { type = 'p', r = '3', s = 'H' },
+        { type = 'p', r = '3', s = 'H' },
+        { type = 'p', r = '2', s = 'H' },
+        { type = 'p', r = '2', s = 'H' },
+
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        
+        { type = 'j', c = 'j_lusty_joker' },
+        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_faceless' },
+        { type = 'j', c = 'j_scary_face' },
+        { type = 'j', c = 'j_smiley' },
+        { type = 'j', c = 'j_business' },
+        
+        { type = 'j', c = 'j_castle' },
+        { type = 'j', c = 'j_bloodstone' },
+        { type = 'j', c = 'j_oops' },
+        
+        { type = 'j', c = 'j_blueprint' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_sun' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_lovers' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_zodiac', "Campfire Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        { type = 'p', r = '5', s = 'D' },
+        { type = 'p', r = '4', s = 'D' },
+        { type = 'p', r = '3', s = 'D' },
+        { type = 'p', r = '2', s = 'D' },
+        
+        { type = 'j', c = 'j_droll' },
+        { type = 'j', c = 'j_crafty' },
+        { type = 'j', c = 'j_ticket' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_cavendish' },
+        { type = 'j', c = 'j_gros_michel' },
+        
+        { type = 'j', c = 'j_cartomancer' },
+        { type = 'j', c = 'j_rough_gem' },
+        { type = 'j', c = 'j_astronomer' },
+        
+        { type = 'j', c = 'j_campfire' },
+        
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_star' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_painted', "Runner Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_photograph' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_superposition' },
+        { type = 'j', c = 'j_business' },
+        { type = 'j', c = 'j_runner' },
+        
+        { type = 'j', c = 'j_shortcut' },
+        { type = 'j', c = 'j_four_fingers' },
+        { type = 'j', c = 'j_constellation' },
+        
+        { type = 'j', c = 'j_order' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_moon' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_saturn' },
+        { type = 'c', c = 'c_neptune' },
+        
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_anaglyph', "Square Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_square' },
+        { type = 'j', c = 'j_sly' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_red_card' },
+        { type = 'j', c = 'j_gros_michel' },
+        { type = 'j', c = 'j_mystic_summit' },
+        
+        { type = 'j', c = 'j_card_sharp' },
+        { type = 'j', c = 'j_rocket' },
+        { type = 'j', c = 'j_trousers' },
+        
+        { type = 'j', c = 'j_burnt' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_moon' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_jupiter' },
+        
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_talisman' },
+
+    }),
+    BalatroTCG.Deck('b_plasma', "Baron Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'j', c = 'j_raised_fist' },
+        { type = 'j', c = 'j_smiley' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_business' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_reserved_parking' },
+        
+        { type = 'j', c = 'j_mime' },
+        { type = 'j', c = 'j_space' },
+        { type = 'j', c = 'j_oops' },
+        
+        { type = 'j', c = 'j_baron' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_judgement' },
+        { type = 'c', c = 'c_fool' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_uranus' },
+        { type = 'c', c = 'c_mercury' },
+        
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_medium' },
+
+    }),
+    BalatroTCG.Deck('b_erratic', "Wee Deck",
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'A', s = 'D' },
+        
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'K', s = 'D' },
+        
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'Q', s = 'D' },
+        
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'J', s = 'D' },
+        
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = 'T', s = 'D' },
+        
+        { type = 'p', r = '6', s = 'S' },
+        { type = 'p', r = '6', s = 'H' },
+        { type = 'p', r = '6', s = 'C' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'p', r = '5', s = 'S' },
+        { type = 'p', r = '5', s = 'H' },
+        { type = 'p', r = '5', s = 'C' },
+        { type = 'p', r = '5', s = 'D' },
+        
+        { type = 'p', r = '2', s = 'S' },
+        { type = 'p', r = '2', s = 'H' },
+        { type = 'p', r = '2', s = 'C' },
+        { type = 'p', r = '2', s = 'D' },
+
+        { type = 'p', r = '2', s = 'S' },
+        { type = 'p', r = '2', s = 'H' },
+        { type = 'p', r = '2', s = 'C' },
+        { type = 'p', r = '2', s = 'D' },
+        
+        { type = 'j', c = 'j_even_steven' },
+        { type = 'j', c = 'j_droll' },
+        { type = 'j', c = 'j_ticket' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_gros_michel' },
+        { type = 'j', c = 'j_cavendish' },
+
+        { type = 'j', c = 'j_sixth_sense' },
+        { type = 'j', c = 'j_hack' },
+        { type = 'j', c = 'j_trading' },
+
+        { type = 'j', c = 'j_wee' },
+        
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_moon' },
+        
+        { type = 'c', c = 'c_pluto' },
+        { type = 'c', c = 'c_planet_x' },
+        { type = 'c', c = 'c_eris' },
+        
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_soul' },
+        { type = 'c', c = 'c_wraith' },
+        { type = 'c', c = 'c_talisman' },
+    }),
+    BalatroTCG.Deck('b_challenge', "Jokerless Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_high_priestess' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+
+        { type = 'c', c = 'c_talisman' },
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_black_hole' },
+        
+        { type = 'c', c = 'c_ceres' },
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_earth' },
+    }),
+    BalatroTCG.Deck('b_mp_violet', 'Voucher Deck',
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        { type = 'p', r = '5', s = 'D' },
+        { type = 'p', r = '4', s = 'D' },
+        { type = 'p', r = '3', s = 'D' },
+        { type = 'p', r = '2', s = 'D' },
+        { type = 'j', c = 'j_ticket' },
+        { type = 'j', c = 'j_mail' },
+        { type = 'j', c = 'j_golden' },
+        { type = 'j', c = 'j_rough_gem' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_high_priestess' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+        { type = 'c', c = 'c_judgement' },
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_planet_x' },
+        { type = 'c', c = 'c_mars' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_talisman' },
+        { type = 'c', c = 'v_illusion' },
+        { type = 'c', c = 'v_hone' },
+        { type = 'c', c = 'v_magic_trick' },
+        { type = 'c', c = 'v_glow_up' },
+    }),
+    BalatroTCG.Deck('b_mp_indigo', 'Hologram Deck',
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+        { type = 'p', r = '5', s = 'S' },
+        { type = 'p', r = '4', s = 'S' },
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        { type = 'p', r = '5', s = 'H' },
+        { type = 'p', r = '4', s = 'H' },
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        { type = 'p', r = '5', s = 'C' },
+        { type = 'p', r = '4', s = 'C' },
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        { type = 'p', r = '5', s = 'D' },
+        { type = 'p', r = '4', s = 'D' },
+        { type = 'j', c = 'j_faceless' },
+        { type = 'j', c = 'j_todo_list' },
+        { type = 'j', c = 'j_hallucination' },
+        { type = 'j', c = 'j_hallucination' },
+        { type = 'j', c = 'j_drunkard' },
+        { type = 'j', c = 'j_drunkard' },
+        { type = 'j', c = 'j_hanging_chad' },
+        { type = 'j', c = 'j_blue_joker' },
+        { type = 'j', c = 'j_supernova' },
+        { type = 'j', c = 'j_card_sharp' },
+        { type = 'j', c = 'j_sixth_sense' },
+        { type = 'j', c = 'j_hologram' },
+        { type = 'j', c = 'j_dna' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_cryptid' },
+    }),
+    BalatroTCG.Deck('b_mp_orange', "Jokerless Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_high_priestess' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+
+        { type = 'c', c = 'c_talisman' },
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_black_hole' },
+        
+        { type = 'c', c = 'c_ceres' },
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_earth' },
+    }),
+    BalatroTCG.Deck('b_mp_oracle', "Jokerless Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_high_priestess' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+
+        { type = 'c', c = 'c_talisman' },
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_black_hole' },
+        
+        { type = 'c', c = 'c_ceres' },
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_earth' },
+    }),
+    BalatroTCG.Deck('b_mp_gradient', "Numeric Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_high_priestess' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+
+        { type = 'c', c = 'c_talisman' },
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_black_hole' },
+        
+        { type = 'c', c = 'c_ceres' },
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_earth' },
+    }),
+    BalatroTCG.Deck('b_mp_heidelberg', "Jokerless Deck", 
+    {
+        { type = 'p', r = 'A', s = 'S' },
+        { type = 'p', r = 'K', s = 'S' },
+        { type = 'p', r = 'Q', s = 'S' },
+        { type = 'p', r = 'J', s = 'S' },
+        { type = 'p', r = 'T', s = 'S' },
+        { type = 'p', r = '9', s = 'S' },
+        { type = 'p', r = '8', s = 'S' },
+        { type = 'p', r = '7', s = 'S' },
+        { type = 'p', r = '6', s = 'S' },
+
+        { type = 'p', r = 'A', s = 'H' },
+        { type = 'p', r = 'K', s = 'H' },
+        { type = 'p', r = 'Q', s = 'H' },
+        { type = 'p', r = 'J', s = 'H' },
+        { type = 'p', r = 'T', s = 'H' },
+        { type = 'p', r = '9', s = 'H' },
+        { type = 'p', r = '8', s = 'H' },
+        { type = 'p', r = '7', s = 'H' },
+        { type = 'p', r = '6', s = 'H' },
+        
+        { type = 'p', r = 'A', s = 'C' },
+        { type = 'p', r = 'K', s = 'C' },
+        { type = 'p', r = 'Q', s = 'C' },
+        { type = 'p', r = 'J', s = 'C' },
+        { type = 'p', r = 'T', s = 'C' },
+        { type = 'p', r = '9', s = 'C' },
+        { type = 'p', r = '8', s = 'C' },
+        { type = 'p', r = '7', s = 'C' },
+        { type = 'p', r = '6', s = 'C' },
+        
+        { type = 'p', r = 'A', s = 'D' },
+        { type = 'p', r = 'K', s = 'D' },
+        { type = 'p', r = 'Q', s = 'D' },
+        { type = 'p', r = 'J', s = 'D' },
+        { type = 'p', r = 'T', s = 'D' },
+        { type = 'p', r = '9', s = 'D' },
+        { type = 'p', r = '8', s = 'D' },
+        { type = 'p', r = '7', s = 'D' },
+        { type = 'p', r = '6', s = 'D' },
+        
+        { type = 'c', c = 'c_fool' },
+        { type = 'c', c = 'c_magician' },
+        { type = 'c', c = 'c_high_priestess' },
+        { type = 'c', c = 'c_emperor' },
+        { type = 'c', c = 'c_lovers' },
+        { type = 'c', c = 'c_chariot' },
+        { type = 'c', c = 'c_justice' },
+        { type = 'c', c = 'c_hermit' },
+        { type = 'c', c = 'c_strength' },
+        { type = 'c', c = 'c_hanged_man' },
+        { type = 'c', c = 'c_death' },
+        { type = 'c', c = 'c_devil' },
+
+        { type = 'c', c = 'c_talisman' },
+        { type = 'c', c = 'c_aura' },
+        { type = 'c', c = 'c_sigil' },
+        { type = 'c', c = 'c_immolate' },
+        { type = 'c', c = 'c_deja_vu' },
+        { type = 'c', c = 'c_trance' },
+        { type = 'c', c = 'c_medium' },
+        { type = 'c', c = 'c_cryptid' },
+        { type = 'c', c = 'c_black_hole' },
+        
+        { type = 'c', c = 'c_ceres' },
+        { type = 'c', c = 'c_eris' },
+        { type = 'c', c = 'c_earth' },
+    }),
+}
+
+
 for k, v in ipairs(BalatroTCG.DefaultDecks) do
     v.is_vanilla = true
 end
@@ -1622,10 +3189,16 @@ end
 function BalatroTCG.Deck:has_content()
 
     for k, v in ipairs(self.backs) do
-        if not G.P_CENTERS[v] then return false end
+        if not G.P_CENTERS[v] then
+            --print('Deck ' .. self.name ..  ' is missing deck ' .. v)
+            return false
+        end
     end
     for k, v in ipairs(self.cards) do
-        if v.type ~= 'p' and not G.P_CENTERS[v.c] then return false end
+        if v.type ~= 'p' and not G.P_CENTERS[v.c] then
+            --print('Deck ' .. self.name  ..  ' is missing card ' .. v.c)
+            return false
+        end
     end
 
     return true
@@ -1645,7 +3218,7 @@ function load_custom_decks()
             local decks = read_decks(file_string)
 
             for _, data in pairs(decks) do
-                BalatroTCG.CustomDecks[#BalatroTCG.CustomDecks + 1] = BalatroTCG.Deck(data.back, data.name, data.cards)
+                BalatroTCG.CustomDecks[#BalatroTCG.CustomDecks + 1] = data
             end
         end
     end
@@ -1656,70 +3229,152 @@ function load_custom_decks()
 end
 
 
+
+function BalatroTCG.Deck:serialize(compress)
+    self:sanitize()
+
+    local endString = ';'
+
+    if not compress then endString = ';\n' end
+
+    local toWrite = ''
+    
+    toWrite = toWrite .. self.name .. endString
+    for k, back in ipairs(self.backs) do
+        toWrite = toWrite .. back .. ':'
+    end
+    toWrite = string.sub(toWrite, 1, #toWrite - 1)  .. endString
+
+    for k, card in ipairs(self.cards) do
+        toWrite = toWrite .. card.type .. ':'
+        if card.type =='p' then
+            toWrite = toWrite .. card.r .. ':' .. card.s
+        else
+            toWrite = toWrite .. card.c
+        end
+        toWrite = toWrite .. endString
+    end
+
+    toWrite = toWrite .. '#end#'
+
+    return toWrite
+end
+
+function BalatroTCG.Deck:serialize_lua()
+    self:sanitize()
+
+    local endString = '\n'
+
+    local toWrite = "BalatroTCG.Deck('"
+    
+    for k, back in ipairs(self.backs) do
+        toWrite = toWrite .. back .. ':'
+    end
+    toWrite = string.sub(toWrite, 1, #toWrite - 1)
+    toWrite = toWrite .. "', '" .. self.name .. "'," .. endString .. '{\n'
+
+    for k, card in ipairs(self.cards) do
+        toWrite = toWrite .. "\t{ type = '" .. card.type .. "', "
+        if card.type == 'p' then
+            toWrite = toWrite .. "r = '" .. card.r .. "', s = '" .. card.s .. "' },\n"
+        else
+            toWrite = toWrite .. "c = '" .. card.c .. "' },\n"
+        end
+    end
+
+    toWrite = toWrite .. '})'
+
+    return toWrite
+end
+
+function BalatroTCG.Deck.deserialize(data, write_to)
+    
+
+    local split = splitlines(data, ';')
+
+    local index = 1
+    
+    local name = split[index]
+    local deckdata = splitlines(split[index + 1], ':')
+    index = index + 2
+
+    local cards = {}
+    while index <= #split and split[index] ~= '#end#' do
+
+        local cd = splitlines(split[index], ':')
+        if cd[1] == 'p' then
+            cards[#cards + 1] = {type = cd[1], r = cd[2], s = cd[3]}
+        else
+            cards[#cards + 1] = {type = cd[1], c = cd[2]}
+        end
+        index = index + 1
+    end
+
+    if write_to then
+        write_to.backs = deckdata
+        write_to.cards = cards
+        write_to.name = name
+    else
+        return BalatroTCG.Deck(deckdata, name, cards)
+    end
+end
+
+function BalatroTCG.Deck:sanitize()
+    self.name = self.name:gsub(':', '_'):gsub(';', '_'):gsub('\n', '_')
+end
+
 function read_decks(file_string)
     local split = splitlines(file_string, '\n')
 
     local decks = {}
 
-    local index = 1
+    if split[1] == 'format-1.1' then
+        local index = 2
 
-    while index <= #split and split[index] ~= '###' do
-        local name = split[index]
-        local deckdata = splitlines(string.sub(split[index + 1], 2, string.len(split[index + 1])), ':')
-        index = index + 2
+        while index <= #split and split[index] ~= '###' do
+            
+            decks[#decks + 1] = BalatroTCG.Deck.deserialize(split[index])
 
-        local cards = {}
-        while string.sub(split[index], 1, 1) == '\t' do
-            local cd = splitlines(string.sub(split[index], 2, string.len(split[index])), ':')
-            if cd[1] == 'p' then
-                cards[#cards + 1] = {type = cd[1], r = cd[2], s = cd[3]}
-            else
-                cards[#cards + 1] = {type = cd[1], c = cd[2]}
-            end
             index = index + 1
         end
+    else
+        local index = 1
+    
+        while index <= #split and split[index] ~= '###' do
+            local name = split[index]
+            local deckdata = splitlines(string.sub(split[index + 1], 2, string.len(split[index + 1])), ';')
+            index = index + 2
+    
+            local cards = {}
+            while string.sub(split[index], 1, 1) == '\t' do
+                local cd = splitlines(string.sub(split[index], 2, string.len(split[index])), ':')
+                if cd[1] == 'p' then
+                    cards[#cards + 1] = {type = cd[1], r = cd[2], s = cd[3]}
+                else
+                    cards[#cards + 1] = {type = cd[1], c = cd[2]}
+                end
+                index = index + 1
+            end
+            
+            decks[#decks + 1] = BalatroTCG.Deck(deckdata, name, cards)
+        end
 
-        decks[#decks + 1] = {
-            back = deckdata[1], 
-            cards = cards,
-            name = name
-        }
-
+        save_decks({decks})
     end
 
     return decks
 
 end
 
-function BalatroTCG.Deck:sanitize()
-    self.name = self.name:gsub(':', '_')
-end
-
 function save_decks(decks)
     decks = decks or {BalatroTCG.CustomDecks}
     local table = {}
 
-    local toWrite = ''
+    local toWrite = 'format-1.1\n'
 
     for _, extra in ipairs(decks) do
         for k, v in ipairs(extra) do
-            v:sanitize()
-            toWrite = toWrite .. v.name .. '\n'
-            toWrite = toWrite .. '\t'
-            for k, back in ipairs(v.backs) do
-                toWrite = toWrite .. back .. ';'
-            end
-            toWrite = string.sub(toWrite, 1, #toWrite - 1)  .. '\n'
-
-            for k, card in ipairs(v.cards) do
-                toWrite = toWrite .. '\t' .. card.type .. ':'
-                if card.type =='p' then
-                    toWrite = toWrite .. card.r .. ':' .. card.s
-                else
-                    toWrite = toWrite .. card.c
-                end
-                toWrite = toWrite .. '\n'
-            end
+            toWrite = toWrite .. v:serialize(true) .. '\n'
         end
     end
 
@@ -2061,7 +3716,6 @@ function BalatroTCG.Deck:is_legal()
                     jokers[card.c] = (jokers[card.c] or 0) + 1
                 end
             else
-                print(card.c)
                 errors['tcg_err_unknown_type'] = {}
             end
         else

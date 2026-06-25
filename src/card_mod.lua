@@ -49,7 +49,18 @@ end
 function Card:is_rank_joker(ranks)
 	if self.ability.effect == "Stone Card" or SMODS.has_no_rank(self) then return false end
 
+    ranks = get_mapped_ranks(ranks)
+
+    for _, r in ipairs(ranks) do
+        if self:get_id() == r then return true end
+    end
+    return false
+end
+
+function get_mapped_ranks(ranks)
+
     if type(ranks) ~= 'table' then ranks = {ranks} end
+
     if BalatroTCG.GameActive then
         
         for k, v in ipairs(BalatroTCG.Status_Current.backs) do
@@ -78,10 +89,7 @@ function Card:is_rank_joker(ranks)
         end
     end
 
-    for _, r in ipairs(ranks) do
-        if self:get_id() == r then return true end
-    end
-    return false
+    return ranks
 end
 
 local use_consumeable_ref = Card.use_consumeable
@@ -594,7 +602,7 @@ function TCG_Override_Desc(self, _c)
     if _c.use_original_desc then return end
 
     if _c.tcg_modifier and _c.tcg_modifier.loc_vars then
-        loc_vars = _c.tcg_modifier.loc_vars(ability, card, not BalatroTCG.Settings.Unbalance)
+        loc_vars = _c.tcg_modifier.loc_vars(ability, card, not BalatroTCG.Settings.Unbalance) or loc_vars
     elseif _c.name == 'Ancient Joker' and self then loc_vars = {ability.extra, localize(self:get_ability_suit(G.GAME.current_round.ancient_card.suit), 'suits_singular'), colours = {G.C.SUITS[self:get_ability_suit(G.GAME.current_round.ancient_card.suit)]}}
     elseif _c.name == 'Campfire' then loc_vars = {ability.extra, ability.reduce, ability.x_mult}
     elseif _c.name == 'Acrobat' then loc_vars = { ability.scaling, ((BalatroTCG.Status_Current and (BalatroTCG.Status_Current.status.round - 1) or 0) * ability.scaling + ability.initial)}
@@ -686,6 +694,7 @@ function Card:set_tcg_health(_amount)
         self:set_tcg_max_health(BalatroTCG.Status_Current.params.joker_health)
     elseif not self.ability.eternal then
         if _amount <= 0 then
+            SMODS.calculate_context({ joker_dying = self, status = BalatroTCG.Status_Current })
             G.E_MANAGER:add_event(Event({
                 trigger = 'after',
                 blockable = false,

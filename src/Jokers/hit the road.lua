@@ -17,6 +17,18 @@ BalatroTCG.JokerMod {
                     card = self
                 }
             end
+            
+        elseif not context.repetition and not context.individual and context.end_of_round and self.ability.x_mult > 1 then
+            self.ability.x_mult = 1
+            return {
+                message = localize('k_reset'),
+                colour = G.C.RED
+            }
+        elseif context.joker_main then
+            return {
+                message = localize{type='variable',key='a_xmult',vars={self.ability.x_mult}},
+                Xmult_mod = self.ability.x_mult,
+            }
         end
         
     end

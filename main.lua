@@ -64,18 +64,11 @@ Sigil and Ouija effect jokers that are suit or rank exclusive.
 ]]
 
 -- TODO:
--- Add particles to deck backgrounds
--- Swirl background by who's playing
--- Add deck background class
 
-
--- Receiving actions:
--- 'startTcgBetting' Run when the host starts a TCG game.  Return with a 'startGame' with 'seed' for the seed
--- 'tcgBet' Each player can bet money to go first.  Once all players have given their bet, send a 'tcgStartGame' action.  The player who won the bet will recieve their bet in the form of 'damage' with this command as well as 'starting' at true
--- 'tcgPlayerStatus' is just an echo action.  Send to the other player as it comes in.
--- 'tcgEndTurn' will happen when one player's turn ends.  Echo back to the other player with a 'tcgStartTurn' with the parameters passed through
 
 BalatroTCG = SMODS.current_mod
+
+BalatroTCG.VersionText = SMODS.Mods["tcgb"].version .. "-TCG"
 
 function splitlines(inputstr, sep)
   local t = {}
@@ -128,6 +121,7 @@ BalatroTCG.load_dir("src/Jokers")
 BalatroTCG.load_dir("src/Spectrals")
 BalatroTCG.load_dir("src/Tarots")
 BalatroTCG.load_dir("src/Vouchers")
+BalatroTCG.load_dir("src/Rulesets")
 
 SMODS.Atlas({
 	key = "sticker_hidden",
@@ -363,6 +357,48 @@ G.FUNCS.tcg_start_multi = function(e)
     G.FUNCS.wipe_off()
 end
 
+
+if MP then
+    -- Add 
+    local game_main_menu_ref = Game.main_menu
+    ---@diagnostic disable-next-line: duplicate-set-field
+    function Game:main_menu(change_context)
+        local ret = game_main_menu_ref(self, change_context)
+
+        -- Add version to main menu
+        UIBox({
+            definition = {
+                n = G.UIT.ROOT,
+                config = {
+                    align = "cm",
+                    colour = G.C.UI.TRANSPARENT_DARK,
+                },
+                nodes = {
+                    {
+                        n = G.UIT.T,
+                        config = {
+                            scale = 0.3,
+                            text = BalatroTCG.VersionText,
+                            colour = G.C.UI.TEXT_LIGHT,
+                        },
+                    },
+                },
+            },
+            config = {
+                align = "tri",
+                bond = "Weak",
+                offset = {
+                    x = 0,
+                    y = 1.2,
+                },
+                major = G.ROOM_ATTACH,
+            },
+        })
+
+        return ret
+    end
+end
+
 function Game:start_tcg_game(args)
     args = args or {}
 
@@ -394,8 +430,11 @@ function Game:start_tcg_game(args)
     --self.GAME.pseudorandom.seed = "QX9I13Q8"
     self.GAME.subhash = ''
     self.GAME.pseudorandom.hashed_seed = pseudohash(self.GAME.pseudorandom.seed)
+    self.GAME.round_resets.pvp_blind_choices = {}
     
     G.GAME.facing_blind = true
+
+    
 
     --print(self.GAME.pseudorandom.seed)
     --BalatroTCG.SavedSpeed = G.SETTINGS.GAMESPEED
@@ -487,7 +526,7 @@ function Game:start_tcg_game(args)
         })
     else
         local validDecks = {}
-        for k, v in ipairs(BalatroTCG.DefaultDecks) do
+        for k, v in ipairs(BalatroTCG.AIDecks) do
             if v:has_content() then
                 validDecks[#validDecks + 1] = v
             end

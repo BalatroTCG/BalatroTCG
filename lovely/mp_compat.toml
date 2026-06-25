@@ -1,0 +1,125 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 10000
+
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''elseif parsedAction.action == "disconnected" then'''
+position = "before"
+payload = '''
+elseif parsedAction.action == "tcgPlayerStatus" then
+    BalatroTCG.Player:receive_message(parsedAction)
+elseif parsedAction.action == "tcgStartTurn" then
+    switch_player(true)
+    parsedAction.type = 'startTurn'
+    BalatroTCG.Player:receive_message(parsedAction)
+elseif parsedAction.action == "startGame" and BalatroTCG.MP_Lobby then
+    G.FUNCS.tcg_start_multi({ starting = parsedAction.starting, seed = parsedAction.seed })
+elseif parsedAction.action == "tcg_compatible" then
+    BalatroTCG.MultiCompat = true
+elseif parsedAction.action == "tcgStartGame" then
+    G.SETTINGS.paused = false
+    G.FUNCS.exit_overlay_menu()
+    parsedAction.damage = tonumber(parsedAction.damage)
+    BalatroTCG.Player:receive_message({type = 'attack', damage = parsedAction.damage, key = 'start'})
+    switch_player(parsedAction.starting == 'true' or parsedAction.starting == true)
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''or k == "timer_forgiveness"'''
+position = "after"
+payload = '''
+or tonumber(v)
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''elseif parsedAction.action == "version" then'''
+position = "after"
+payload = '''
+    BalatroTCG.MultiCompat = false
+    Client.send({action = "tcgServerVersion", version = 1 })
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''action_lobby_options(parsedAction)'''
+position = "after"
+payload = '''
+
+if MP.Gamemodes[MP.LOBBY.config.gamemode].is_tcg_gamemode then
+    set_tcg_mp_settings()
+end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
+pattern = '''if not MP.Rulesets[v] then'''
+position = "at"
+payload = '''
+if BalatroTCG.Rulesets[v] then
+    local disabled = BalatroTCG.Rulesets[v].is_disabled()
+    if disabled then
+        G.FUNCS.lobby_leave(nil)
+        MP.UTILS.overlay_message(
+            localize({ type = "variable", key = "k_failed_to_join_lobby", vars = { disabled } })
+        )
+        return
+    end
+    MP.LOBBY.config.ruleset = v
+    goto continue
+elseif not MP.Rulesets[v] then
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "objects/decks/ZZ_cocktail.lua"]'
+pattern = '''localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })'''
+position = "after"
+payload = '''
+else
+    localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS Multiplayer "objects/decks/ZZ_cocktail.lua"]'
+pattern = '''calculate = function(self, back, context)'''
+position = "after"
+payload = '''
+if not G.GAME.modifiers.mp_cocktail then return end
+
+'''
+match_indent = true
+overwrite = true
+
+
+
+[[patches]]
+[patches.copy]
+target = '=[SMODS Multiplayer "gamemodes/_gamemodes.lua"]'
+position = "append"
+sources = [
+    "lovely/injection/mp_tcg.lua",
+]
+payload = ""

@@ -11,9 +11,10 @@ BalatroTCG.VoucherMod {
 
     calculate_context = function(self, context, balanced)
         if context.cardarea == G.jokers and context.joker_main then
+            
             return {
                 message = localize{type='variable',key='a_chips',vars={self.ability.extra}},
-                chip_mod = self.ability.extra.chips,
+                chip_mod = self.ability.extra,
                 card = self
             }
         end

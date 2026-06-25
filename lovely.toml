@@ -28,7 +28,7 @@ payload = '''
 if BalatroTCG.GameActive then
     if card.ability.set == 'Joker' and context.joker_main and not context.blueprint then
         ret.playing_card = ret.playing_card or {}
-        --[[
+        
         for k, voucher in ipairs(BalatroTCG.Status_Current.vouchers.cards) do
             
             if voucher.ability.name == 'Hone' then
@@ -37,7 +37,7 @@ if BalatroTCG.GameActive then
                 ret.playing_card.x_mult = voucher.ability.extra
             end
         end
-        ]]
+        
     elseif context.destroy_card and context.cardarea == G.play and context.destroy_card == card then
         if card.lucky_trigger then
             ret.playing_card = ret.playing_card or {}
@@ -638,92 +638,6 @@ end
 match_indent = true
 overwrite = true
 
-[[patches]]
-[patches.pattern]
-target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
-pattern = '''elseif parsedAction.action == "disconnected" then'''
-position = "before"
-payload = '''
-elseif parsedAction.action == "tcgPlayerStatus" then
-    BalatroTCG.Player:receive_message(parsedAction)
-elseif parsedAction.action == "tcgStartTurn" then
-    switch_player(true)
-    parsedAction.type = 'startTurn'
-    BalatroTCG.Player:receive_message(parsedAction)
-elseif parsedAction.action == "startGame" and BalatroTCG.MP_Lobby then
-    G.FUNCS.tcg_start_multi({ starting = parsedAction.starting, seed = parsedAction.seed })
-elseif parsedAction.action == "tcg_compatible" then
-    BalatroTCG.MultiCompat = true
-elseif parsedAction.action == "tcgStartGame" then
-    G.SETTINGS.paused = false
-    G.FUNCS.exit_overlay_menu()
-    parsedAction.damage = tonumber(parsedAction.damage)
-    BalatroTCG.Player:receive_message({type = 'attack', damage = parsedAction.damage, key = 'start'})
-    switch_player(parsedAction.starting == 'true' or parsedAction.starting == true)
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
-pattern = '''or k == "timer_forgiveness"'''
-position = "after"
-payload = '''
-or tonumber(v)
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
-pattern = '''elseif parsedAction.action == "version" then'''
-position = "after"
-payload = '''
-    BalatroTCG.MultiCompat = false
-    Client.send({action = "tcgServerVersion", version = 1 })
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
-pattern = '''action_lobby_options(parsedAction)'''
-position = "after"
-payload = '''
-if MP.LOBBY.config.gamemode == "gamemode_mp_tcg" then
-    set_tcg_mp_settings()
-end
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = '=[SMODS Multiplayer "networking/action_handlers.lua"]'
-pattern = '''elseif parsedAction.action == "joinedLobby" then'''
-position = "after"
-payload = '''
-    if parsedAction.type == 'tcg' then
-        BalatroTCG.MP_Lobby = true
-    end
-'''
-match_indent = true
-overwrite = true
-
-[[patches]]
-[patches.pattern]
-target = '=[SMODS Multiplayer "objects/decks/ZZ_cocktail.lua"]'
-pattern = '''localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })'''
-position = "after"
-payload = '''
-else
-    localize({ type = "descriptions", key = _c.key, set = _c.set, nodes = ret.main, vars = specific_vars })
-'''
-match_indent = true
-overwrite = true
 
 [[patches]]
 [patches.pattern]
@@ -748,6 +662,17 @@ if BalatroTCG.GameActive then
         }}
     end
 end
+'''
+match_indent = true
+overwrite = true
+
+[[patches]]
+[patches.pattern]
+target = 'functions/UI_definitions.lua'
+pattern = "{tabs = _show_remaining and {"
+position = "at"
+payload = '''
+{tabs = (_show_remaining or BalatroTCG.GameActive) and {
 '''
 match_indent = true
 overwrite = true
