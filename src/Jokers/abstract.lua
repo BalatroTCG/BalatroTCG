@@ -22,19 +22,14 @@ BalatroTCG.JokerMod {
     end,
     ai_calculate = function(self, context, balanced)
         
-        if context.value_eval == self then
-            local amount = 0
-            if self.area == G.jokers then
-                
-                for i = 1, #G.jokers.cards do
-                    if G.jokers.cards[i].ability.set == 'Joker' then amount = amount + 1 end
-                end
-                amount = amount + #BalatroTCG.Status_Current.opponentJokers.cards
-            else
-                amount = G.jokers.card_limit + (#BalatroTCG.Status_Current.opponentJokers.cards + math.max(5, #BalatroTCG.Status_Current.opponentJokers.cards)) / 2
-            end
+        if context.purchase == self then
+            
+            local amount = G.jokers.card_limit + (#BalatroTCG.Status_Current.opponentJokers.cards + math.max(5, #BalatroTCG.Status_Current.opponentJokers.cards)) / 2
+            
             return {
-                mult = amount * self.ability.extra,
+                hand = { any = {
+                    mult = amount * self.ability.extra,
+                }}
             } 
         end
     end,

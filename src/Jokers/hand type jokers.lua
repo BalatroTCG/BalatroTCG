@@ -11,6 +11,16 @@ BalatroTCG.JokerMod {
             return 2
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { pair = {
+                    mult = self.ability.t_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_sly',
@@ -23,6 +33,16 @@ BalatroTCG.JokerMod {
     get_cost = function(original, balanced)
         if balanced then
             return 2
+        end
+    end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { pair = {
+                    chips = self.ability.t_chips,
+                }}
+            } 
         end
     end,
 }
@@ -39,6 +59,16 @@ BalatroTCG.JokerMod {
             return 3
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { threeoak = {
+                    mult = self.ability.t_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_wily',
@@ -51,6 +81,16 @@ BalatroTCG.JokerMod {
     get_cost = function(original, balanced)
         if balanced then
             return 3
+        end
+    end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { threoak = {
+                    chips = self.ability.t_chips,
+                }}
+            } 
         end
     end,
 }
@@ -67,6 +107,16 @@ BalatroTCG.JokerMod {
             return 3
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { twopair = {
+                    mult = self.ability.t_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_clever',
@@ -79,6 +129,16 @@ BalatroTCG.JokerMod {
     get_cost = function(original, balanced)
         if balanced then
             return 3
+        end
+    end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { twopair = {
+                    chips = self.ability.t_chips,
+                }}
+            } 
         end
     end,
 }
@@ -95,6 +155,16 @@ BalatroTCG.JokerMod {
             return 3
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { straight = {
+                    mult = self.ability.t_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_devious',
@@ -107,6 +177,16 @@ BalatroTCG.JokerMod {
     get_cost = function(original, balanced)
         if balanced then
             return 3
+        end
+    end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { straight = {
+                    chips = self.ability.t_chips,
+                }}
+            } 
         end
     end,
 }
@@ -123,6 +203,16 @@ BalatroTCG.JokerMod {
             return 3
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { flush = {
+                    mult = self.ability.t_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_crafty',
@@ -135,6 +225,16 @@ BalatroTCG.JokerMod {
     get_cost = function(original, balanced)
         if balanced then
             return 3
+        end
+    end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { flush = {
+                    chips = self.ability.t_chips,
+                }}
+            } 
         end
     end,
 }
@@ -150,6 +250,16 @@ BalatroTCG.JokerMod {
             self.config.x_mult = 8
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { pair = {
+                    x_mult = self.ability.x_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_trio',
@@ -162,6 +272,16 @@ BalatroTCG.JokerMod {
             self.config.x_mult = 10
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { threeoak = {
+                    x_mult = self.ability.x_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_family',
@@ -171,6 +291,16 @@ BalatroTCG.JokerMod {
             self.config.x_mult = 12
         end
     end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { fouroak = {
+                    x_mult = self.ability.x_mult,
+                }}
+            } 
+        end
+    end,
 }
 BalatroTCG.JokerMod {
     key_override = 'j_order',
@@ -178,6 +308,16 @@ BalatroTCG.JokerMod {
     modify = function(self, balanced)
         if balanced then
             self.config.x_mult = 14
+        end
+    end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { straight = {
+                    x_mult = self.ability.x_mult,
+                }}
+            } 
         end
     end,
 }
@@ -190,6 +330,16 @@ BalatroTCG.JokerMod {
     modify = function(self, balanced)
         if balanced then
             self.config.x_mult = 9
+        end
+    end,
+    ai_calculate = function(self, context, balanced)
+        
+        if context.purchase == self then
+            return {
+                hand = { flush = {
+                    x_mult = self.ability.x_mult,
+                }}
+            } 
         end
     end,
 }

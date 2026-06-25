@@ -655,14 +655,6 @@ local SMODS_trigger_effects = SMODS.trigger_effects
 SMODS.trigger_effects = function(effects, card)
     local value = SMODS_trigger_effects(effects, card)
     
-    for _, effect_table in ipairs(effects) do
-        if effect_table then
-            for k, v in pairs(effect_table) do
-                print(k)
-            end
-        end
-    end
-
     return value
 end
 

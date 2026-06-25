@@ -526,7 +526,7 @@ function Game:start_tcg_game(args)
         })
     else
         local validDecks = {}
-        for k, v in ipairs(BalatroTCG.DefaultDecks) do
+        for k, v in ipairs(BalatroTCG.AIDecks) do
             if v:has_content() then
                 validDecks[#validDecks + 1] = v
             end
