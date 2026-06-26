@@ -3,8 +3,8 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.extra.chips = 250
-            self.config.extra.chip_mod = 50
+            self.config.extra.chips = 500
+            self.config.extra.chip_mod = 10
         end
     end,
 }

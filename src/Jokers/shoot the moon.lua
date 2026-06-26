@@ -2,7 +2,7 @@ BalatroTCG.JokerMod {
     key_override = 'j_shoot_the_moon',
     
     modify = function(self, balanced)
-        self.config.mult = 13
+        self.config.mult = 25
     end,
     calculate_context = function(self, context, balanced)
         

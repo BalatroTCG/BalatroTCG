@@ -2,7 +2,7 @@ BalatroTCG.JokerMod {
     key_override = 'j_obelisk',
     
     modify = function(self, balanced)
-        if balanced then self.config.extra = 2 end
+        if balanced then self.config.extra = 1.5 end
     end,
     calculate_context = function(self, context, balanced)
         if context.cardarea == G.jokers then

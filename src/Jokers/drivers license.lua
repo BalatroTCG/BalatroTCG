@@ -3,8 +3,8 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.extra = 16
-            self.config.tally_amount = 12
+            self.config.extra = 50
+            self.config.tally_amount = 16
         else
             self.config.tally_amount = 16
         end

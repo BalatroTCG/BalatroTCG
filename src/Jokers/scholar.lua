@@ -3,8 +3,8 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.extra.chips = 50
-            self.config.extra.mult = 5
+            self.config.extra.chips = 75
+            self.config.extra.mult = 15
         end
     end,
     calculate_context = function(self, context, balanced)

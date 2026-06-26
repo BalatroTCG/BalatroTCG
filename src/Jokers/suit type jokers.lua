@@ -3,7 +3,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.s_mult = 6
+            self.config.s_mult = 15
         end
     end,
     get_cost = function(original, balanced)
@@ -17,7 +17,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.s_mult = 6
+            self.config.s_mult = 15
         end
     end,
     get_cost = function(original, balanced)
@@ -31,7 +31,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.s_mult = 6
+            self.config.s_mult = 15
         end
     end,
     get_cost = function(original, balanced)
@@ -45,7 +45,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.s_mult = 6
+            self.config.s_mult = 15
         end
     end,
     get_cost = function(original, balanced)
@@ -136,7 +136,7 @@ BalatroTCG.JokerMod {
     key_override = 'j_onyx_agate',
     
     modify = function(self, balanced)
-        if balanced then self.config.extra = 18 end
+        if balanced then self.config.extra = 25 end
     end,
     calculate_context = function(self, context, balanced)
         if context.individual and context.cardarea == G.play then

@@ -1,0 +1,11 @@
+The BalatroTCG trio is as follows:
+* Hands.        Smaller but consistent attacks.  Wear down opponents.  Good against Discards.
+* Discards.     Wait, then strike.  Discard to get glass and strong jokers.  Good against Hand Size.
+* Hand Size.    Defense and econ.  Use hand size to hold gold cards and protect against damage.
+
+Decks:
+* Red - Discards
+* Blue - Hands
+* Yellow - Hand Size
+* Green - 
+* Black - 

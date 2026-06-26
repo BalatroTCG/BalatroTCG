@@ -3,12 +3,12 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_mult = 10
+            self.config.t_mult = 25
         end
     end,
     get_cost = function(original, balanced)
         if balanced then
-            return 2
+            return 1
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -27,12 +27,12 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_chips = 100
+            self.config.t_chips = 150
         end
     end,
     get_cost = function(original, balanced)
         if balanced then
-            return 2
+            return 1
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -51,7 +51,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_mult = 15
+            self.config.t_mult = 50
         end
     end,
     get_cost = function(original, balanced)
@@ -75,7 +75,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_chips = 150
+            self.config.t_chips = 300
         end
     end,
     get_cost = function(original, balanced)
@@ -99,12 +99,12 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_mult = 12
+            self.config.t_mult = 35
         end
     end,
     get_cost = function(original, balanced)
         if balanced then
-            return 3
+            return 2
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -123,12 +123,12 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_chips = 120
+            self.config.t_chips = 200
         end
     end,
     get_cost = function(original, balanced)
         if balanced then
-            return 3
+            return 2
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -147,12 +147,12 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_mult = 30
+            self.config.t_mult = 80
         end
     end,
     get_cost = function(original, balanced)
         if balanced then
-            return 3
+            return 4
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -171,12 +171,12 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_chips = 300
+            self.config.t_chips = 600
         end
     end,
     get_cost = function(original, balanced)
         if balanced then
-            return 3
+            return 4
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -195,7 +195,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_mult = 18
+            self.config.t_mult = 35
         end
     end,
     get_cost = function(original, balanced)
@@ -219,7 +219,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.t_chips = 180
+            self.config.t_chips = 250
         end
     end,
     get_cost = function(original, balanced)
@@ -243,11 +243,11 @@ BalatroTCG.JokerMod {
     key_override = 'j_duo',
     
     get_cost = function(original, balanced)
-        if balanced then return 6 end
+        if balanced then return 4 end
     end,
     modify = function(self, balanced)
         if balanced then
-            self.config.x_mult = 8
+            self.config.x_mult = 10
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -269,7 +269,7 @@ BalatroTCG.JokerMod {
     end,
     modify = function(self, balanced)
         if balanced then
-            self.config.x_mult = 10
+            self.config.x_mult = 15
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -288,7 +288,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.x_mult = 12
+            self.config.x_mult = 20
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -307,7 +307,7 @@ BalatroTCG.JokerMod {
     
     modify = function(self, balanced)
         if balanced then
-            self.config.x_mult = 14
+            self.config.x_mult = 30
         end
     end,
     ai_calculate = function(self, context, balanced)
@@ -329,7 +329,7 @@ BalatroTCG.JokerMod {
     end,
     modify = function(self, balanced)
         if balanced then
-            self.config.x_mult = 9
+            self.config.x_mult = 12
         end
     end,
     ai_calculate = function(self, context, balanced)
